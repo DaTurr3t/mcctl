@@ -131,3 +131,4 @@ dmypy.json
 # Custom Entries
 test.bin
 .vscode/*
+examples/*
