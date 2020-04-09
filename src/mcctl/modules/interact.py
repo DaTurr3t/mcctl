@@ -19,14 +19,26 @@
 import subprocess as sp
 import shlex
 import time
+import os
 from modules.storage import getHomePath
 from modules.service import isActive
+from pwd import getpwnam
+
+
+def asUser(username):
+    def setIDs():
+        userData = getpwnam(username)
+        os.setuid(userData.pw_uid)
+        os.setgid(userData.pw_gid)
+
+    return setIDs
 
 
 def attach(instance):
     cmd = shlex.split(
-        "runuser -l mcserver -c 'screen -r mc-{}'".format(instance))
-    sp.run(cmd)
+        'screen -r mc-{}'.format(instance))
+    sp.run(cmd, preexec_fn=asUser("mcserver"))
+
 
 def exec(instance, command, timeout=0.5):
     if not isActive(instance):
@@ -38,8 +50,8 @@ def exec(instance, command, timeout=0.5):
     lineCount = sum(1 for line in open(logPath))
 
     cmd = shlex.split(
-        "runuser -l mcserver -c 'screen -p 0 -S mc-{0} -X stuff \"{1}^M\"'".format(instance, command))
-    sp.run(cmd)
+        'screen -p 0 -S mc-{0} -X stuff "{1}^M"'.format(instance, command))
+    sp.run(cmd, preexec_fn=asUser("mcserver"))
 
     while lineCount > oldCount:
         time.sleep(timeout)
