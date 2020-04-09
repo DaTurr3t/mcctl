@@ -23,7 +23,7 @@ HALFCIRCLE = 2
 
 def spinner(frame, variant=0):
     if variant < 0:
-        raise IndexError("Invalid Index", variant)
+        raise IndexError("Invalid Index '{}'".format(variant))
 
     spinners = [
         {

@@ -30,7 +30,7 @@ def attach(instance):
 
 def exec(instance, command, timeout=0.5):
     if not isActive(instance):
-        raise Exception("The Server is not running", instance)
+        raise Exception("The Server is not running ({})".format(instance))
 
     logPath = getHomePath() / "instances" / instance / "logs/latest.log"
 
