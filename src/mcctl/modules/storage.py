@@ -21,13 +21,12 @@ import shutil
 from pathlib import Path
 import zipfile as zf
 from datetime import datetime
+from pwd import getpwnam
 
 
 def getHomePath(userName="mcserver"):
-    with open("/etc/passwd", "r") as passwd:
-        for userData in passwd.readlines():
-            if userName in userData:
-                return Path(userData.split(":")[5])
+    userData = getpwnam(userName)
+    return Path(userData.pw_dir)
 
 
 def rename(instance, newName):
