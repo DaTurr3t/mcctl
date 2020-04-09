@@ -22,13 +22,13 @@ import shlex
 
 
 def attach(instance):
-    cmd = shlex.split("sudo -u mcserver screen -r mc-{}".format(instance))
+    cmd = shlex.split("runuser -l mcserver -c 'screen -r mc-{}'".format(instance))
     sp.run(cmd)
     pass
 
 
 def exec(instance, command):
     cmd = shlex.split(
-        "sudo -u mcserver screen -p 0 -S mc-{0} -X stuff \"{1}^M\"".format(instance, command))
+        "runuser -l mcserver -c 'screen -p 0 -S mc-{0} -X stuff \"{1}^M\"'".format(instance, command))
     sp.run(cmd)
     pass
