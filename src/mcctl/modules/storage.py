@@ -34,7 +34,6 @@ def rename(instance, newName):
     basePath = getHomePath()
     serverPath = basePath / "instances" / instance
     serverPath.rename(newName)
-    pass
 
 
 def getChildPaths(path, worldName=None):
@@ -83,4 +82,3 @@ def delete(instance):
         basePath = getHomePath()
         delPath = basePath / "instances" / instance
         shutil.rmtree(delPath)
-    pass
