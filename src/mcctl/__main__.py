@@ -30,26 +30,26 @@ if __name__ == "__main__":
     versionDataUrl = "https://launchermeta.mojang.com/mc/game/version_manifest.json"
 
     parser = ap.ArgumentParser(
-        description="Management Utility for Minecraft Server Instances")
+        description="Management Utility for Minecraft Server Instances", formatter_class=ap.ArgumentDefaultsHelpFormatter)
 
     subparsers = parser.add_subparsers(
         title="actions", help="Action to Execute on a Minecraft Server Instance", dest="action")
 
     parserAttach = subparsers.add_parser(
-        "attach", help="Attach to the Console of the Instance")
+        "attach", description="Attach to the Console of the Instance")
 
     parserCreate = subparsers.add_parser(
-        "create", help="Add a new Minecraft Server Instance")
+        "create", description="Add a new Minecraft Server Instance")
     parserCreate.add_argument(
         "--properties", help="server.properties options in KEY1=VALUE1,KEY2=VALUE2 form")
     parserCreate.add_argument(
         "--jvm-args", help="Values for the jvm-env File. Accepted are 'MEM' and 'JARFILE' in KEY1=VALUE1,KEY2=VALUE2 form")
 
     parserDelete = subparsers.add_parser(
-        "delete", help="Delete an Instance or Server Version.")
+        "delete", description="Delete an Instance or Server Version.")
 
     parserExec = subparsers.add_parser(
-        "exec", help="Execute a command in the Console of the Instance")
+        "exec", description="Execute a command in the Console of the Instance")
     parserExec.add_argument("command", metavar="COMMAND",
                             help="Command to execute", nargs=ap.REMAINDER)
 
@@ -57,34 +57,34 @@ if __name__ == "__main__":
     parserExport.add_argument("--world-only", help="Only export World Data")
 
     parserList = subparsers.add_parser(
-        "list", help="List Instances, installed Versions, etc.")
+        "list", description="List Instances, installed Versions, etc.")
 
     parserPull = subparsers.add_parser(
-        "pull", help="Pull a Minecraft Server Binary from the Internet")
+        "pull", description="Pull a Minecraft Server Binary from the Internet", formatter_class=ap.RawTextHelpFormatter)
     parserPull.add_argument(
-        "--url", help="Pull a Minecraft Server from a direct URL.")
-    parserPull.add_argument("source", metavar="VERSION_OR_URL",
-                            help="Minecraft Server in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' is also allowed.\nTypes: 'paper','vanilla'\nVersions: e.g. 1.15.2\nBuild (only for paper): e.g. 122")
+        "--url", action='store_true', help="Pull a Minecraft Server from a direct URL instead of Type ID")
+    parserPull.add_argument("source", metavar="TYPEID_OR_URL",
+                            help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' is also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
 
     parserRename = subparsers.add_parser(
-        "rename", help="Rename a Minecraft Server Instance")
+        "rename", description="Rename a Minecraft Server Instance")
     parserRename.add_argument("newName", metavar="NEW_NAME")
 
     parserRestart = subparsers.add_parser(
-        "restart", help="Restart a Minecraft Server Instance")
+        "restart", description="Restart a Minecraft Server Instance")
 
     parserStart = subparsers.add_parser(
-        "start", help="Start a Minecraft Server Instance")
+        "start", description="Start a Minecraft Server> Instance")
     parserStart.add_argument("--persistent", help="Start even after Reboot")
 
     parserStop = subparsers.add_parser(
-        "stop", help="Stop a Minecraft Server Instance")
+        "stop", description="Stop a Minecraft Server Instance")
     parserStop.add_argument("--persistent", help="Stop even after Reboot")
 
     parser.add_argument("instance", metavar="INSTANCE_ID",
                         help="Instance Name of the Minecraft Server")
 
-    parser.add_argument("-v", help="Verbose Output", action="count", default=0)
+    #parser.add_argument("-v", help="Verbose Output", action="count", default=0)
 
     args = parser.parse_args()
 
