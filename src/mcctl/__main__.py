@@ -35,6 +35,8 @@ if __name__ == "__main__":
     parser = ap.ArgumentParser(
         description="Management Utility for Minecraft Server Instances", formatter_class=ap.ArgumentDefaultsHelpFormatter)
 
+    parser.add_argument("instance", metavar="INSTANCE_ID",
+                        help="Instance Name of the Minecraft Server")
     subparsers = parser.add_subparsers(
         title="actions", help="Action to Execute on a Minecraft Server Instance", dest="action")
 
@@ -83,9 +85,6 @@ if __name__ == "__main__":
     parserStop = subparsers.add_parser(
         "stop", description="Stop a Minecraft Server Instance")
     parserStop.add_argument("--persistent", help="Stop even after Reboot")
-
-    parser.add_argument("instance", metavar="INSTANCE_ID",
-                        help="Instance Name of the Minecraft Server")
 
     #parser.add_argument("-v", help="Verbose Output", action="count", default=0)
 
