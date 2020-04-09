@@ -25,18 +25,12 @@ from modules import interact, storage, service, web
 def comingSoon():
     print("Not yet implemented!")
 
-# TODO
-# Update command
-
 
 if __name__ == "__main__":
     versionDataUrl = "https://launchermeta.mojang.com/mc/game/version_manifest.json"
 
     parser = ap.ArgumentParser(
         description="Management Utility for Minecraft Server Instances")
-
-    parser.add_argument("instance", metavar="INSTANCE_ID",
-                        help="Instance Name of the Minecraft Server")
 
     subparsers = parser.add_subparsers(
         title="actions", help="Action to Execute on a Minecraft Server Instance", dest="action")
@@ -67,11 +61,10 @@ if __name__ == "__main__":
 
     parserPull = subparsers.add_parser(
         "pull", help="Pull a Minecraft Server Binary from the Internet")
-    serverSource = parserPull.add_mutually_exclusive_group()
-    serverSource.add_argument("version", metavar="VERSION", nargs="?",
-                              help="Minecraft Server Version in <TYPE>:<VERSION> format. Compatible Types are: 'paper','vanilla'")
-    serverSource.add_argument(
+    parserPull.add_argument(
         "--url", help="Pull a Minecraft Server from a direct URL.")
+    parserPull.add_argument("source", metavar="VERSION_OR_URL",
+                            help="Minecraft Server in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' is also allowed.\nTypes: 'paper','vanilla'\nVersions: e.g. 1.15.2\nBuild (only for paper): e.g. 122")
 
     parserRename = subparsers.add_parser(
         "rename", help="Rename a Minecraft Server Instance")
@@ -88,6 +81,9 @@ if __name__ == "__main__":
         "stop", help="Stop a Minecraft Server Instance")
     parserStop.add_argument("--persistent", help="Stop even after Reboot")
 
+    parser.add_argument("instance", metavar="INSTANCE_ID",
+                        help="Instance Name of the Minecraft Server")
+
     parser.add_argument("-v", help="Verbose Output", action="count", default=0)
 
     args = parser.parse_args()
@@ -97,6 +93,7 @@ if __name__ == "__main__":
     # download versions
     # Stop/Start/restart
     # Push commands to Screeen
+    # Update command
 
 if args.action == 'create':
     comingSoon()
@@ -107,7 +104,7 @@ elif args.action == 'export':
 elif args.action == 'pull':
     if args.url == None:
         print("Downloading {}".format(args.version))
-        try: 
+        try:
             url = web.getDownloadUrl(args.version)
         except Exception as e:
             print(e)
