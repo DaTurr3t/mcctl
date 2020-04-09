@@ -1,5 +1,8 @@
 #!/bin/env python3
 
+# mcctl: A Minecraft Server Management Utility written in Python
+# Copyright (C) 2020 Matthias Cotting
+
 # This file is part of mcctl.
 
 # mcctl is free software: you can redistribute it and/or modify
@@ -8,8 +11,7 @@
 # (at your option) any later version.
 
 # mcctl is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY
-# without even the implied warranty of
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
