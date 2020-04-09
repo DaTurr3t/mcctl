@@ -16,10 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl.  If not, see < http: // www.gnu.org/licenses/>.
 
-
 import argparse as ap
 from pathlib import Path
 from modules import interact, storage, service, web
+
+
+def create():
+    pass
 
 
 def comingSoon():
@@ -64,7 +67,7 @@ if __name__ == "__main__":
     parserPull.add_argument(
         "--url", action='store_true', help="Pull a Minecraft Server from a direct URL instead of Type ID")
     parserPull.add_argument("source", metavar="TYPEID_OR_URL",
-                            help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' is also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
+                            help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
 
     parserRename = subparsers.add_parser(
         "rename", description="Rename a Minecraft Server Instance")
@@ -99,41 +102,38 @@ if args.action == 'create':
     comingSoon()
 elif args.action == 'delete':
     storage.delete(args.instance)
+
 elif args.action == 'export':
     storage.export(args.instance)
-elif args.action == 'pull':
-    if args.url == None:
-        print("Downloading {}".format(args.version))
-        try:
-            url = web.getDownloadUrl(args.version)
-        except Exception as e:
-            print(e)
-    else:
-        url = args.url
-        print("Downloading from {}".format(url))
 
-    dest = storage.getHomePath() / "jars" / "{}.jar".format(args.version.replace(":", "/"))
-    storage.createDirs(dest.parent)
-    web.download(url, dest)
-    print("Complete!")
+elif args.action == 'pull':
+    destPath = web.pull(args.source, args.url)
+    print("Done.")
 
 elif args.action == 'list':
     service.getInstanceList(args.instance)
+
 elif args.action == 'start':
     if args.persistent:
         service.setStatus(args.instance, "enable")
     service.setStatus(args.instance, args.action)
+
 elif args.action == 'stop':
     if args.persistent:
         service.setStatus(args.instance, "disable")
     service.setStatus(args.instance, args.action)
+
 elif args.action == 'restart':
     service.setStatus(args.instance, args.action)
+
 elif args.action == 'attach':
     interact.attach(args.instance)
+
 elif args.action == 'exec':
     interact.exec(args.instance, args.command)
+
 elif args.action == 'rename':
     storage.rename(args.instance, args.newName)
+
 else:
     comingSoon()

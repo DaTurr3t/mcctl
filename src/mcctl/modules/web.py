@@ -20,7 +20,8 @@
 import sys
 import urllib.request as req
 import json
-from modules import visuals
+import hashlib
+from modules import visuals, storage
 
 downloadUrls = {
     "vanilla": "https://launchermeta.mojang.com/mc/game/version_manifest.json",
@@ -31,7 +32,7 @@ downloadUrls = {
 def restGet(url):
     header = {'User-Agent': 'curl/7.4'}
     request = req.Request(url=url, headers=header)
-    with req.urlopen(request) as response:
+    with req.urlopen(request, timeout=5) as response:
         data = response.read()
     return json.loads(data)
 
@@ -41,6 +42,7 @@ def download(url, dest):
     sys.stderr.write("\n")
     return storeData
 
+
 def reporthook(blockcount, blocksize, total):
     current = blockcount * blocksize
     if total > 0:
@@ -48,7 +50,8 @@ def reporthook(blockcount, blocksize, total):
         s = "\r%s %3.0f%% %*dkB / %dkB" % (
             visuals.spinner(int(percent), 0), percent, len(str(total//1024)), current/1024, total/1024)
     else:
-        s = "\r%s %dkB / %skB" % (visuals.spinner(blockcount), current/1024, "???")
+        s = "\r%s %dkB / %skB" % (visuals.spinner(blockcount),
+                                  current/1024, "???")
     sys.stderr.write(s)
 
 
@@ -69,7 +72,8 @@ def getVanillaDownloadUrl(manifestUrl, versionTag):
             downloadUrl = version["url"]
             break
     versionData = restGet(downloadUrl)
-    return versionData["downloads"]["server"]["url"]
+    resolvedTag = "vanilla:{}".format(versionTag)
+    return versionData["downloads"]["server"]["url"], resolvedTag
 
 
 def getPaperDownloadUrl(baseUrl, versionTag):
@@ -81,20 +85,48 @@ def getPaperDownloadUrl(baseUrl, versionTag):
         major, minor = versionTag.split(":", 1)
     testUrl = joinUrl(baseUrl, major, minor)
     try:
-        restGet(testUrl)
-    except:
+        resolvedData = restGet(testUrl)
+        resolvedTag = ":".join(list(resolvedData.values()))
+    except Exception as e:
         raise Exception(
-            "Unsupported Server Version '{}' for type 'paper'".format(versionTag))
-    return joinUrl(testUrl, "download")
+            "Server Version not found for type 'paper'", versionTag, str(e))
+    return joinUrl(testUrl, "download"), resolvedTag
 
 
 def getDownloadUrl(serverTag):
     global downloadUrls
     typeTag, versionTag = serverTag.split(":", 1)
     if typeTag == "paper":
-        url = getPaperDownloadUrl(downloadUrls[typeTag], versionTag)
+        url, resolvedTag = getPaperDownloadUrl(
+            downloadUrls[typeTag], versionTag)
     elif typeTag == "vanilla":
-        url = getVanillaDownloadUrl(downloadUrls[typeTag], versionTag)
+        url, resolvedTag = getVanillaDownloadUrl(
+            downloadUrls[typeTag], versionTag)
     else:
         raise Exception("Unsupported Server Type: '{}'".format(typeTag))
-    return url
+    return url, resolvedTag
+
+
+def pull(source, literalUrl=False):
+    baseDest = storage.getHomePath() / "jars"
+    if literalUrl:
+        url = source
+
+        print("Pulling from {}".format(url))
+        # Generating artificial Version Tag
+        hash = hashlib.sha1(url.encode()).hexdigest()
+        tag = "other/{}".format(hash[:12])
+    else:
+        url, tag = getDownloadUrl(source)        
+        dest = baseDest / "{}.jar".format(tag.replace(":", "/"))
+        print("Pulling Version {}".format(source))
+
+    dest = baseDest / "{}.jar".format(source.replace(":", "/"))
+
+    if not dest.is_file():
+        storage.createDirs(dest.parent)
+        download(url, dest)
+    else:
+        print("Already cached, no Download required.")
+    
+    return dest
