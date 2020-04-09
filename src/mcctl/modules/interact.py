@@ -18,16 +18,34 @@
 
 import subprocess as sp
 import shlex
+import time
+from modules.storage import getHomePath
+from modules.service import isActive
 
 
 def attach(instance):
-    cmd = shlex.split("runuser -l mcserver -c 'screen -r mc-{}'".format(instance))
+    cmd = shlex.split(
+        "runuser -l mcserver -c 'screen -r mc-{}'".format(instance))
     sp.run(cmd)
-    pass
 
+def exec(instance, command, timeout=0.5):
+    if not isActive(instance):
+        raise Exception("The Server is not running", instance)
 
-def exec(instance, command):
+    logPath = getHomePath() / "instances" / instance / "logs/latest.log"
+
+    oldCount = 0
+    lineCount = sum(1 for line in open(logPath))
+
     cmd = shlex.split(
         "runuser -l mcserver -c 'screen -p 0 -S mc-{0} -X stuff \"{1}^M\"'".format(instance, command))
     sp.run(cmd)
-    pass
+
+    while lineCount > oldCount:
+        time.sleep(timeout)
+        with open("{0}/{1}".format(dir, logPath)) as log:
+            for i, line in enumerate(log):
+                if i >= lineCount:
+                    print(line.rstrip())
+        oldCount = lineCount
+        lineCount = i + 1
