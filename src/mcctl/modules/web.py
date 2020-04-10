@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 import urllib.request as req
 import json
 import hashlib
@@ -38,7 +37,7 @@ def restGet(url):
 
 def download(url, dest):
     storeData = req.urlretrieve(url, dest, reporthook)
-    sys.stderr.write("\n")
+    print()
     return storeData
 
 
@@ -51,7 +50,7 @@ def reporthook(blockcount, blocksize, total):
     else:
         s = "\r%s %dkB / %skB" % (visuals.spinner(blockcount),
                                   current/1024, "???")
-    sys.stderr.write(s)
+    print(s, end="")
 
 
 def joinUrl(base, *parts):
