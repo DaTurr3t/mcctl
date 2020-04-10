@@ -17,18 +17,24 @@
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
 
-def writeProperties(filePath, properties):
+def propertiesToDict(propertyList):
+    assert propertyList is list, "PropertyList must be a List"
+    propertyDict = {}
+    for line in propertyList:
+        line = line.rstrip()
+        if not line.startswith("#"):
+            try:
+                key, value = line.split("=", 1)
+                propertyDict[key] = value
+            except:
+                raise ValueError(
+                    "Unable to set Property '{}'".format(line))
+    return propertyDict
+    
+
+def setProperties(filePath, properties):
     with open(filePath, "w+") as configFile:
-        oldConfig = {}
-        for line in configFile:
-            line = line.rstrip()
-            if not line.startswith("#"):
-                try:
-                    key, value = line.split("=", 1)
-                    oldConfig[key] = value
-                except:
-                    raise AssertionError(
-                        "Unable to Assert Property '{}'".format(line))
+        oldConfig = propertiesToDict(configFile)
         oldConfig.update(properties)
 
         newConfig = []
@@ -38,7 +44,8 @@ def writeProperties(filePath, properties):
         configFile.writelines(newConfig)
 
 
-def acceptEula(filePath):
+def acceptEula(instancePath):
+    filePath = instancePath / "eula.txt"
     with open(filePath, "w+") as eula:
         lineCount = sum(1 for line in eula)
         contents = []
