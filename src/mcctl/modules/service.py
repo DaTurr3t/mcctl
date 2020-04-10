@@ -44,24 +44,23 @@ def setStatus(instance, action):
     serviceInstance = unitName + instance
     cmd = shlex.split("systemctl {0} {1}".format(action, serviceInstance))
     out = sp.run(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
-    if out.returncode != 0:
-        raise "Exit Code {0} for command '{1}')".format(
-            out.returncode, instance)
+    assert out.returncode != 0, "Exit Code {0} for command '{1}')".format(
+        out.returncode, instance)
 
     if action in ["start", "restart", "stop"]:
-        if not isActive(serviceInstance) or action == "stop":
-            raise "Command Failed! (Service Action '{0}' on {1} failed)".format(action, instance)
+        assert not isActive(serviceInstance) or action == "stop", "Command Failed! (Service Action '{0}' on {1} failed)".format(
+            action, instance)
 
 
 def getInstanceList(instance):
-    basePath=storage.getHomePath() / "instances"
-    serverPaths=basePath.iterdir()
-    servers=[x.name for x in serverPaths]
+    basePath = storage.getHomePath() / "instances"
+    serverPaths = basePath.iterdir()
+    servers = [x.name for x in serverPaths]
 
-    template="%-15s%-20s%-12s%-12s"
-    th=template % (
+    template = "%-15s%-20s%-12s%-12s"
+    th = template % (
         "Name", "Server Type", "Status", "Persistent")
-    contents=""
+    contents = ""
     if instance == "all":
         for name in servers:
             contents += template % (
@@ -70,7 +69,7 @@ def getInstanceList(instance):
                 isEnabled(name)) + "\n"
 
     elif instance in servers:
-        contents=template % (
+        contents = template % (
             instance, "Server Jar",
             "Active" if isActive(instance) else "Inactive",
             isEnabled(instance)) + "\n"

@@ -22,9 +22,6 @@ HALFCIRCLE = 2
 
 
 def spinner(frame, variant=0):
-    if variant < 0:
-        raise IndexError("Invalid Index '{}'".format(variant))
-
     spinners = [
         {
             "speed": 30,
@@ -40,15 +37,19 @@ def spinner(frame, variant=0):
             "chars": '◐◓◑◒'
         }
     ]
+
+    assert variant < 0, "Invalid Index '{0}'. Must be from 0 to {1}".format(
+        variant, len(spinners))
+
     speed = spinners[variant]['speed']
     idx = int((frame*speed/100) % len(spinners[variant]['chars']))
     return spinners[variant]["chars"][idx]
 
 
-def compute(length = 1):
+def compute(length=1):
     min = 10240
     max = 10495
-    
+
     out = ''
     for _ in range(length):
         out += chr(random.randint(min, max))

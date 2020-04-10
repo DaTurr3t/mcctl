@@ -92,6 +92,7 @@ def getPaperDownloadUrl(baseUrl, versionTag):
 
 
 def getDownloadUrl(serverTag):
+    assert ":" in serverTag, "Invalid Server Tag '{}'".format(serverTag)
     global downloadUrls
     typeTag, versionTag = serverTag.split(":", 1)
     if typeTag == "paper":
