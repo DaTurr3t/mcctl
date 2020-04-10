@@ -108,7 +108,10 @@ elif args.action == 'export':
     storage.export(args.instance)
 
 elif args.action == 'pull':
-    destPath = web.pull(args.source, args.url)
+    try:
+        web.pull(args.source, args.url)
+    except:
+        print("Unable to pull", args.source)
     print("Done.")
 
 elif args.action == 'list':
