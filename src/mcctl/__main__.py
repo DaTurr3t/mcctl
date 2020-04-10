@@ -46,11 +46,15 @@ if __name__ == "__main__":
         "attach", description="Attach to the Console of the Instance")
 
     parserCreate = subparsers.add_parser(
-        "create", description="Add a new Minecraft Server Instance")
+        "create", description="Add a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
+    parserCreate.add_argument("source", metavar="TYPEID_OR_URL",
+                              help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
     parserCreate.add_argument(
-        "--properties", help="server.properties options in KEY1=VALUE1,KEY2=VALUE2 form")
+        "--once", "-o", action='store_true', help="Start once, do not start after Reboot")
     parserCreate.add_argument(
-        "--jvm-args", help="Values for the jvm-env File. Accepted are 'MEM' and 'JARFILE' in KEY1=VALUE1,KEY2=VALUE2 form")
+        "--properties", "-p", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
+    parserCreate.add_argument(
+        "--memory", "-m", help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M")
 
     parserDelete = subparsers.add_parser(
         "delete", description="Delete an Instance or Server Version.")
