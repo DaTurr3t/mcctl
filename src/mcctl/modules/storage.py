@@ -49,6 +49,9 @@ def getChildPaths(path, worldName=None):
 def createDirs(path):
     Path.mkdir(path, mode=0o0750, parents=True, exist_ok=True)
 
+def copy(source, dest):
+    return shutil.copy(source, dest)
+    
 
 def export(instance, zipPath=None, worldOnly=False):
     if zipPath == None:
