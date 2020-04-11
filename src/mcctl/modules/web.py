@@ -87,7 +87,7 @@ def getPaperDownloadUrl(baseUrl, versionTag):
         resolvedTag = ":".join(list(resolvedData.values()))
     except Exception as e:
         raise Exception(
-            "Server Version not found for type 'paper'", versionTag, str(e))
+            "Server version not found for type 'paper'", versionTag, str(e))
     return joinUrl(testUrl, "download"), resolvedTag
 
 
@@ -102,7 +102,7 @@ def getDownloadUrl(serverTag):
         url, resolvedTag = getVanillaDownloadUrl(
             downloadUrls[typeTag], versionTag)
     else:
-        raise Exception("Unsupported Server Type: '{}'".format(typeTag))
+        raise Exception("Unsupported server type: '{}'".format(typeTag))
     return url, resolvedTag
 
 
@@ -111,13 +111,13 @@ def pull(source, literalUrl=False):
     if literalUrl:
         url = source
 
-        print("Pulling from {}".format(url))
+        print("Pulling from '{}'".format(url))
         # Generating artificial Version Tag
         hash = hashlib.sha1(url.encode()).hexdigest()
         tag = "other/{}".format(hash[:12])
     else:
         url, tag = getDownloadUrl(source)        
-        print("Pulling Version {}".format(tag))
+        print("Pulling version '{}'".format(tag))
 
     dest = baseDest / "{}.jar".format(tag.replace(":", "/"))
 
@@ -125,6 +125,6 @@ def pull(source, literalUrl=False):
         storage.createDirs(dest.parent)
         download(url, dest)
     else:
-        print("Already cached, no Download required.")
+        print("Already cached, no download required.")
     
     return dest
