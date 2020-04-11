@@ -22,6 +22,7 @@ from pathlib import Path
 import zipfile as zf
 from datetime import datetime
 from pwd import getpwnam
+from modules import service
 
 
 def getHomePath(userName="mcserver"):
@@ -85,14 +86,17 @@ def export(instance, zipPath=None, worldOnly=False):
 
 
 def delete(instance, confirm=True):
+    basePath = getHomePath()
+    delPath = basePath / "instances" / instance
+    assert delPath.exists(), "Instance not found"
+    assert not (service.isEnabled(instance) or service.isActive(
+        instance)), "Server is still enabled/running"
     if confirm:
         ans = input(
-            "Are you absolutely sure to delete the Instance '{}'? [y/n]: ".format(instance)).lower()
-        while ans not in ["y", "n"]:
+            "Are you absolutely sure you want to delete the Instance '{}'? [y/n]: ".format(instance))
+        while ans.lower() not in ["y", "n"]:
             ans = input("Please answer [y]es or [n]o: ")
     else:
         ans = "y"
     if ans == "y":
-        basePath = getHomePath()
-        delPath = basePath / "instances" / instance
         shutil.rmtree(delPath)
