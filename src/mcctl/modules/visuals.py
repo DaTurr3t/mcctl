@@ -38,7 +38,7 @@ def spinner(frame, variant=0):
         }
     ]
 
-    assert variant < 0, "Invalid Index '{0}'. Must be from 0 to {1}".format(
+    assert variant >= 0, "Invalid Index '{0}'. Must be from 0 to {1}".format(
         variant, len(spinners))
 
     speed = spinners[variant]['speed']

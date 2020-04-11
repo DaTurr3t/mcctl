@@ -44,11 +44,11 @@ def setStatus(instance, action):
     serviceInstance = unitName + instance
     cmd = shlex.split("systemctl {0} {1}".format(action, serviceInstance))
     out = sp.run(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
-    assert out.returncode != 0, "Exit Code {0} for command '{1}')".format(
+    assert out.returncode == 0, "Exit Code {0} for command '{1}')".format(
         out.returncode, instance)
 
     if action in ["start", "restart", "stop"]:
-        assert not isActive(serviceInstance) or action == "stop", "Command Failed! (Service Action '{0}' on {1} failed)".format(
+        assert isActive(serviceInstance) or action == "stop", "Command Failed! (Service Action '{0}' on {1} failed)".format(
             action, instance)
 
 
