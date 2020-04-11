@@ -47,17 +47,21 @@ def setProperties(filePath, properties):
 def acceptEula(instancePath):
     filePath = instancePath / "eula.txt"
     assert filePath.exists(), "EULA not found"
-    with open(filePath, "w+") as eula:
+    with open(filePath, "r+") as eula:
         contents = []
         for line in eula:
-            line = line.rstrip()
             if line.startswith("#"):
                 contents.append(line)
-                print(line)
+                print(line.rstrip())
             else:
-                ans = input("Enter [accept] to accept the EULA: ")
+                ans = input(
+                    "Enter [accept] to accept the EULA or [abort]: ")
+                while not ans.lower() in ["accept", "abort"]:
+                    ans = input("Please Type 'accept' or 'abort': ")
                 accepted = ans.lower() == "accept"
                 if accepted:
                     contents.append(line.replace("eula=false", "eula=true"))
+                    eula.seek(0)
                     eula.writelines(contents)
+                    eula.truncate()
                 return accepted

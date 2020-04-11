@@ -19,13 +19,14 @@
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import re
 import argparse as ap
 from modules import proc, storage, service, web, config
 
 
 def create(instance, source, memory, properties):
     instancePath = storage.getHomePath() / "instances" / instance
-    assert not instancePath.exists(), "Instance already exists ({})".format(instance)
+    assert not instancePath.exists(), "Instance already exists"
     storage.createDirs(instancePath)
 
     jarPathSrc = web.pull(source)
@@ -33,10 +34,12 @@ def create(instance, source, memory, properties):
     storage.copy(jarPathSrc, jarPathDest)
     proc.preStart(jarPathDest)
     if config.acceptEula(instancePath):
-        propertiesDict = config.propertiesToDict(properties)
-        config.setProperties(
-            instancePath / "server.properties", propertiesDict)
-        config.setProperties(instancePath / "jvm-env", {"MEM": memory})
+        if not properties is None: 
+            propertiesDict = config.propertiesToDict(properties)
+            config.setProperties(
+                instancePath / "server.properties", propertiesDict)
+        if not memory is None:
+            config.setProperties(instancePath / "jvm-env", {"MEM": memory})
         print("Configured and ready to start.")
     else:
         print("How can you not agree that tacos are tasty?!?")
@@ -51,10 +54,10 @@ if __name__ == "__main__":
 
     def typeID(value):
         testTypeID = re.compile(
-            r'([A-z]+:)+[A-z]+|https?: \/\/(-\.)?([ ^\s /?\.#-]+\.?)+(/[^\s]*)?$')
+            r'(.+:)+.+|https?: \/\/(-\.)?([ ^\s /?\.#-]+\.?)+(/[^\s]*)?$')
         if testTypeID.search(value) is None:
-                raise ap.ArgumentTypeError(
-                    "must be in the form '<TYPE>:<VERSION>:<BUILD>' or URL")
+            raise ap.ArgumentTypeError(
+                "must be in the form '<TYPE>:<VERSION>:<BUILD>' or URL")
         return value
 
     def mem(value):
@@ -79,14 +82,14 @@ if __name__ == "__main__":
     parserCreate = subparsers.add_parser(
         "create", parents=[instanceNameParser], description="Add a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
     parserCreate.add_argument(
-        "--url", "-u", action='store_true', help="Use URL instead of TypeID.")
+        "-u" "--url", action='store_true', help="Use URL instead of TypeID.")
     parserCreate.add_argument(
         "source", metavar="TYPEID_OR_URL", type=typeID,
         help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
     parserCreate.add_argument(
-        "--memory", "-m", type=mem, help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M")
+        "-m", "--memory", type=mem, help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M")
     parserCreate.add_argument(
-        "--properties", "-p", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
+        "-p", "--properties", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
 
     parserDelete = subparsers.add_parser(
         "delete", parents=[instanceNameParser], description="Delete an Instance or Server Version.")
@@ -118,12 +121,12 @@ if __name__ == "__main__":
 
     parserStart = subparsers.add_parser(
         "start", parents=[instanceNameParser], description="Start a Minecraft Server> Instance")
-    parserStart.add_argument("--persistent", "-p",
+    parserStart.add_argument("-p", "--persistent", action='store_true',
                              help="Start even after Reboot")
 
     parserStop = subparsers.add_parser(
         "stop", parents=[instanceNameParser], description="Stop a Minecraft Server Instance")
-    parserStop.add_argument("--persistent", "-p",
+    parserStop.add_argument("-p", "--persistent", action='store_true',
                             help="Do not start again after Reboot")
 
     #parser.add_argument("-v", help="Verbose Output", action="count", default=0)
@@ -145,12 +148,15 @@ if __name__ == "__main__":
         try:
             create(args.instance, args.source, args.memory, args.properties)
         except Exception as e:
-            print("Unable to create Instance '{0}': {1}".format(
+            print("Unable to create instance '{0}': {1}".format(
                 args.instance, e))
 
     elif args.action == 'delete':
-        storage.delete(args.instance)
-
+        try:
+            storage.delete(args.instance)
+        except Exception as e:
+            print("Unable to delete instance '{0}': {1}".format(
+                args.instance, e))
     elif args.action == 'export':
         storage.export(args.instance)
 
@@ -159,7 +165,6 @@ if __name__ == "__main__":
             web.pull(args.source, args.url)
         except Exception as e:
             print("Unable to pull {0}: {1}".format(args.source, e))
-        print("Done.")
 
     elif args.action == 'list':
         service.getInstanceList(args.instance)

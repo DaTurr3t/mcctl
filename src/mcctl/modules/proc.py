@@ -63,23 +63,25 @@ def demote(asUser):
 
 def preStart(jarPath, watchFile=None, killSec=80):
     from pathlib import Path
-    assert watchFile is Path or watchFile == None, "WatchFile is not of Type 'Path'"
+    assert isinstance(
+        watchFile, Path) or watchFile is None, "WatchFile is not of Type 'Path'"
     cmd = shlex.split(
         '/bin/java -jar {}'.format(jarPath))
-    p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+    p = sp.Popen(cmd, cwd=jarPath.parent, stdout=sp.PIPE, stderr=sp.PIPE)
 
     fps = 4
+    signaled = False
     success = False
-    for counter in range(killSec * fps+1):
-        print("\r{} Setting up Config Files...".format(compute(2)), end="")
+    for i in range(killSec*fps+1):
+        print("\r{} Setting up config files...".format(compute(2)), end="")
         time.sleep(1/fps)
         if not signaled and watchFile != None and watchFile.exists():
             p.terminate()
             signaled = True
-        elif counter == killSec * fps:
+        elif i == killSec * fps:
             p.kill()
         elif p.poll() != None:
             success = True
             break
-        print()
-        return success
+    print()
+    return success
