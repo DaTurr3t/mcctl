@@ -58,7 +58,7 @@ def exec(instance, command, timeout=0.5):
 def demote(asUser):
     userData = getpwnam(asUser)
     os.setgid(userData.pw_gid)
-    os.setuid(userData.pw_gid)
+    os.setuid(userData.pw_uid)
 
 
 def preStart(jarPath, watchFile=None, killSec=80):
