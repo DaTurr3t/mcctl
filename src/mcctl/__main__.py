@@ -34,13 +34,14 @@ def create(instance, source, memory, properties):
     proc.preStart(jarPathDest)
     if config.acceptEula(instancePath):
         propertiesDict = config.propertiesToDict(properties)
-        config.setProperties(instancePath / "server.properties", propertiesDict)
+        config.setProperties(
+            instancePath / "server.properties", propertiesDict)
         config.setProperties(instancePath / "jvm-env", {"MEM": memory})
         print("Configured and ready to start.")
     else:
         print("How can you not agree that tacos are tasty?!?")
-        storage.delete(instance, confirm = False)
-            
+        storage.delete(instance, confirm=False)
+
 
 def comingSoon():
     print("Not yet implemented!")
@@ -70,35 +71,36 @@ if __name__ == "__main__":
             raise ap.ArgumentTypeError("Must be in Format <NUMBER>{K,M,G}")
         return value
 
-
     parser = ap.ArgumentParser(
         description="Management Utility for Minecraft Server Instances", formatter_class=ap.ArgumentDefaultsHelpFormatter)
-
-    parser.add_argument("instance", metavar="INSTANCE_ID",
-                        help="Instance Name of the Minecraft Server")
     subparsers = parser.add_subparsers(
         title="actions", help="Action to Execute on a Minecraft Server Instance", dest="action")
+    subparsers.required = True
+
+    instanceNameParser = ap.ArgumentParser(add_help=False)
+    instanceNameParser.add_argument("instance", metavar="INSTANCE_ID",
+                                    help="Instance Name of the Minecraft Server")
 
     parserAttach = subparsers.add_parser(
-        "attach", description="Attach to the Console of the Instance")
+        "attach", parents=[instanceNameParser], description="Attach to the Console of the Instance")
 
     parserCreate = subparsers.add_parser(
-        "create", description="Add a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
+        "create", parents=[instanceNameParser], description="Add a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
     parserCreate.add_argument(
         "--url", "-u", action='store_true', help="Use URL instead of TypeID.")
     parserCreate.add_argument(
         "source", metavar="TYPEID_OR_URL", type=typeID,
         help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
     parserCreate.add_argument(
-        "--properties", "-p", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
-    parserCreate.add_argument(
         "--memory", "-m", type=mem, help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M")
+    parserCreate.add_argument(
+        "--properties", "-p", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
 
     parserDelete = subparsers.add_parser(
-        "delete", description="Delete an Instance or Server Version.")
+        "delete", parents=[instanceNameParser], description="Delete an Instance or Server Version.")
 
     parserExec = subparsers.add_parser(
-        "exec", description="Execute a command in the Console of the Instance")
+        "exec", parents=[instanceNameParser], description="Execute a command in the Console of the Instance")
     parserExec.add_argument("command", metavar="COMMAND",
                             help="Command to execute", nargs=ap.REMAINDER)
 
@@ -106,7 +108,7 @@ if __name__ == "__main__":
     parserExport.add_argument("--world-only", help="Only export World Data")
 
     parserList = subparsers.add_parser(
-        "list", description="List Instances, installed Versions, etc.")
+        "list", parents=[instanceNameParser], description="List Instances, installed Versions, etc.")
 
     parserPull = subparsers.add_parser(
         "pull", description="Pull a Minecraft Server Binary from the Internet", formatter_class=ap.RawTextHelpFormatter)
@@ -116,18 +118,19 @@ if __name__ == "__main__":
                             help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
 
     parserRename = subparsers.add_parser(
-        "rename", description="Rename a Minecraft Server Instance")
+        "rename", parents=[instanceNameParser], description="Rename a Minecraft Server Instance")
     parserRename.add_argument("newName", metavar="NEW_NAME")
 
     parserRestart = subparsers.add_parser(
-        "restart", description="Restart a Minecraft Server Instance")
+        "restart", parents=[instanceNameParser], description="Restart a Minecraft Server Instance")
 
     parserStart = subparsers.add_parser(
-        "start", description="Start a Minecraft Server> Instance")
-    parserStart.add_argument("--persistent", help="Start even after Reboot")
+        "start", parents=[instanceNameParser], description="Start a Minecraft Server> Instance")
+    parserStart.add_argument("--persistent", "-p",
+                             help="Start even after Reboot")
 
     parserStop = subparsers.add_parser(
-        "stop", description="Stop a Minecraft Server Instance")
+        "stop", parents=[instanceNameParser], description="Stop a Minecraft Server Instance")
     parserStop.add_argument("--persistent", "-p",
                             help="Do not start again after Reboot")
 
@@ -144,14 +147,14 @@ if __name__ == "__main__":
         exit(1)
 
     if not args.action in ["start", "stop", "restart", "export"]:
-        proc.demote()
-
+        proc.demote("mcserver")
 
     if args.action == 'create':
         try:
             create(args.instance, args.source, args.memory, args.properties)
         except Exception as e:
-            print("Unable to create Instance '{0}': {1}".format(args.instance, e))
+            print("Unable to create Instance '{0}': {1}".format(
+                args.instance, e))
 
     elif args.action == 'delete':
         storage.delete(args.instance)
