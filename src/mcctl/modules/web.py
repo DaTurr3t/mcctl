@@ -46,7 +46,7 @@ def reporthook(blockcount, blocksize, total):
     if total > 0:
         percent = current * 100 / total
         s = "\r%s %3.0f%% %*dkB / %dkB" % (
-            visuals.spinner(int(percent), 0), percent, len(str(total//1024)), current/1024, total/1024)
+            visuals.spinner(int(percent), 1), percent, len(str(total//1024)), current/1024, total/1024)
     else:
         s = "\r%s %dkB / %skB" % (visuals.spinner(blockcount),
                                   current/1024, "???")
@@ -117,10 +117,9 @@ def pull(source, literalUrl=False):
         tag = "other/{}".format(hash[:12])
     else:
         url, tag = getDownloadUrl(source)        
-        dest = baseDest / "{}.jar".format(tag.replace(":", "/"))
-        print("Pulling Version {}".format(source))
+        print("Pulling Version {}".format(tag))
 
-    dest = baseDest / "{}.jar".format(source.replace(":", "/"))
+    dest = baseDest / "{}.jar".format(tag.replace(":", "/"))
 
     if not dest.is_file():
         storage.createDirs(dest.parent)
