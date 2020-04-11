@@ -50,24 +50,16 @@ def comingSoon():
 if __name__ == "__main__":
 
     def typeID(value):
-        try:
-            parts = value.split(":")
-            for part in parts:
-                if part == '':
-                    raise Exception
-        except:
-            if not (value.startswith("http://") and value.startswith("https://")):
+        testTypeID = re.compile(
+            r'([A-z]+:)+[A-z]+|https?: \/\/(-\.)?([ ^\s /?\.#-]+\.?)+(/[^\s]*)?$')
+        if testTypeID.search(value) is None:
                 raise ap.ArgumentTypeError(
                     "must be in the form '<TYPE>:<VERSION>:<BUILD>' or URL")
         return value
 
     def mem(value):
-        try:
-            if value[-1] in ["K", "M", "G"]:
-                int(value[:-1])
-            else:
-                int(value)
-        except ValueError:
+        testMem = re.compile(r'^[0-9]+[KMG]$')
+        if testMem.search(value) is None:
             raise ap.ArgumentTypeError("Must be in Format <NUMBER>{K,M,G}")
         return value
 
