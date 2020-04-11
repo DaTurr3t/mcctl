@@ -18,7 +18,7 @@
 
 
 def propertiesToDict(propertyList):
-    assert propertyList is list, "PropertyList must be a List"
+    assert isinstance(propertyList, list), "PropertyList must be a List"
     propertyDict = {}
     for line in propertyList:
         line = line.rstrip()
@@ -30,18 +30,27 @@ def propertiesToDict(propertyList):
                 raise ValueError(
                     "Unable to set Property '{}'".format(line))
     return propertyDict
-    
+
+
+def getProperties(filePath):
+    with open(filePath, "r") as configFile:
+        config = propertiesToDict(list(configFile))
+    return config
+
 
 def setProperties(filePath, properties):
-    with open(filePath, "w+") as configFile:
-        oldConfig = propertiesToDict(configFile)
+    if not filePath.exists():
+        filePath.touch()
+    with open(filePath, "r+") as configFile:
+        oldConfig = propertiesToDict(list(configFile))
         oldConfig.update(properties)
 
         newConfig = []
         for key, value in oldConfig.items():
-            newConfig.append("{0}={1}").format(key, value)
-
-        configFile.writelines(newConfig)
+            newConfig.append("{0}={1}".format(key, value))
+        configFile.seek(0)
+        configFile.write('\n'.join(newConfig) + '\n')
+        configFile.truncate()
 
 
 def acceptEula(instancePath):

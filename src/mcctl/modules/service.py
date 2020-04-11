@@ -17,9 +17,12 @@
 # along with mcctl. If not, see <http:// www.gnu.org/licenses/>.
 
 import shlex
+import time
 from pathlib import Path
-from modules import storage
+from modules import storage, config
 import subprocess as sp
+from modules import status
+
 unitName = "mcserver@"
 
 
@@ -59,20 +62,19 @@ def getInstanceList(instance):
 
     template = "%-15s%-20s%-12s%-12s"
     th = template % (
-        "Name", "Server Type", "Status", "Persistent")
+        "Name", "Server Version", "Status", "Persistent")
     contents = ""
-    if instance == "all":
-        for name in servers:
-            contents += template % (
-                name, "Server Jar",
-                "Active" if isActive(name) else "Inactive",
-                isEnabled(name)) + "\n"
-
-    elif instance in servers:
-        contents = template % (
-            instance, "Server Jar",
-            "Active" if isActive(instance) else "Inactive",
-            isEnabled(instance)) + "\n"
-
+    if instance != "all":
+        servers = [instance]
+    
     print(th)
-    print(contents, end="")
+    for name in servers:
+        cfg = config.getProperties(basePath / name / "server.properties")
+        port = int(cfg["server-port"])
+        ms = status.MineStat('localhost', port)
+        version = ms.version if not ms.version is None else "Unknown"
+        contents = template % (
+            name, version,
+            "Active" if isActive(name) else "Inactive",
+            isEnabled(name))
+        print(contents)
