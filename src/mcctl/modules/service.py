@@ -28,7 +28,7 @@ def isActive(instance):
     serviceInstance = unitName + instance
     testCmd = shlex.split("systemctl is-active {0}".format(serviceInstance))
     testOut = sp.run(testCmd, stdout=sp.PIPE, stderr=sp.PIPE)
-    return testOut.returncode != 0
+    return testOut.returncode == 0
 
 
 def isEnabled(instance):
@@ -36,19 +36,19 @@ def isEnabled(instance):
     serviceInstance = unitName + instance
     testCmd = shlex.split("systemctl is-enabled {0}".format(serviceInstance))
     testOut = sp.run(testCmd, stdout=sp.PIPE, stderr=sp.PIPE)
-    return testOut.returncode != 0
+    return testOut.returncode == 0
 
 
 def setStatus(instance, action):
     global unitName
     serviceInstance = unitName + instance
     cmd = shlex.split("systemctl {0} {1}".format(action, serviceInstance))
-    out = sp.run(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
+    out = sp.run(cmd)
     assert out.returncode == 0, "Exit Code {0} for command '{1}')".format(
         out.returncode, instance)
-
     if action in ["start", "restart", "stop"]:
-        assert isActive(serviceInstance) or action == "stop", "Command Failed! (Service Action '{0}' on {1} failed)".format(
+        time.sleep(1)
+        assert isActive(instance) != (action == "stop"), "Command Failed! (Service Action '{0}' on {1} failed)".format(
             action, instance)
 
 
