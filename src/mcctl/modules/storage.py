@@ -35,7 +35,17 @@ def rename(instance, newName):
     serverPath.rename(newName)
 
 
-def getChildPaths(path, worldName=None):
+def getChildPaths(path):
+    return list(path.rglob("*"))
+
+
+def chownRecurse(path):
+    fileList = getChildPaths(path)
+    for f in fileList:
+        shutil.chown(f, "mcserver", "mcserver")
+
+
+def getRelativePaths(path, worldName=None):
     if worldName == None:
         worldName = ''
     pathList = []
@@ -49,9 +59,10 @@ def getChildPaths(path, worldName=None):
 def createDirs(path):
     Path.mkdir(path, mode=0o0750, parents=True, exist_ok=True)
 
+
 def copy(source, dest):
     return shutil.copy(source, dest)
-    
+
 
 def export(instance, zipPath=None, worldOnly=False):
     if zipPath == None:
@@ -62,24 +73,25 @@ def export(instance, zipPath=None, worldOnly=False):
 
     basePath = getHomePath()
     serverPath = Path(basePath, "instances", instance)
-    fileList = getChildPaths(serverPath, world)
+    fileList = getRelativePaths(serverPath, world)
     totalSize = sum([x.stat().st_size for x in fileList])
-    pathLen = max([len(str(x)) for x in fileList])
     with zf.ZipFile(zipPath, "w", compression=zf.ZIP_DEFLATED, allowZip64=True) as zipFile:
         written = 0
         for filePath in fileList:
-            padding = " "*(pathLen + 4 - len(str(filePath)))
             written += filePath.stat().st_size
-            sys.stdout.write("\r[{0}%]\r       Compressing: {1} ...{2}".format(
-                written * 100 / totalSize, filePath, padding))
+            sys.stdout.write("\r[%3.0d%%] Compressing: %s..." % (
+                written * 100 / totalSize, filePath))
             zipFile.write(filePath)
 
 
-def delete(instance):
-    ans = input(
-        "Are you absolutely sure to delete the Instance '{}'? [y/n]: ".format(instance)).lower()
-    while ans not in ["y", "n"]:
-        ans = input("Please answer [y]es or [n]o: ")
+def delete(instance, confirm=True):
+    if confirm:
+        ans = input(
+            "Are you absolutely sure to delete the Instance '{}'? [y/n]: ".format(instance)).lower()
+        while ans not in ["y", "n"]:
+            ans = input("Please answer [y]es or [n]o: ")
+    else:
+        ans = "y"
     if ans == "y":
         basePath = getHomePath()
         delPath = basePath / "instances" / instance

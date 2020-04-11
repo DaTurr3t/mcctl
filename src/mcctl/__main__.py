@@ -18,21 +18,58 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import argparse as ap
-from pathlib import Path
-from modules import interact, storage, service, web
+from modules import proc, storage, service, web, config
 
 
-def create():
-    pass
+def create(instance, source, memory, properties):
+    instancePath = storage.getHomePath() / "instances" / instance
+    assert not instancePath.exists(), "Instance already exists ({})".format(instance)
+    storage.createDirs(instancePath)
 
+    jarPathSrc = web.pull(source)
+    jarPathDest = instancePath / "server.jar"
+    storage.copy(jarPathSrc, jarPathDest)
+    proc.preStart(jarPathDest)
+    if config.acceptEula(instancePath):
+        propertiesDict = config.propertiesToDict(properties)
+        config.setProperties(instancePath / "server.properties", propertiesDict)
+        config.setProperties(instancePath / "jvm-env", {"MEM": memory})
+        print("Configured and ready to start.")
+    else:
+        print("How can you not agree that tacos are tasty?!?")
+        storage.delete(instance, confirm = False)
+            
 
 def comingSoon():
     print("Not yet implemented!")
 
 
 if __name__ == "__main__":
-    versionDataUrl = "https://launchermeta.mojang.com/mc/game/version_manifest.json"
+
+    def typeID(value):
+        try:
+            parts = value.split(":")
+            for part in parts:
+                if part == '':
+                    raise Exception
+        except:
+            if not (value.startswith("http://") and value.startswith("https://")):
+                raise ap.ArgumentTypeError(
+                    "must be in the form '<TYPE>:<VERSION>:<BUILD>' or URL")
+        return value
+
+    def mem(value):
+        try:
+            if value[-1] in ["K", "M", "G"]:
+                int(value[:-1])
+            else:
+                int(value)
+        except ValueError:
+            raise ap.ArgumentTypeError("Must be in Format <NUMBER>{K,M,G}")
+        return value
+
 
     parser = ap.ArgumentParser(
         description="Management Utility for Minecraft Server Instances", formatter_class=ap.ArgumentDefaultsHelpFormatter)
@@ -47,14 +84,15 @@ if __name__ == "__main__":
 
     parserCreate = subparsers.add_parser(
         "create", description="Add a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
-    parserCreate.add_argument("source", metavar="TYPEID_OR_URL",
-                              help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
     parserCreate.add_argument(
-        "--once", "-o", action='store_true', help="Start once, do not start after Reboot")
+        "--url", "-u", action='store_true', help="Use URL instead of TypeID.")
+    parserCreate.add_argument(
+        "source", metavar="TYPEID_OR_URL", type=typeID,
+        help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
     parserCreate.add_argument(
         "--properties", "-p", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
     parserCreate.add_argument(
-        "--memory", "-m", help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M")
+        "--memory", "-m", type=mem, help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M")
 
     parserDelete = subparsers.add_parser(
         "delete", description="Delete an Instance or Server Version.")
@@ -74,7 +112,7 @@ if __name__ == "__main__":
         "pull", description="Pull a Minecraft Server Binary from the Internet", formatter_class=ap.RawTextHelpFormatter)
     parserPull.add_argument(
         "--url", action='store_true', help="Pull a Minecraft Server from a direct URL instead of Type ID")
-    parserPull.add_argument("source", metavar="TYPEID_OR_URL",
+    parserPull.add_argument("source", metavar="TYPEID_OR_URL", type=typeID,
                             help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
 
     parserRename = subparsers.add_parser(
@@ -90,7 +128,8 @@ if __name__ == "__main__":
 
     parserStop = subparsers.add_parser(
         "stop", description="Stop a Minecraft Server Instance")
-    parserStop.add_argument("--persistent", help="Stop even after Reboot")
+    parserStop.add_argument("--persistent", "-p",
+                            help="Do not start again after Reboot")
 
     #parser.add_argument("-v", help="Verbose Output", action="count", default=0)
 
@@ -98,50 +137,59 @@ if __name__ == "__main__":
 
     # TODO
     # Create new instances
-    # download versions
-    # Stop/Start/restart
-    # Push commands to Screeen
     # Update command
 
-if args.action == 'create':
-    comingSoon()
-elif args.action == 'delete':
-    storage.delete(args.instance)
+    if os.geteuid() != 0:
+        print("Must be root.")
+        exit(1)
 
-elif args.action == 'export':
-    storage.export(args.instance)
+    if not args.action in ["start", "stop", "restart", "export"]:
+        proc.demote()
 
-elif args.action == 'pull':
-    try:
-        web.pull(args.source, args.url)
-    except:
-        print("Unable to pull", args.source)
-    print("Done.")
 
-elif args.action == 'list':
-    service.getInstanceList(args.instance)
+    if args.action == 'create':
+        try:
+            create(args.instance, args.source, args.memory, args.properties)
+        except Exception as e:
+            print("Unable to create Instance '{0}': {1}".format(args.instance, e))
 
-elif args.action == 'start':
-    if args.persistent:
-        service.setStatus(args.instance, "enable")
-    service.setStatus(args.instance, args.action)
+    elif args.action == 'delete':
+        storage.delete(args.instance)
 
-elif args.action == 'stop':
-    if args.persistent:
-        service.setStatus(args.instance, "disable")
-    service.setStatus(args.instance, args.action)
+    elif args.action == 'export':
+        storage.export(args.instance)
 
-elif args.action == 'restart':
-    service.setStatus(args.instance, args.action)
+    elif args.action == 'pull':
+        try:
+            web.pull(args.source, args.url)
+        except Exception as e:
+            print("Unable to pull {0}: {1}".format(args.source, e))
+        print("Done.")
 
-elif args.action == 'attach':
-    interact.attach(args.instance)
+    elif args.action == 'list':
+        service.getInstanceList(args.instance)
 
-elif args.action == 'exec':
-    interact.exec(args.instance, args.command)
+    elif args.action == 'start':
+        if args.persistent:
+            service.setStatus(args.instance, "enable")
+        service.setStatus(args.instance, args.action)
 
-elif args.action == 'rename':
-    storage.rename(args.instance, args.newName)
+    elif args.action == 'stop':
+        if args.persistent:
+            service.setStatus(args.instance, "disable")
+        service.setStatus(args.instance, args.action)
 
-else:
-    comingSoon()
+    elif args.action == 'restart':
+        service.setStatus(args.instance, args.action)
+
+    elif args.action == 'attach':
+        proc.attach(args.instance)
+
+    elif args.action == 'exec':
+        proc.exec(args.instance, args.command)
+
+    elif args.action == 'rename':
+        storage.rename(args.instance, args.newName)
+
+    else:
+        comingSoon()
