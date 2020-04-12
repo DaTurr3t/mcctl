@@ -65,10 +65,10 @@ def main():
             raise ap.ArgumentTypeError("Must be in Format <NUMBER>{K,M,G}")
         return value
 
-    parser = ap.ArgumentParser("mcctl", description="Management Utility for Minecraft Server Instances",
+    parser = ap.ArgumentParser(description="Management Utility for Minecraft Server Instances",
                                formatter_class=ap.ArgumentDefaultsHelpFormatter)
     subparsers = parser.add_subparsers(
-        title="actions", help="Action to Execute on a Minecraft Server Instance", dest="action")
+        title="actions", dest="action")
     subparsers.required = True
 
     instanceNameParser = ap.ArgumentParser(add_help=False)
@@ -76,10 +76,10 @@ def main():
                                     help="Instance Name of the Minecraft Server")
 
     parserAttach = subparsers.add_parser(
-        "attach", parents=[instanceNameParser], description="Attach to the Console of the Instance")
+        "attach", parents=[instanceNameParser], help="Attach to the Console of the Instance")
 
     parserCreate = subparsers.add_parser(
-        "create", parents=[instanceNameParser], description="Add a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
+        "create", parents=[instanceNameParser], help="Add a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
     parserCreate.add_argument(
         "-u" "--url", action='store_true', help="Use URL instead of TypeID.")
     parserCreate.add_argument(
@@ -91,10 +91,10 @@ def main():
         "-p", "--properties", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
 
     parserRemove = subparsers.add_parser(
-        "rm", parents=[instanceNameParser], description="Remove an Instance or Server Version.")
+        "rm", parents=[instanceNameParser], help="Remove an Instance or Server Version.")
 
     parserExec = subparsers.add_parser(
-        "exec", parents=[instanceNameParser], description="Execute a command in the Console of the Instance")
+        "exec", parents=[instanceNameParser], help="Execute a command in the Console of the Instance")
     parserExec.add_argument("command", metavar="COMMAND", nargs="+",
                             help="Command to execute")
 
@@ -106,32 +106,32 @@ def main():
         "-w", "--world-only", action='store_true', help="Only export World Data")
 
     parserList = subparsers.add_parser(
-        "ls", description="List Instances, installed Versions, etc.")
+        "ls", help="List Instances, installed Versions, etc.")
     parserList.add_argument("what", metavar="WHAT",  nargs="?", choices=[
                             "instances", "jars"], default="instances")
     parserList.add_argument("-f", "--filter",  default='')
 
     parserPull = subparsers.add_parser(
-        "pull", description="Pull a Minecraft Server Binary from the Internet", formatter_class=ap.RawTextHelpFormatter)
+        "pull", help="Pull a Minecraft Server Binary from the Internet", formatter_class=ap.RawTextHelpFormatter)
     parserPull.add_argument(
         "--url", "-u", action='store_true', help="Pull a Minecraft Server from a direct URL instead of Type ID")
     parserPull.add_argument("source", metavar="TYPEID_OR_URL", type=typeID,
                             help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
 
     parserRename = subparsers.add_parser(
-        "rename", parents=[instanceNameParser], description="Rename a Minecraft Server Instance")
+        "rename", parents=[instanceNameParser], help="Rename a Minecraft Server Instance")
     parserRename.add_argument("newName", metavar="NEW_NAME")
 
     parserRestart = subparsers.add_parser(
-        "restart", parents=[instanceNameParser], description="Restart a Minecraft Server Instance")
+        "restart", parents=[instanceNameParser], help="Restart a Minecraft Server Instance")
 
     parserStart = subparsers.add_parser(
-        "start", parents=[instanceNameParser], description="Start a Minecraft Server> Instance")
+        "start", parents=[instanceNameParser], help="Start a Minecraft Server> Instance")
     parserStart.add_argument("-p", "--persistent", action='store_true',
                              help="Start even after Reboot")
 
     parserStop = subparsers.add_parser(
-        "stop", parents=[instanceNameParser], description="Stop a Minecraft Server Instance")
+        "stop", parents=[instanceNameParser], help="Stop a Minecraft Server Instance")
     parserStop.add_argument("-p", "--persistent", action='store_true',
                             help="Do not start again after Reboot")
 
