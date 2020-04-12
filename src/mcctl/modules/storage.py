@@ -40,20 +40,27 @@ def getChildPaths(path):
     return list(path.rglob("*"))
 
 
-def chownRecurse(path):
-    fileList = getChildPaths(path)
+def chown(path, user, group=None):
+    if group is None:
+        group = getpwnam(user).pw_grp
+    if path.is_dir():
+        fileList = getChildPaths(path)
+    else:
+        fileList = [path]
     for f in fileList:
-        shutil.chown(f, "mcserver", "mcserver")
+        shutil.chown(f, user, group)
 
 
-def getRelativePaths(path, worldName=None):
-    if worldName == None:
-        worldName = ''
+def getRelativePaths(path, filter=None):
+    if filter == None:
+        filter = ''
+    print(filter)
     pathList = []
-    length = len(path.parts) - 1
-    for filePath in path.glob("{}*/**".format(worldName)):
+    length = len(path.parts)
+    for filePath in path.rglob("*"):
         relPath = Path(*filePath.parts[length:])
-        pathList.append(relPath)
+        if filter in relPath.parts[0]:
+            pathList.append(relPath)
     return pathList
 
 
@@ -65,24 +72,28 @@ def copy(source, dest):
     return shutil.copy(source, dest)
 
 
-def export(instance, zipPath=None, worldOnly=False):
+def export(instance, zipPath=None, compress=False, worldOnly=False):
     if zipPath == None:
-        zipPath = "{0}_{1}.zip".format(
-            instance, datetime.now().strftime("%y-%m-%d-%H.%M.%S"))
+        zipPath = Path("{0}_{1}.zip".format(
+            instance, datetime.now().strftime("%y-%m-%d-%H.%M.%S")))
 
     world = "world" if worldOnly else ""
-
+    print(worldOnly)
     basePath = getHomePath()
     serverPath = Path(basePath, "instances", instance)
     fileList = getRelativePaths(serverPath, world)
-    totalSize = sum([x.stat().st_size for x in fileList])
-    with zf.ZipFile(zipPath, "w", compression=zf.ZIP_DEFLATED, allowZip64=True) as zipFile:
+    totalSize = sum([(serverPath / x).stat().st_size for x in fileList])
+    compressMode = zf.ZIP_DEFLATED if compress else zf.ZIP_STORED
+    with zf.ZipFile(zipPath, "w", compression=compressMode, allowZip64=True) as zipFile:
         written = 0
         for filePath in fileList:
-            written += filePath.stat().st_size
-            sys.stdout.write("\r[%3.0d%%] Compressing: %s..." % (
+            fullPath = serverPath / filePath
+            written += fullPath.stat().st_size
+            sys.stdout.write("\r[%3.0d%%] Writing: %s...\033[K" % (
                 written * 100 / totalSize, filePath))
-            zipFile.write(filePath)
+            zipFile.write(fullPath, filePath)
+    print()
+    return zipPath
 
 
 def delete(instance, confirm=True):

@@ -21,7 +21,7 @@
 import os
 import re
 import argparse as ap
-from modules import proc, storage, service, web, config
+from mcctl.modules import proc, storage, service, web, config
 
 
 def create(instance, source, memory, properties):
@@ -34,7 +34,7 @@ def create(instance, source, memory, properties):
     storage.copy(jarPathSrc, jarPathDest)
     proc.preStart(jarPathDest)
     if config.acceptEula(instancePath):
-        if not properties is None: 
+        if not properties is None:
             propertiesDict = config.propertiesToDict(properties)
             config.setProperties(
                 instancePath / "server.properties", propertiesDict)
@@ -99,8 +99,12 @@ if __name__ == "__main__":
     parserExec.add_argument("command", metavar="COMMAND",
                             help="Command to execute", nargs=ap.REMAINDER)
 
-    parserExport = subparsers.add_parser("export", help="Export an Instance.")
-    parserExport.add_argument("--world-only", help="Only export World Data")
+    parserExport = subparsers.add_parser(
+        "export", parents=[instanceNameParser], help="Export an Instance to a zip File.")
+    parserExport.add_argument(
+        "-c", "--compress", action='store_true', help="Compress the Archive.")
+    parserExport.add_argument(
+        "-w", "--world-only", action='store_true', help="Only export World Data")
 
     parserList = subparsers.add_parser(
         "list", parents=[instanceNameParser], description="List Instances, installed Versions, etc.")
@@ -108,7 +112,7 @@ if __name__ == "__main__":
     parserPull = subparsers.add_parser(
         "pull", description="Pull a Minecraft Server Binary from the Internet", formatter_class=ap.RawTextHelpFormatter)
     parserPull.add_argument(
-        "--url", action='store_true', help="Pull a Minecraft Server from a direct URL instead of Type ID")
+        "--url", "-u", action='store_true', help="Pull a Minecraft Server from a direct URL instead of Type ID")
     parserPull.add_argument("source", metavar="TYPEID_OR_URL", type=typeID,
                             help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
 
@@ -158,7 +162,10 @@ if __name__ == "__main__":
             print("Unable to delete instance '{0}': {1}".format(
                 args.instance, e))
     elif args.action == 'export':
-        storage.export(args.instance)
+        dest = storage.export(
+            args.instance, compress=args.compress, worldOnly=args.world_only)
+        storage.chown(dest, os.getlogin(), os.getlogin())
+        print("Archive saved in {}".format(dest))
 
     elif args.action == 'pull':
         try:
