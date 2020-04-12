@@ -22,7 +22,7 @@ from pathlib import Path
 import zipfile as zf
 from datetime import datetime
 from pwd import getpwnam
-from modules import service
+from mcctl.modules import service
 
 
 def getHomePath(userName: str = "mcserver"):
@@ -110,7 +110,7 @@ def remove(instance: str, confirm: bool = True):
         instance)), "The server is still persistent and/or running"
     if confirm:
         ans = input(
-            "Are you absolutely sure you want to delete the Instance '{}'? [y/n]: ".format(instance))
+            "Are you absolutely sure you want to remove the Instance '{}'? [y/n]: ".format(instance))
         while ans.lower() not in ["y", "n"]:
             ans = input("Please answer [y]es or [n]o: ")
     else:

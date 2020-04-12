@@ -21,9 +21,9 @@ import time
 import os
 import subprocess as sp
 from pathlib import Path
-from modules.storage import getHomePath
-from modules.service import isActive
-from modules.visuals import compute
+from mcctl.modules.storage import getHomePath
+from mcctl.modules.service import isActive
+from mcctl.modules.visuals import compute
 from pwd import getpwnam
 
 

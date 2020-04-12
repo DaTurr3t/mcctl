@@ -21,7 +21,7 @@
 import os
 import re
 import argparse as ap
-from modules import proc, storage, service, web, config
+from mcctl.modules import proc, storage, service, web, config
 
 
 def create(instance: str, source: str, memory: str, properties: list):
@@ -65,8 +65,8 @@ def main():
             raise ap.ArgumentTypeError("Must be in Format <NUMBER>{K,M,G}")
         return value
 
-    parser = ap.ArgumentParser(
-        description="Management Utility for Minecraft Server Instances", formatter_class=ap.ArgumentDefaultsHelpFormatter)
+    parser = ap.ArgumentParser("mcctl", description="Management Utility for Minecraft Server Instances",
+                               formatter_class=ap.ArgumentDefaultsHelpFormatter)
     subparsers = parser.add_subparsers(
         title="actions", help="Action to Execute on a Minecraft Server Instance", dest="action")
     subparsers.required = True
