@@ -41,6 +41,11 @@ def rename(instance: str, newName: str):
 def getChildPaths(path: Path):
     return list(path.rglob("*"))
 
+def getJarList(filter: str = ''):
+    jars = getRelativePaths(getHomePath() / "jars", ".jar", -1)
+    for jar in jars:
+        if filter in str(jar):
+            print(str(jar).replace("/", ":").replace(".jar", ''))
 
 def chown(path: Path, user, group=None):
     if group is None:
@@ -73,13 +78,13 @@ def copy(source: Path, dest: Path):
     return shutil.copy(source, dest)
 
 
-def export(instance, zipPath=None, compress=False, worldOnly=False):
+def export(instance: str, zipPath=None, compress: bool = False, worldOnly: bool = False):
     if zipPath == None:
         zipPath = Path("{0}_{1}.zip".format(
             instance, datetime.now().strftime("%y-%m-%d-%H.%M.%S")))
+    zipPath = zipPath.absolute()
 
     world = "world" if worldOnly else ""
-    print(worldOnly)
     basePath = getHomePath()
     serverPath = Path(basePath, "instances", instance)
     fileList = getRelativePaths(serverPath, world)
@@ -97,12 +102,12 @@ def export(instance, zipPath=None, compress=False, worldOnly=False):
     return zipPath
 
 
-def delete(instance, confirm=True):
+def remove(instance: str, confirm: bool = True):
     basePath = getHomePath()
     delPath = basePath / "instances" / instance
     assert delPath.exists(), "Instance not found"
     assert not (service.isEnabled(instance) or service.isActive(
-        instance)), "Server is still enabled/running"
+        instance)), "The server is still persistent and/or running"
     if confirm:
         ans = input(
             "Are you absolutely sure you want to delete the Instance '{}'? [y/n]: ".format(instance))
