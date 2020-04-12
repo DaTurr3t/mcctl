@@ -66,12 +66,15 @@ def getInstanceList(filter: str = ''):
     
     print(th)
     for name in servers:
-        cfg = config.getProperties(basePath / name / "server.properties")
-        port = int(cfg["server-port"])
-        ms = status.MineStat('localhost', port)
-        version = ms.version if not ms.version is None else "Unknown"
-        contents = template % (
-            name, version,
-            "Active" if isActive(name) else "Inactive",
-            isEnabled(name))
-        print(contents)
+        if filter in name:
+            cfg = config.getProperties(basePath / name / "server.properties")
+            port = int(cfg["server-port"])
+            ms = status.MineStat('localhost', port)
+
+            version = ms.version if not ms.version is None else "N/A"
+            runStatus = "Active" if isActive(name) else "Inactive"
+            contents = template % (
+                name, version,
+                runStatus,
+                isEnabled(name))
+            print(contents)
