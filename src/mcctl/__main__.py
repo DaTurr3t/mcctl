@@ -43,15 +43,14 @@ def create(instance: str, source: str, memory: str, properties: list):
         print("Configured and ready to start.")
     else:
         print("How can you not agree that tacos are tasty?!?")
-        storage.delete(instance, confirm=False)
+        storage.remove(instance, confirm=False)
 
 
 def comingSoon():
     print("Not yet implemented!")
 
 
-if __name__ == "__main__":
-
+def main():
     def typeID(value):
         testTypeID = re.compile(
             r'(.+:)+.+|https?: \/\/(-\.)?([ ^\s /?\.#-]+\.?)+(/[^\s]*)?$')
@@ -91,13 +90,13 @@ if __name__ == "__main__":
     parserCreate.add_argument(
         "-p", "--properties", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
 
-    parserDelete = subparsers.add_parser(
-        "delete", parents=[instanceNameParser], description="Delete an Instance or Server Version.")
+    parserRemove = subparsers.add_parser(
+        "rm", parents=[instanceNameParser], description="Remove an Instance or Server Version.")
 
     parserExec = subparsers.add_parser(
         "exec", parents=[instanceNameParser], description="Execute a command in the Console of the Instance")
-    parserExec.add_argument("command", metavar="COMMAND",
-                            help="Command to execute", nargs=ap.REMAINDER)
+    parserExec.add_argument("command", metavar="COMMAND", nargs="+",
+                            help="Command to execute")
 
     parserExport = subparsers.add_parser(
         "export", parents=[instanceNameParser], help="Export an Instance to a zip File.")
@@ -107,7 +106,10 @@ if __name__ == "__main__":
         "-w", "--world-only", action='store_true', help="Only export World Data")
 
     parserList = subparsers.add_parser(
-        "list", parents=[instanceNameParser], description="List Instances, installed Versions, etc.")
+        "ls", description="List Instances, installed Versions, etc.")
+    parserList.add_argument("what", metavar="WHAT",  nargs="?", choices=[
+                            "instances", "jars"], default="instances")
+    parserList.add_argument("-f", "--filter",  default='')
 
     parserPull = subparsers.add_parser(
         "pull", description="Pull a Minecraft Server Binary from the Internet", formatter_class=ap.RawTextHelpFormatter)
@@ -155,26 +157,30 @@ if __name__ == "__main__":
             print("Unable to create instance '{0}': {1}".format(
                 args.instance, e))
 
-    elif args.action == 'delete':
+    elif args.action == 'rm':
         try:
-            storage.delete(args.instance)
+            storage.remove(args.instance)
         except Exception as e:
-            print("Unable to delete instance '{0}': {1}".format(
+            print("Unable to remove instance '{0}': {1}".format(
                 args.instance, e))
+
     elif args.action == 'export':
         dest = storage.export(
             args.instance, compress=args.compress, worldOnly=args.world_only)
-        storage.chown(dest, os.getlogin(), os.getlogin())
-        print("Archive saved in {}".format(dest))
+        storage.chown(dest, os.getlogin())
+        print("Archive saved in '{}'".format(dest))
 
     elif args.action == 'pull':
         try:
             web.pull(args.source, args.url)
         except Exception as e:
-            print("Unable to pull {0}: {1}".format(args.source, e))
+            print("Unable to pull '{0}': {1}".format(args.source, e))
 
-    elif args.action == 'list':
-        service.getInstanceList(args.instance)
+    elif args.action == 'ls':
+        if args.what == 'instances':
+            service.getInstanceList(args.filter)
+        elif args.what == 'jars':
+            storage.getJarList(args.filter)
 
     elif args.action == 'start':
         if args.persistent:
@@ -190,13 +196,29 @@ if __name__ == "__main__":
         service.setStatus(args.instance, args.action)
 
     elif args.action == 'attach':
-        proc.attach(args.instance)
+        try:
+            proc.attach(args.instance)
+        except AssertionError as e:
+            print("Unable to attach to '{0}': {1}".format(
+                args.instance, e))
 
     elif args.action == 'exec':
-        proc.exec(args.instance, args.command)
+        try:
+            proc.exec(args.instance, args.command)
+        except AssertionError as e:
+            print("Unable to pass command to '{0}': {1}".format(
+                args.instance, e))
 
     elif args.action == 'rename':
-        storage.rename(args.instance, args.newName)
+        try:
+            storage.rename(args.instance, args.newName)
+        except (AssertionError, FileExistsError, FileNotFoundError) as e:
+            print("Unable to rename '{0}': {1}".format(
+                args.instance, str(e).split(":")[0]))
 
     else:
         comingSoon()
+
+
+if __name__ == "__main__":
+    main()
