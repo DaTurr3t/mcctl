@@ -53,7 +53,7 @@ def setProperties(filePath, properties):
         configFile.truncate()
 
 
-def acceptEula(instancePath):
+def acceptEula(instancePath: Path) -> bool:
     filePath = instancePath / "eula.txt"
     assert filePath.exists(), "EULA not found"
     with open(filePath, "r+") as eula:
@@ -61,13 +61,13 @@ def acceptEula(instancePath):
         for line in eula:
             if line.startswith("#"):
                 contents.append(line)
-                print(line.rstrip())
+                print(line.rstrip().lstrip("#"))
             else:
                 ans = input(
-                    "Enter [accept] to accept the EULA or [abort]: ")
-                while not ans.lower() in ["accept", "abort"]:
-                    ans = input("Please Type 'accept' or 'abort': ")
-                accepted = ans.lower() == "accept"
+                    "Enter [true] to accept the EULA or [false] to abort: ")
+                while not ans.lower() in ["true", "false"]:
+                    ans = input("Please Type 'true' or 'false': ")
+                accepted = ans.lower() == "true"
                 if accepted:
                     contents.append(line.replace("eula=false", "eula=true"))
                     eula.seek(0)
