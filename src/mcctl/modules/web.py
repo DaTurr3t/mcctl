@@ -17,6 +17,7 @@
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
 import urllib.request as req
+from pathlib import Path
 import json
 import hashlib
 from modules import visuals, storage
@@ -27,7 +28,7 @@ downloadUrls = {
 }
 
 
-def restGet(url):
+def restGet(url: str) -> dict:
     header = {'User-Agent': 'curl/7.4'}
     request = req.Request(url=url, headers=header)
     with req.urlopen(request, timeout=5) as response:
@@ -35,13 +36,13 @@ def restGet(url):
     return json.loads(data)
 
 
-def download(url, dest):
+def download(url: str, dest: Path) -> tuple:
     storeData = req.urlretrieve(url, dest, reporthook)
     print()
     return storeData
 
 
-def reporthook(blockcount, blocksize, total):
+def reporthook(blockcount: int, blocksize: int, total):
     current = blockcount * blocksize
     if total > 0:
         percent = current * 100 / total
@@ -53,12 +54,12 @@ def reporthook(blockcount, blocksize, total):
     print(s, end="")
 
 
-def joinUrl(base, *parts):
+def joinUrl(base: str, *parts: str) -> str:
     path = "/".join(list([x.strip("/") for x in parts]))
     return "{}/{}".format(base.rstrip("/"), path)
 
 
-def getVanillaDownloadUrl(manifestUrl, versionTag):
+def getVanillaDownloadUrl(manifestUrl: str, versionTag: str) -> tuple:
     versionManifest = restGet(manifestUrl)
     if versionTag == "latest":
         versionTag = versionManifest["latest"]["release"]
@@ -74,7 +75,7 @@ def getVanillaDownloadUrl(manifestUrl, versionTag):
     return versionData["downloads"]["server"]["url"], resolvedTag
 
 
-def getPaperDownloadUrl(baseUrl, versionTag):
+def getPaperDownloadUrl(baseUrl: str, versionTag: str) -> tuple:
     if versionTag == "latest":
         versions = restGet(baseUrl)
         major = versions["versions"][0]
@@ -91,7 +92,7 @@ def getPaperDownloadUrl(baseUrl, versionTag):
     return joinUrl(testUrl, "download"), resolvedTag
 
 
-def getDownloadUrl(serverTag):
+def getDownloadUrl(serverTag: str) -> tuple:
     assert ":" in serverTag, "Invalid Server Tag '{}'".format(serverTag)
     global downloadUrls
     typeTag, versionTag = serverTag.split(":", 1)
@@ -106,7 +107,7 @@ def getDownloadUrl(serverTag):
     return url, resolvedTag
 
 
-def pull(source, literalUrl=False):
+def pull(source: str, literalUrl: bool=False) -> Path:
     baseDest = storage.getHomePath() / "jars"
     if literalUrl:
         url = source

@@ -25,24 +25,26 @@ from pwd import getpwnam
 from modules import service
 
 
-def getHomePath(userName="mcserver"):
+def getHomePath(userName: str = "mcserver"):
     userData = getpwnam(userName)
     return Path(userData.pw_dir)
 
 
-def rename(instance, newName):
+def rename(instance: str, newName: str):
+    assert not (service.isEnabled(instance) or service.isActive(
+        instance)), "The server is still persistent and/or running"
     basePath = getHomePath()
     serverPath = basePath / "instances" / instance
-    serverPath.rename(newName)
+    serverPath.rename(serverPath.parent / newName)
 
 
-def getChildPaths(path):
+def getChildPaths(path: Path):
     return list(path.rglob("*"))
 
 
-def chown(path, user, group=None):
+def chown(path: Path, user, group=None):
     if group is None:
-        group = getpwnam(user).pw_grp
+        group = getpwnam(user).pw_gid
     if path.is_dir():
         fileList = getChildPaths(path)
     else:
@@ -51,24 +53,23 @@ def chown(path, user, group=None):
         shutil.chown(f, user, group)
 
 
-def getRelativePaths(path, filter=None):
+def getRelativePaths(path: Path, filter=None, filterIdx: int = 0):
     if filter == None:
         filter = ''
-    print(filter)
     pathList = []
     length = len(path.parts)
     for filePath in path.rglob("*"):
         relPath = Path(*filePath.parts[length:])
-        if filter in relPath.parts[0]:
+        if filter in relPath.parts[filterIdx]:
             pathList.append(relPath)
     return pathList
 
 
-def createDirs(path):
+def createDirs(path: Path):
     Path.mkdir(path, mode=0o0750, parents=True, exist_ok=True)
 
 
-def copy(source, dest):
+def copy(source: Path, dest: Path):
     return shutil.copy(source, dest)
 
 

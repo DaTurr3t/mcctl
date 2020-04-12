@@ -26,7 +26,7 @@ from modules import status
 unitName = "mcserver@"
 
 
-def isActive(instance):
+def isActive(instance: str) -> bool:
     global unitName
     serviceInstance = unitName + instance
     testCmd = shlex.split("systemctl is-active {0}".format(serviceInstance))
@@ -34,7 +34,7 @@ def isActive(instance):
     return testOut.returncode == 0
 
 
-def isEnabled(instance):
+def isEnabled(instance: str) -> bool:
     global unitName
     serviceInstance = unitName + instance
     testCmd = shlex.split("systemctl is-enabled {0}".format(serviceInstance))
@@ -42,7 +42,7 @@ def isEnabled(instance):
     return testOut.returncode == 0
 
 
-def setStatus(instance, action):
+def setStatus(instance: str, action: str):
     global unitName
     serviceInstance = unitName + instance
     cmd = shlex.split("systemctl {0} {1}".format(action, serviceInstance))
@@ -55,7 +55,7 @@ def setStatus(instance, action):
             action, instance)
 
 
-def getInstanceList(instance):
+def getInstanceList(filter: str = ''):
     basePath = storage.getHomePath() / "instances"
     serverPaths = basePath.iterdir()
     servers = [x.name for x in serverPaths]
@@ -63,9 +63,6 @@ def getInstanceList(instance):
     template = "%-15s%-20s%-12s%-12s"
     th = template % (
         "Name", "Server Version", "Status", "Persistent")
-    contents = ""
-    if instance != "all":
-        servers = [instance]
     
     print(th)
     for name in servers:

@@ -16,38 +16,42 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
-import subprocess as sp
 import shlex
 import time
 import os
+import subprocess as sp
+from pathlib import Path
 from modules.storage import getHomePath
 from modules.service import isActive
 from modules.visuals import compute
 from pwd import getpwnam
 
 
-def attach(instance):
+def attach(instance: str):
+    assert isActive(
+        instance), "The Server is not running"
     cmd = shlex.split(
         'screen -r mc-{}'.format(instance))
     sp.run(cmd)
 
 
-def exec(instance, command, timeout=0.5):
+def exec(instance: str, command: list, timeout: int = 0.5):
     assert isActive(
-        instance), "The Server is not running ({})".format(instance)
+        instance), "The Server is not running"
 
     logPath = getHomePath() / "instances" / instance / "logs/latest.log"
 
     oldCount = 0
     lineCount = sum(1 for line in open(logPath))
 
+    jarCmd = " ".join(command)
     cmd = shlex.split(
-        'screen -p 0 -S mc-{0} -X stuff "{1}^M"'.format(instance, command))
+        'screen -p 0 -S mc-{0} -X stuff "{1}^M"'.format(instance, jarCmd))
     sp.run(cmd)
 
     while lineCount > oldCount:
         time.sleep(timeout)
-        with open("{0}/{1}".format(dir, logPath)) as log:
+        with open(logPath) as log:
             for i, line in enumerate(log):
                 if i >= lineCount:
                     print(line.rstrip())
@@ -55,14 +59,13 @@ def exec(instance, command, timeout=0.5):
         lineCount = i + 1
 
 
-def demote(asUser):
+def demote(asUser: str):
     userData = getpwnam(asUser)
     os.setgid(userData.pw_gid)
     os.setuid(userData.pw_uid)
 
 
-def preStart(jarPath, watchFile=None, killSec=80):
-    from pathlib import Path
+def preStart(jarPath: Path, watchFile=None, killSec: int = 80) -> bool:
     assert isinstance(
         watchFile, Path) or watchFile is None, "WatchFile is not of Type 'Path'"
     cmd = shlex.split(

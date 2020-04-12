@@ -21,7 +21,7 @@ QUARTERCIRCLE = 1
 HALFCIRCLE = 2
 
 
-def spinner(frame, variant=0):
+def spinner(frame: int, variant=0) -> str:
     spinners = [
         {
             "speed": 30,
@@ -37,16 +37,16 @@ def spinner(frame, variant=0):
             "chars": '◐◓◑◒'
         }
     ]
-
-    assert variant >= 0, "Invalid Index '{0}'. Must be from 0 to {1}".format(
-        variant, len(spinners))
+    maxIdx = len(spinners) - 1
+    assert 0 <= variant <= maxIdx, "Invalid Index '{0}'. Must be from 0 to {1}".format(
+        variant, maxIdx)
 
     speed = spinners[variant]['speed']
     idx = int((frame*speed/100) % len(spinners[variant]['chars']))
     return spinners[variant]["chars"][idx]
 
 
-def compute(length=1):
+def compute(length: int=1) -> str:
     min = 10240
     max = 10495
 

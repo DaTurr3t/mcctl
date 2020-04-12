@@ -21,10 +21,10 @@
 import os
 import re
 import argparse as ap
-from mcctl.modules import proc, storage, service, web, config
+from modules import proc, storage, service, web, config
 
 
-def create(instance, source, memory, properties):
+def create(instance: str, source: str, memory: str, properties: list):
     instancePath = storage.getHomePath() / "instances" / instance
     assert not instancePath.exists(), "Instance already exists"
     storage.createDirs(instancePath)

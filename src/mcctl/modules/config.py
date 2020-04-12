@@ -16,9 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
+from pathlib import Path
 
-def propertiesToDict(propertyList):
-    assert isinstance(propertyList, list), "PropertyList must be a List"
+
+def propertiesToDict(propertyList: list) -> dict:
     propertyDict = {}
     for line in propertyList:
         line = line.rstrip()
@@ -32,13 +33,13 @@ def propertiesToDict(propertyList):
     return propertyDict
 
 
-def getProperties(filePath):
+def getProperties(filePath: Path) -> dict:
     with open(filePath, "r") as configFile:
         config = propertiesToDict(list(configFile))
     return config
 
 
-def setProperties(filePath, properties):
+def setProperties(filePath: Path, properties: dict):
     if not filePath.exists():
         filePath.touch()
     with open(filePath, "r+") as configFile:
