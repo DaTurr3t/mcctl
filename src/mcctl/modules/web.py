@@ -111,15 +111,13 @@ def pull(source: str, literalUrl: bool=False) -> Path:
     baseDest = storage.getHomePath() / "jars"
     if literalUrl:
         url = source
-
-        print("Pulling from '{}'".format(url))
-        # Generating artificial Version Tag
+        # Generate artificial Version Tag
         hash = hashlib.sha1(url.encode()).hexdigest()
         tag = "other/{}".format(hash[:12])
     else:
-        url, tag = getDownloadUrl(source)        
-        print("Pulling version '{}'".format(tag))
+        url, tag = getDownloadUrl(source)
 
+    print("Pulling version '{}'".format(tag))
     dest = baseDest / "{}.jar".format(tag.replace(":", "/"))
 
     if not dest.is_file():
@@ -127,5 +125,5 @@ def pull(source: str, literalUrl: bool=False) -> Path:
         download(url, dest)
     else:
         print("Already cached, no download required.")
-    
+
     return dest
