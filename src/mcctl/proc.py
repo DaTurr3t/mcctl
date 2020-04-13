@@ -28,6 +28,14 @@ from pwd import getpwnam
 
 
 def attach(instance: str):
+    """Attach to the console of a server.
+
+    Launches screen to reattach to the screen session of the server.
+    
+    Arguments:
+        instance {str} -- The name of the instance.
+    """
+
     assert isActive(
         instance), "The Server is not running"
     cmd = shlex.split(
@@ -36,6 +44,20 @@ def attach(instance: str):
 
 
 def exec(instance: str, command: list, timeout: int = 0.5):
+    """Execute a command on the console of a server.
+
+    Uses the 'stuff' command of screen to pass the minecraft command to the server.
+    Return Values are read from 'latest.log' shortly after the command is executed.
+    The logfile is read every <timeout> seconds. If nothing is appended to the Log in this timespan, the function completes.
+
+    Arguments:
+        instance {str} -- The name of the instance.
+        command {list} -- A list of the individual parts of the command executed on the server console.
+    
+    Keyword Arguments:
+        timeout {int} -- The timeout interval between log reads. (default: {0.5})
+    """
+
     assert isActive(
         instance), "The Server is not running"
 
@@ -60,14 +82,36 @@ def exec(instance: str, command: list, timeout: int = 0.5):
 
 
 def demote(asUser: str):
+    """Demotes the current python Script
+
+    Demote the running Python script to the permissions of <asUser> via UID and GID.
+    
+    Arguments:
+        asUser {str} -- The User of which the UID and GID is used.
+    """
+
     userData = getpwnam(asUser)
     os.setgid(userData.pw_gid)
     os.setuid(userData.pw_uid)
 
 
 def preStart(jarPath: Path, watchFile=None, killSec: int = 80) -> bool:
-    assert isinstance(
-        watchFile, Path) or watchFile is None, "WatchFile is not of Type 'Path'"
+    """Prepares the server and lets it create configuration files and such.
+    
+    Starts the server and waits for it to exit or for [watchFile] to be created.
+    If the file exists, the server is sent SIGTERM to shut it down again.
+
+    Arguments:
+        jarPath {Path} -- Path to the jar-file of the server.
+    
+    Keyword Arguments:
+        watchFile {Path} -- A file to be awaited for creation. Ignored if set to None. (default: {None})
+        killSec {int} -- Time to wait before killing the server. (default: {80})
+    
+    Returns:
+        bool -- True: The server stopped as expected. False: The server had to be killed.
+    """
+
     cmd = shlex.split(
         '/bin/java -jar {}'.format(jarPath))
     p = sp.Popen(cmd, cwd=jarPath.parent, stdout=sp.PIPE, stderr=sp.PIPE)

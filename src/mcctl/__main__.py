@@ -21,36 +21,25 @@
 import os
 import re
 import argparse as ap
-from mcctl import proc, storage, service, web, config
-
-
-def create(instance: str, source: str, memory: str, properties: list):
-    instancePath = storage.getHomePath() / "instances" / instance
-    assert not instancePath.exists(), "Instance already exists"
-    storage.createDirs(instancePath)
-
-    jarPathSrc = web.pull(source)
-    jarPathDest = instancePath / "server.jar"
-    storage.copy(jarPathSrc, jarPathDest)
-    proc.preStart(jarPathDest)
-    if config.acceptEula(instancePath):
-        if not properties is None:
-            propertiesDict = config.propertiesToDict(properties)
-            config.setProperties(
-                instancePath / "server.properties", propertiesDict)
-        if not memory is None:
-            config.setProperties(instancePath / "jvm-env", {"MEM": memory})
-        print("Configured and ready to start.")
-    else:
-        print("How can you not agree that tacos are tasty?!?")
-        storage.remove(instance, confirm=False)
+from mcctl import proc, storage, service, web, config, common
 
 
 def comingSoon():
+    """Returns an info to the user that command X is not correctly implemented yet.
+    """
+
     print("Not yet implemented!")
 
 
 def main():
+    """The main function of mcctl.
+
+    This function handles all arguments. The logic is moved into the other files as much as possible, except for input checking.
+
+    Raises:
+        ap.ArgumentTypeError: Raised when the parameters given cannot be parsed correctly.
+    """
+
     def typeID(value):
         testTypeID = re.compile(
             r'(.+:)+.+|https?: \/\/(-\.)?([ ^\s /?\.#-]+\.?)+(/[^\s]*)?$')
@@ -135,7 +124,7 @@ def main():
     parserStop.add_argument("-p", "--persistent", action='store_true',
                             help="Do not start again after Reboot")
 
-    #parser.add_argument("-v", help="Verbose Output", action="count", default=0)
+    # parser.add_argument("-v", help="Verbose Output", action="count", default=0)
 
     args = parser.parse_args()
 
@@ -151,7 +140,8 @@ def main():
 
     if args.action == 'create':
         try:
-            create(args.instance, args.source, args.memory, args.properties)
+            common.create(args.instance, args.source,
+                          args.memory, args.properties)
         except Exception as e:
             print("Unable to create instance '{0}': {1}".format(
                 args.instance, e))
