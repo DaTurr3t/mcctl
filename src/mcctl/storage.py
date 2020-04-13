@@ -39,23 +39,6 @@ def getHomePath(userName: str = "mcserver") -> Path:
     return Path(userData.pw_dir)
 
 
-def rename(instance: str, newName: str):
-    """Renames a server instance
-
-    A server instance is renamed. The server has to be stopped and disabled, so no invalid service links can occur.
-
-    Arguments:
-        instance {str} -- Current name
-        newName {str} -- New name of the instance
-    """
-
-    assert not (service.isEnabled(instance) or service.isActive(
-        instance)), "The server is still persistent and/or running"
-    basePath = getHomePath()
-    serverPath = basePath / "instances" / instance
-    serverPath.rename(serverPath.parent / newName)
-
-
 def getChildPaths(path: Path) -> list:
     """Wrapper to get all subdirectories and files.
 
@@ -139,7 +122,7 @@ def getRelativePaths(path: Path, filter: str = '', filterIdx: int = 0) -> list:
 
 def createDirs(path: Path):
     """Wrapper to create Paths recursively, with mode rwxr-x---.
-    
+
     Arguments:
         path {Path} -- Path to create, if nonexistent.
     """
@@ -151,11 +134,11 @@ def copy(source: Path, dest: Path):
     """Wrapper to copy a file or directory
 
     If [dest] is a directory and [source] is a file, the filename of [source] is retained.
-    
+
     Arguments:
         source {Path} -- Source file
         dest {Path} -- Destionation file or directory
-    
+
     Returns:
         Path -- The Destination Path of the copied file.
     """
@@ -168,15 +151,15 @@ def export(instance: str, zipPath=None, compress: bool = False, worldOnly: bool 
 
     Export a minecraft server instance to a Zip-File for archiving or similar. 
     Optionally, the File can also be compressed and all config Files can be excluded.
-    
+
     Arguments:
         instance {str} -- The name of the Instance to be exported.
-    
+
     Keyword Arguments:
         zipPath {Path} -- The path of the Zip-File that is generated. (default: {None})
         compress {bool} -- True: Compress the Zip-File using ZIP_DEFLATE. False: Use ZIP_STORE (default: {False})
         worldOnly {bool} -- Only export the World data without configuration files. (default: {False})
-    
+
     Returns:
         Path -- The Path where the Zip-File was saved to.
     """
@@ -209,10 +192,10 @@ def export(instance: str, zipPath=None, compress: bool = False, worldOnly: bool 
 
 def remove(instance: str, confirm: bool = True):
     """Remove an instance from disk.
-    
+
     Arguments:
         instance {str} -- The name of the Instance to be deleted.
-    
+
     Keyword Arguments:
         confirm {bool} -- Ask the user if they are sure to delete the instance. (default: {True})
     """

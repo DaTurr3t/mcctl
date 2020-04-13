@@ -64,15 +64,14 @@ def compute(length: int = 1) -> str:
     """Returns a character looking like a panel of blinkling lamps.
 
     Uses the braille range in unicode to create a 'running' Indicator, showing that a Process is still running.
-    
+
     Keyword Arguments:
         length {int} -- Determines how many characters are returned. (default: {1})
-    
+
     Returns:
         str -- A string containig characters that can be animated in subsequent functions.
     """
 
-    
     min = 10240
     max = 10495
 

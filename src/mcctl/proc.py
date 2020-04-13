@@ -31,7 +31,7 @@ def attach(instance: str):
     """Attach to the console of a server.
 
     Launches screen to reattach to the screen session of the server.
-    
+
     Arguments:
         instance {str} -- The name of the instance.
     """
@@ -53,7 +53,7 @@ def exec(instance: str, command: list, timeout: int = 0.5):
     Arguments:
         instance {str} -- The name of the instance.
         command {list} -- A list of the individual parts of the command executed on the server console.
-    
+
     Keyword Arguments:
         timeout {int} -- The timeout interval between log reads. (default: {0.5})
     """
@@ -85,7 +85,7 @@ def demote(asUser: str):
     """Demotes the current python Script
 
     Demote the running Python script to the permissions of <asUser> via UID and GID.
-    
+
     Arguments:
         asUser {str} -- The User of which the UID and GID is used.
     """
@@ -97,17 +97,17 @@ def demote(asUser: str):
 
 def preStart(jarPath: Path, watchFile=None, killSec: int = 80) -> bool:
     """Prepares the server and lets it create configuration files and such.
-    
+
     Starts the server and waits for it to exit or for [watchFile] to be created.
     If the file exists, the server is sent SIGTERM to shut it down again.
 
     Arguments:
         jarPath {Path} -- Path to the jar-file of the server.
-    
+
     Keyword Arguments:
         watchFile {Path} -- A file to be awaited for creation. Ignored if set to None. (default: {None})
         killSec {int} -- Time to wait before killing the server. (default: {80})
-    
+
     Returns:
         bool -- True: The server stopped as expected. False: The server had to be killed.
     """

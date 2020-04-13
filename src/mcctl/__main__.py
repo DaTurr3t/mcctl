@@ -167,7 +167,7 @@ def main():
 
     elif args.action == 'ls':
         if args.what == 'instances':
-            service.getInstanceList(args.filter)
+            common.getInstanceList(args.filter)
         elif args.what == 'jars':
             storage.getJarList(args.filter)
 
@@ -209,7 +209,7 @@ def main():
 
     elif args.action == 'rename':
         try:
-            storage.rename(args.instance, args.newName)
+            common.rename(args.instance, args.newName)
         except (AssertionError, FileExistsError, FileNotFoundError) as e:
             print("Unable to rename '{0}': {1}".format(
                 args.instance, str(e).split(":")[0]))

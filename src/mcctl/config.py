@@ -21,16 +21,16 @@ from pathlib import Path
 
 def propertiesToDict(propertyList: list) -> dict:
     """Convert an array of properties to a dict
-    
+
     Takes a list of strings in "KEY=VALUE" form, and remodels it into a dict.
     Comments are removed from the File.
 
     Arguments:
         propertyList {list} -- The list to convert
-    
+
     Raises:
         ValueError: Raised if a property is missing the "="-sign.
-    
+
     Returns:
         dict -- A dict with all properties from the property list.
     """
@@ -52,10 +52,10 @@ def getProperties(filePath: Path) -> dict:
     """Create a dict from a property file
 
     Takes a the contents of a file line by line in "KEY=VALUE" form, and remodels it into a dict.
-    
+
     Arguments:
         filePath {Path} -- The path of the input file.
-    
+
     Returns:
         dict -- A dict with all properties from the specified file.
     """
@@ -67,7 +67,7 @@ def getProperties(filePath: Path) -> dict:
 
 def setProperties(filePath: Path, properties: dict):
     """Write a configuration file from dict
-    
+
     The properties is written into the specified file in "KEY=VALUE" form.
 
     Arguments:
@@ -91,12 +91,12 @@ def setProperties(filePath: Path, properties: dict):
 
 def acceptEula(instancePath: Path) -> bool:
     """Prints and modufies EULA according to user input
-    
+
     The EULA will be displayed to Console and a dialog will ask the user to accept.
-        
+
     Arguments:
         instancePath {Path} -- path to the instance.
-    
+
     Returns:
         bool -- returns if the EULA was accepted.
     """
