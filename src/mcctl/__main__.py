@@ -21,7 +21,7 @@
 import os
 import re
 import argparse as ap
-from mcctl.modules import proc, storage, service, web, config
+from mcctl import proc, storage, service, web, config
 
 
 def create(instance: str, source: str, memory: str, properties: list):
@@ -126,7 +126,7 @@ def main():
         "restart", parents=[instanceNameParser], help="Restart a Minecraft Server Instance")
 
     parserStart = subparsers.add_parser(
-        "start", parents=[instanceNameParser], help="Start a Minecraft Server> Instance")
+        "start", parents=[instanceNameParser], help="Start a Minecraft Server Instance")
     parserStart.add_argument("-p", "--persistent", action='store_true',
                              help="Start even after Reboot")
 
@@ -140,7 +140,6 @@ def main():
     args = parser.parse_args()
 
     # TODO
-    # Create new instances
     # Update command
 
     if os.geteuid() != 0:

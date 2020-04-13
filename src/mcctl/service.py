@@ -19,9 +19,9 @@
 import shlex
 import time
 from pathlib import Path
-from mcctl.modules import storage, config
+from mcctl import storage, config
 import subprocess as sp
-from mcctl.modules import status
+from mcctl import status
 
 unitName = "mcserver@"
 

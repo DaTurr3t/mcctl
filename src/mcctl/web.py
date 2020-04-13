@@ -20,7 +20,7 @@ import urllib.request as req
 from pathlib import Path
 import json
 import hashlib
-from mcctl.modules import visuals, storage
+from mcctl import visuals, storage
 
 downloadUrls = {
     "vanilla": "https://launchermeta.mojang.com/mc/game/version_manifest.json",

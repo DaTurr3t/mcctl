@@ -22,7 +22,7 @@ from pathlib import Path
 import zipfile as zf
 from datetime import datetime
 from pwd import getpwnam
-from mcctl.modules import service
+from mcctl import service
 
 
 def getHomePath(userName: str = "mcserver"):
