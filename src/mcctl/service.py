@@ -19,10 +19,10 @@
 import shlex
 import time
 from pathlib import Path
-from mcctl import storage, config
+from mcctl import storage, config, settings
 import subprocess as sp
 
-unitName = "mcserver@"
+unitName = settings.cfgDict['systemd_service']
 
 
 def isActive(instance: str) -> bool:
@@ -37,7 +37,6 @@ def isActive(instance: str) -> bool:
         bool -- true: Server running, false: Server inactive/dead
     """
 
-    global unitName
     serviceInstance = unitName + instance
     testCmd = shlex.split("systemctl is-active {0}".format(serviceInstance))
     testOut = sp.run(testCmd, stdout=sp.PIPE, stderr=sp.PIPE)
@@ -56,7 +55,6 @@ def isEnabled(instance: str) -> bool:
         bool -- true: Server starts on system boot, false: Server stays inactive/dead
     """
 
-    global unitName
     serviceInstance = unitName + instance
     testCmd = shlex.split("systemctl is-enabled {0}".format(serviceInstance))
     testOut = sp.run(testCmd, stdout=sp.PIPE, stderr=sp.PIPE)
@@ -73,7 +71,6 @@ def setStatus(instance: str, action: str):
         action {str} -- The systemd action to apply to the service. Can be ["start", "restart", "stop", "enable", "disable"].
     """
 
-    global unitName
     assert action in ["start", "restart", "stop", "enable",
                       "disable"], "Invalid action '{}'".format(action)
     serviceInstance = unitName + instance

@@ -21,7 +21,7 @@
 import os
 import re
 import argparse as ap
-from mcctl import proc, storage, service, web, config, common
+from mcctl import proc, storage, service, web, config, common, settings
 
 
 def comingSoon():
@@ -136,7 +136,8 @@ def main():
         exit(1)
 
     if not args.action in ["start", "stop", "restart", "export"]:
-        proc.demote("mcserver")
+        user = settings.cfgDict['server_user']
+        proc.demote(user)
 
     if args.action == 'create':
         try:

@@ -22,10 +22,11 @@ from pathlib import Path
 import zipfile as zf
 from datetime import datetime
 from pwd import getpwnam
-from mcctl import service, config
+from mcctl import service, config, settings
 
+serverUser = settings.cfgDict['server_user']
 
-def getHomePath(userName: str = "mcserver") -> Path:
+def getHomePath(userName: str = serverUser) -> Path:
     """Wrapper to return the home Directory of a user
 
     Arguments:
