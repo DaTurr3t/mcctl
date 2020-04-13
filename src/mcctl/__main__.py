@@ -184,15 +184,24 @@ def main():
     elif args.action == 'start':
         if args.persistent:
             service.setStatus(args.instance, "enable")
-        service.setStatus(args.instance, args.action)
+        try:
+            service.setStatus(args.instance, args.action)
+        except AssertionError:
+            print(e)
 
     elif args.action == 'stop':
         if args.persistent:
             service.setStatus(args.instance, "disable")
-        service.setStatus(args.instance, args.action)
+        try:
+            service.setStatus(args.instance, args.action)
+        except AssertionError:
+            print(e)
 
     elif args.action == 'restart':
-        service.setStatus(args.instance, args.action)
+        try:
+            service.setStatus(args.instance, args.action)
+        except AssertionError:
+            print(e)
 
     elif args.action == 'attach':
         try:
