@@ -22,4 +22,4 @@ from pathlib import Path
 __parser = SafeConfigParser()
 __parser.read(Path(__file__).parent / 'settings.ini')
 
-cfgDict = dict(__parser.items('global'))
+cfgDict = dict(__parser.items('settings'))
