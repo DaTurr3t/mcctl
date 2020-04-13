@@ -54,7 +54,7 @@ def main():
             raise ap.ArgumentTypeError("Must be in Format <NUMBER>{K,M,G}")
         return value
 
-    parser = ap.ArgumentParser(description="Management Utility for Minecraft Server Instances",
+    parser = ap.ArgumentParser("mcctl", description="Management Utility for Minecraft Server Instances",
                                formatter_class=ap.ArgumentDefaultsHelpFormatter)
     subparsers = parser.add_subparsers(
         title="actions", dest="action")
