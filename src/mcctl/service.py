@@ -19,7 +19,7 @@
 import shlex
 import time
 from pathlib import Path
-from mcctl import storage, config, settings
+from mcctl import config, settings
 import subprocess as sp
 
 unitName = settings.cfgDict['systemd_service']
