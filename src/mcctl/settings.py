@@ -16,10 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 from pathlib import Path
 
-PARSER = SafeConfigParser()
+PARSER = ConfigParser()
 PARSER.read(Path(__file__).parent / 'settings.ini')
 
 CFG_DICT = dict(PARSER.items('settings'))

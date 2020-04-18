@@ -92,8 +92,8 @@ def demote(as_user: str):
     """
 
     user_data = getpwnam(as_user)
-    os.setgid(user_data.pw_gid)
-    os.setuid(user_data.pw_uid)
+    os.setegid(user_data.pw_gid)
+    os.seteuid(user_data.pw_uid)
 
 
 def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
