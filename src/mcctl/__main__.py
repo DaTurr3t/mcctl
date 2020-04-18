@@ -204,7 +204,7 @@ def main():
 
     elif args.action == 'exec':
         try:
-            proc.exec(args.instance, args.command)
+            proc.mc_exec(args.instance, args.command)
         except AssertionError as ex:
             print("Unable to pass command to '{0}': {1}".format(
                 args.instance, ex))

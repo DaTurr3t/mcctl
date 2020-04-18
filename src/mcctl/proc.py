@@ -43,7 +43,7 @@ def attach(instance: str):
     sproc.run(cmd, check=False)
 
 
-def exec(instance: str, command: list, timeout: int = 0.5):
+def mc_exec(instance: str, command: list, timeout: int = 0.5):
     """Execute a command on the console of a server.
 
     Uses the 'stuff' command of screen to pass the minecraft command to the server.
