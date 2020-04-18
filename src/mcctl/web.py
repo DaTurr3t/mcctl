@@ -22,13 +22,13 @@ import json
 import hashlib
 from mcctl import visuals, storage
 
-downloadUrls = {
+DOWNLOAD_URLS = {
     "vanilla": "https://launchermeta.mojang.com/mc/game/version_manifest.json",
     "paper": "https://papermc.io/api/v1/paper"
 }
 
 
-def restGet(url: str) -> dict:
+def rest_get(url: str) -> dict:
     """Send a get request and parse response form JSON.
 
     A HTTP GET request is sent to the specified URL. The response is parsed into a dict.
@@ -60,9 +60,9 @@ def download(url: str, dest: Path) -> tuple:
         tuple -- data about the downloaded file, from urllib.urlretrieve()
     """
 
-    storeData = req.urlretrieve(url, dest, reporthook)
+    store_data = req.urlretrieve(url, dest, reporthook)
     print()
-    return storeData
+    return store_data
 
 
 def reporthook(blockcount: int, blocksize: int, total: int):
@@ -79,15 +79,15 @@ def reporthook(blockcount: int, blocksize: int, total: int):
     current = blockcount * blocksize
     if total > 0:
         percent = current * 100 / total
-        s = "\r%s %3.0f%% %*dkB / %dkB" % (
+        out = "\r%s %3.0f%% %*dkB / %dkB" % (
             visuals.spinner(int(percent), 1), percent, len(str(total//1024)), current/1024, total/1024)
     else:
-        s = "\r%s %dkB / %skB" % (visuals.spinner(blockcount),
-                                  current/1024, "???")
-    print(s, end="")
+        out = "\r%s %dkB / %skB" % (visuals.spinner(blockcount),
+                                    current/1024, "???")
+    print(out, end="")
 
 
-def joinUrl(base: str, *parts: str) -> str:
+def join_url(base: str, *parts: str) -> str:
     """Join an URL and its segments.
 
     Arguments:
@@ -102,73 +102,70 @@ def joinUrl(base: str, *parts: str) -> str:
     return "{}/{}".format(base.rstrip("/"), path)
 
 
-def getVanillaDownloadUrl(versionTag: str, manifestUrl: str = downloadUrls['vanilla']) -> tuple:
+def get_vanilla_download_url(version_tag: str, manifest_url: str = DOWNLOAD_URLS['vanilla']) -> tuple:
     """Get the download URL of a vanilla server
 
     Find the download URL of a vanilla server using Mojangs Launcher-Meta API.
 
-    Arguments:
-        manifestUrl {str} -- The URL of version_manifest.json
-
     Keyword Arguments:
-        manifestUrl {str} -- The URL of version_manifest.json (default: {downloadUrls['vanilla']})
+        manifest_url {str} -- The URL of version_manifest.json (default: {downloadUrls['vanilla']})
+        version_tag {str} -- The Tag of the server without the type (vanilla/paper).
 
     Returns:
         tuple -- A tuple with the download URL and the complete, resolved Tag
     """
 
-    versionManifest = restGet(manifestUrl)
-    if versionTag == "latest":
-        versionTag = versionManifest["latest"]["release"]
-    elif versionTag == "latest-snap":
-        versionTag = versionManifest["latest"]["snapshot"]
+    version_manifest = rest_get(manifest_url)
+    if version_tag == "latest":
+        version_tag = version_manifest["latest"]["release"]
+    elif version_tag == "latest-snap":
+        version_tag = version_manifest["latest"]["snapshot"]
 
-    for version in versionManifest["versions"]:
-        if version["id"] == versionTag:
-            downloadUrl = version["url"]
+    for version in version_manifest["versions"]:
+        if version["id"] == version_tag:
+            download_url = version["url"]
             break
-    versionData = restGet(downloadUrl)
-    resolvedTag = "vanilla:{}".format(versionTag)
-    return versionData["downloads"]["server"]["url"], resolvedTag
+    version_data = rest_get(download_url)
+    resolved_tag = "vanilla:{}".format(version_tag)
+    return version_data["downloads"]["server"]["url"], resolved_tag
 
 
-def getPaperDownloadUrl(versionTag: str, baseUrl: str = downloadUrls['paper']) -> tuple:
+def get_paper_download_url(version_tag: str, base_url: str = DOWNLOAD_URLS['paper']) -> tuple:
     """Get the download URL of a paper server
 
     Find the download URL of a paper server using PaperMCs Version API.
 
     Arguments:
-        baseUrl {str} -- The API URL for paper.
-        versionTag {str} -- The Tag of the server without the type (vanilla/paper).
+        version_tag {str} -- The Tag of the server without the type (vanilla/paper).
 
     Keyword Arguments:
-        baseUrl {str} --  The API URL for paper. (default: {downloadUrls['vanilla']})
+        base_url {str} --  The API URL for paper. (default: {downloadUrls['vanilla']})
 
     Returns:
         tuple -- A tuple with the download URL and the complete, resolved Tag
     """
 
-    if versionTag == "latest":
-        versions = restGet(baseUrl)
+    if version_tag == "latest":
+        versions = rest_get(base_url)
         major = versions["versions"][0]
-        minor = versionTag
+        minor = version_tag
     else:
-        major, minor = versionTag.split(":", 1)
-    testUrl = joinUrl(baseUrl, major, minor)
+        major, minor = version_tag.split(":", 1)
+    test_url = join_url(base_url, major, minor)
     try:
-        resolvedData = restGet(testUrl)
-        resolvedTag = ":".join(list(resolvedData.values()))
-    except Exception as e:
+        resolved_data = rest_get(test_url)
+        resolved_tag = ":".join(list(resolved_data.values()))
+    except Exception as ex:
         raise Exception(
-            "Server version not found for type 'paper'", versionTag, str(e))
-    return joinUrl(testUrl, "download"), resolvedTag
+            "Server version not found for type 'paper'", version_tag, str(ex))
+    return join_url(test_url, "download"), resolved_tag
 
 
-def getDownloadUrl(serverTag: str) -> tuple:
+def get_download_url(server_tag: str) -> tuple:
     """Get the download URL of any minecraft server
 
     Arguments:
-        serverTag {str} -- The Tag of the server (e.g. vanilla:latest).
+        server_tag {str} -- The Tag of the server (e.g. vanilla:latest).
 
     Raises:
         Exception: If an unsupported Server type is used, an Exception is raised.
@@ -177,19 +174,18 @@ def getDownloadUrl(serverTag: str) -> tuple:
         tuple -- A tuple with the download URL and the complete, resolved Tag
     """
 
-    assert ":" in serverTag, "Invalid Server Tag '{}'".format(serverTag)
-    global downloadUrls
-    typeTag, versionTag = serverTag.split(":", 1)
-    if typeTag == "paper":
-        url, resolvedTag = getPaperDownloadUrl(versionTag)
-    elif typeTag == "vanilla":
-        url, resolvedTag = getVanillaDownloadUrl(versionTag)
+    assert ":" in server_tag, "Invalid Server Tag '{}'".format(server_tag)
+    type_tag, version_tag = server_tag.split(":", 1)
+    if type_tag == "paper":
+        url, resolved_tag = get_paper_download_url(version_tag)
+    elif type_tag == "vanilla":
+        url, resolved_tag = get_vanilla_download_url(version_tag)
     else:
-        raise Exception("Unsupported server type: '{}'".format(typeTag))
-    return url, resolvedTag
+        raise Exception("Unsupported server type: '{}'".format(type_tag))
+    return url, resolved_tag
 
 
-def pull(source: str, literalUrl: bool = False) -> Path:
+def pull(source: str, literal_url: bool = False) -> Path:
     """Download a minecraft server jar by type tag
 
     A .jar-file is determined by the type tag and saved to disk.
@@ -198,26 +194,26 @@ def pull(source: str, literalUrl: bool = False) -> Path:
         source {str} -- The type tag of a server or a URL.
 
     Keyword Arguments:
-        literalUrl {bool} -- Specifies if the source variable contains an URL or a type tag. (default: {False})
+        literal_url {bool} -- Specifies if the source variable contains an URL or a type tag. (default: {False})
 
     Returns:
         Path -- The path of the saved .jar-file.
     """
 
-    baseDest = storage.getHomePath() / "jars"
-    if literalUrl:
+    base_dest = storage.get_home_path() / "jars"
+    if literal_url:
         url = source
         # Generate artificial Version Tag
-        hash = hashlib.sha1(url.encode()).hexdigest()
-        tag = "other/{}".format(hash[:12])
+        url_hash = hashlib.sha1(url.encode()).hexdigest()
+        tag = "other/{}".format(url_hash[:12])
     else:
-        url, tag = getDownloadUrl(source)
+        url, tag = get_download_url(source)
 
     print("Pulling version '{}'".format(tag))
-    dest = baseDest / "{}.jar".format(tag.replace(":", "/"))
+    dest = base_dest / "{}.jar".format(tag.replace(":", "/"))
 
     if not dest.is_file():
-        storage.createDirs(dest.parent)
+        storage.create_dirs(dest.parent)
         download(url, dest)
     else:
         print("Already cached, no download required.")

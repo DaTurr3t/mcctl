@@ -19,14 +19,14 @@
 from pathlib import Path
 
 
-def propertiesToDict(propertyList: list) -> dict:
+def properties_to_dict(property_list: list) -> dict:
     """Convert an array of properties to a dict
 
     Takes a list of strings in "KEY=VALUE" form, and remodels it into a dict.
     Comments are removed from the File.
 
     Arguments:
-        propertyList {list} -- The list to convert
+        property_list {list} -- The list to convert
 
     Raises:
         ValueError: Raised if a property is missing the "="-sign.
@@ -35,75 +35,75 @@ def propertiesToDict(propertyList: list) -> dict:
         dict -- A dict with all properties from the property list.
     """
 
-    propertyDict = {}
-    for line in propertyList:
+    property_dict = {}
+    for line in property_list:
         line = line.rstrip()
         if not line.startswith("#"):
             try:
                 key, value = line.split("=", 1)
-                propertyDict[key] = value
+                property_dict[key] = value
             except:
                 raise ValueError(
                     "Unable to set Property '{}'".format(line))
-    return propertyDict
+    return property_dict
 
 
-def getProperties(filePath: Path) -> dict:
+def get_properties(file_path: Path) -> dict:
     """Create a dict from a property file
 
     Takes a the contents of a file line by line in "KEY=VALUE" form, and remodels it into a dict.
 
     Arguments:
-        filePath {Path} -- The path of the input file.
+        file_path {Path} -- The path of the input file.
 
     Returns:
         dict -- A dict with all properties from the specified file.
     """
 
-    with open(filePath, "r") as configFile:
-        config = propertiesToDict(list(configFile))
+    with open(file_path, "r") as config_file:
+        config = properties_to_dict(list(config_file))
     return config
 
 
-def setProperties(filePath: Path, properties: dict):
+def set_properties(file_path: Path, properties: dict):
     """Write a configuration file from dict
 
     The properties is written into the specified file in "KEY=VALUE" form.
 
     Arguments:
-        filePath {Path} -- The path of the output file.
+        file_path {Path} -- The path of the output file.
         properties {dict} -- A dict with properties.
     """
 
-    if not filePath.exists():
-        filePath.touch()
-    with open(filePath, "r+") as configFile:
-        oldConfig = propertiesToDict(list(configFile))
-        oldConfig.update(properties)
+    if not file_path.exists():
+        file_path.touch()
+    with open(file_path, "r+") as config_file:
+        old_config = properties_to_dict(list(config_file))
+        old_config.update(properties)
 
-        newConfig = []
-        for key, value in oldConfig.items():
-            newConfig.append("{0}={1}".format(key, value))
-        configFile.seek(0)
-        configFile.write('\n'.join(newConfig) + '\n')
-        configFile.truncate()
+        new_config = []
+        for key, value in old_config.items():
+            new_config.append("{0}={1}".format(key, value))
+        config_file.seek(0)
+        config_file.write('\n'.join(new_config) + '\n')
+        config_file.truncate()
 
 
-def acceptEula(instancePath: Path) -> bool:
+def accept_eula(instance_path: Path) -> bool:
     """Prints and modufies EULA according to user input
 
     The EULA will be displayed to Console and a dialog will ask the user to accept.
 
     Arguments:
-        instancePath {Path} -- path to the instance.
+        instance_path {Path} -- path to the instance.
 
     Returns:
         bool -- returns if the EULA was accepted.
     """
 
-    filePath = instancePath / "eula.txt"
-    assert filePath.exists(), "EULA not found"
-    with open(filePath, "r+") as eula:
+    file_path = instance_path / "eula.txt"
+    assert file_path.exists(), "EULA not found"
+    with open(file_path, "r+") as eula:
         contents = []
         for line in eula:
             if line.startswith("#"):

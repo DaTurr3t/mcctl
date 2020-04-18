@@ -51,9 +51,9 @@ def spinner(frame: int, variant=0) -> str:
             "chars": '◐◓◑◒'
         }
     ]
-    maxIdx = len(spinners) - 1
-    assert 0 <= variant <= maxIdx, "Invalid Index '{0}'. Must be from 0 to {1}".format(
-        variant, maxIdx)
+    max_idx = len(spinners) - 1
+    assert 0 <= variant <= max_idx, "Invalid Index '{0}'. Must be from 0 to {1}".format(
+        variant, max_idx)
 
     speed = spinners[variant]['speed']
     idx = int((frame*speed/100) % len(spinners[variant]['chars']))
@@ -72,10 +72,10 @@ def compute(length: int = 1) -> str:
         str -- A string containig characters that can be animated in subsequent functions.
     """
 
-    min = 10240
-    max = 10495
+    c_min = 10240
+    c_max = 10495
 
     out = ''
     for _ in range(length):
-        out += chr(random.randint(min, max))
+        out += chr(random.randint(c_min, c_max))
     return out

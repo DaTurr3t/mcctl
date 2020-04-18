@@ -19,7 +19,9 @@
 from configparser import SafeConfigParser
 from pathlib import Path
 
-__parser = SafeConfigParser()
-__parser.read(Path(__file__).parent / 'settings.ini')
+PARSER = SafeConfigParser()
+PARSER.read(Path(__file__).parent / 'settings.ini')
 
-cfgDict = dict(__parser.items('settings'))
+CFG_DICT = dict(PARSER.items('settings'))
+
+del PARSER

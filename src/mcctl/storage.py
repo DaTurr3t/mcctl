@@ -24,23 +24,23 @@ from datetime import datetime
 from pwd import getpwnam
 from mcctl import service, config, settings
 
-serverUser = settings.cfgDict['server_user']
+SERVER_USER = settings.CFG_DICT['server_user']
 
-def getHomePath(userName: str = serverUser) -> Path:
+def get_home_path(user_name: str = SERVER_USER) -> Path:
     """Wrapper to return the home Directory of a user
 
     Arguments:
-        userName {str} -- The username of which the home directory should be determined.
+        user_name {str} -- The username of which the home directory should be determined.
 
     Returns:
         Path -- The home directory of the user.
     """
 
-    userData = getpwnam(userName)
-    return Path(userData.pw_dir)
+    user_data = getpwnam(user_name)
+    return Path(user_data.pw_dir)
 
 
-def getChildPaths(path: Path) -> list:
+def get_child_paths(path: Path) -> list:
     """Wrapper to get all subdirectories and files.
 
     Arguments:
@@ -53,18 +53,18 @@ def getChildPaths(path: Path) -> list:
     return list(path.rglob("*"))
 
 
-def getJarList(filter: str = ''):
+def get_jar_list(filter_str: str = ''):
     """Get List of all cached .jar-files
 
     Lists all cached .jar-Files in the Type-Tag format.
 
     Keyword Arguments:
-        filter {str} -- Filter for version, type or version. (default: {''})
+        filter_str {str} -- Filter for version, type or version. (default: {''})
     """
 
-    jars = getRelativePaths(getHomePath() / "jars", ".jar", -1)
+    jars = get_relative_paths(get_home_path() / "jars", ".jar", -1)
     for jar in jars:
-        if filter in str(jar):
+        if filter_str in str(jar):
             print(str(jar).replace("/", ":").replace(".jar", ''))
 
 
@@ -85,14 +85,14 @@ def chown(path: Path, user: str, group=None):
     if group is None:
         group = getpwnam(user).pw_gid
     if path.is_dir():
-        fileList = getChildPaths(path)
+        file_list = get_child_paths(path)
     else:
-        fileList = [path]
-    for f in fileList:
-        shutil.chown(f, user, group)
+        file_list = [path]
+    for fle in file_list:
+        shutil.chown(fle, user, group)
 
 
-def getRelativePaths(path: Path, filter: str = '', filterIdx: int = 0) -> list:
+def get_relative_paths(path: Path, filter_str: str = '', filter_idx: int = 0) -> list:
     """Get relative subdirectories of path.
 
     Get the subdirectories of a path, without any of the path itself.
@@ -105,23 +105,23 @@ def getRelativePaths(path: Path, filter: str = '', filterIdx: int = 0) -> list:
         path {Path} -- The path of which the subdirecories should be returned.
 
     Keyword Arguments:
-        filter {str} -- A string that is checked agains a specified  (default: {''})
-        filterIdx {int} -- The index of the directory to test against. (default: {0})
+        filter_str {str} -- A string that is checked agains a specified  (default: {''})
+        filter_idx {int} -- The index of the directory to test against. (default: {0})
 
     Returns:
         list -- A list of all relative Paths found.
     """
 
-    pathList = []
+    path_list = []
     length = len(path.parts)
-    for filePath in getChildPaths(path):
-        relPath = Path(*filePath.parts[length:])
-        if filter in relPath.parts[filterIdx]:
-            pathList.append(relPath)
-    return pathList
+    for file_path in get_child_paths(path):
+        rel_path = Path(*file_path.parts[length:])
+        if filter_str in rel_path.parts[filter_idx]:
+            path_list.append(rel_path)
+    return path_list
 
 
-def createDirs(path: Path):
+def create_dirs(path: Path):
     """Wrapper to create Paths recursively, with mode rwxr-x---.
 
     Arguments:
@@ -147,48 +147,48 @@ def copy(source: Path, dest: Path):
     return shutil.copy(source, dest)
 
 
-def export(instance: str, zipPath=None, compress: bool = False, worldOnly: bool = False) -> Path:
+def export(instance: str, zip_path=None, compress: bool = False, world_only: bool = False) -> Path:
     """Export a minecraft server instance to a Zip-File.
 
-    Export a minecraft server instance to a Zip-File for archiving or similar. 
+    Export a minecraft server instance to a Zip-File for archiving or similar.
     Optionally, the File can also be compressed and all config Files can be excluded.
 
     Arguments:
         instance {str} -- The name of the Instance to be exported.
 
     Keyword Arguments:
-        zipPath {Path} -- The path of the Zip-File that is generated. (default: {None})
+        zip_path {Path} -- The path of the Zip-File that is generated. (default: {None})
         compress {bool} -- True: Compress the Zip-File using ZIP_DEFLATE. False: Use ZIP_STORE (default: {False})
-        worldOnly {bool} -- Only export the World data without configuration files. (default: {False})
+        world_only {bool} -- Only export the World data without configuration files. (default: {False})
 
     Returns:
         Path -- The Path where the Zip-File was saved to.
     """
 
-    if zipPath == None:
-        zipPath = Path("{0}_{1}.zip".format(
+    if zip_path is None:
+        zip_path = Path("{0}_{1}.zip".format(
             instance, datetime.now().strftime("%y-%m-%d-%H.%M.%S")))
-    basePath = getHomePath()
-    serverPath = Path(basePath, "instances", instance)
+    base_path = get_home_path()
+    server_path = Path(base_path, "instances", instance)
 
     world = ""
-    if worldOnly:
-        serverCfg = config.getProperties(serverPath / "server.properties")
-        world = serverCfg["level-name"]
+    if world_only:
+        server_cfg = config.get_properties(server_path / "server.properties")
+        world = server_cfg["level-name"]
 
-    fileList = getRelativePaths(serverPath, world)
-    totalSize = sum([(serverPath / x).stat().st_size for x in fileList])
-    compressMode = zf.ZIP_DEFLATED if compress else zf.ZIP_STORED
-    with zf.ZipFile(zipPath, "w", compression=compressMode, allowZip64=True) as zipFile:
+    file_list = get_relative_paths(server_path, world)
+    total_size = sum([(server_path / x).stat().st_size for x in file_list])
+    compress_mode = zf.ZIP_DEFLATED if compress else zf.ZIP_STORED
+    with zf.ZipFile(zip_path, "w", compression=compress_mode, allowZip64=True) as zip_file:
         written = 0
-        for filePath in fileList:
-            fullPath = serverPath / filePath
-            written += fullPath.stat().st_size
+        for file_path in file_list:
+            full_path = server_path / file_path
+            written += full_path.stat().st_size
             sys.stdout.write("\r[%3.0d%%] Writing: %s...\033[K" % (
-                written * 100 / totalSize, filePath))
-            zipFile.write(fullPath, filePath)
+                written * 100 / total_size, file_path))
+            zip_file.write(full_path, file_path)
     print()
-    return zipPath
+    return zip_path
 
 
 def remove(instance: str, confirm: bool = True):
@@ -201,10 +201,10 @@ def remove(instance: str, confirm: bool = True):
         confirm {bool} -- Ask the user if they are sure to delete the instance. (default: {True})
     """
 
-    basePath = getHomePath()
-    delPath = basePath / "instances" / instance
-    assert delPath.exists(), "Instance not found"
-    assert not (service.isEnabled(instance) or service.isActive(
+    base_path = get_home_path()
+    del_path = base_path / "instances" / instance
+    assert del_path.exists(), "Instance not found"
+    assert not (service.is_enabled(instance) or service.is_active(
         instance)), "The server is still persistent and/or running"
     if confirm:
         ans = input(
@@ -214,4 +214,4 @@ def remove(instance: str, confirm: bool = True):
     else:
         ans = "y"
     if ans == "y":
-        shutil.rmtree(delPath)
+        shutil.rmtree(del_path)

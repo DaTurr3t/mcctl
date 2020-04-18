@@ -18,14 +18,14 @@
 
 import shlex
 import time
-from pathlib import Path
-from mcctl import config, settings
 import subprocess as sp
+from mcctl import settings
 
-unitName = settings.cfgDict['systemd_service']
+
+UNIT_NAME = settings.CFG_DICT['systemd_service']
 
 
-def isActive(instance: str) -> bool:
+def is_active(instance: str) -> bool:
     """Test if an instance is running
 
     systemd is queried to determine if the service of the server is running.
@@ -37,13 +37,14 @@ def isActive(instance: str) -> bool:
         bool -- true: Server running, false: Server inactive/dead
     """
 
-    serviceInstance = unitName + instance
-    testCmd = shlex.split("systemctl is-active {0}".format(serviceInstance))
-    testOut = sp.run(testCmd, stdout=sp.PIPE, stderr=sp.PIPE)
-    return testOut.returncode == 0
+    service_instance = UNIT_NAME + instance
+    test_cmd = shlex.split("systemctl is-active {0}".format(service_instance))
+    test_out = sp.run(test_cmd, stdout=sp.PIPE, stderr=sp.PIPE, check=False)
+    # TODO: Learn more about check
+    return test_out.returncode == 0
 
 
-def isEnabled(instance: str) -> bool:
+def is_enabled(instance: str) -> bool:
     """Test if an instance is enabled
 
     systemd is queried to determine if the service of the server is flagged to start on system boot.
@@ -55,30 +56,36 @@ def isEnabled(instance: str) -> bool:
         bool -- true: Server starts on system boot, false: Server stays inactive/dead
     """
 
-    serviceInstance = unitName + instance
-    testCmd = shlex.split("systemctl is-enabled {0}".format(serviceInstance))
-    testOut = sp.run(testCmd, stdout=sp.PIPE, stderr=sp.PIPE)
-    return testOut.returncode == 0
+    service_instance = UNIT_NAME + instance
+    test_cmd = shlex.split("systemctl is-enabled {0}".format(service_instance))
+    test_out = sp.run(test_cmd, stdout=sp.PIPE, stderr=sp.PIPE, check=False)
+    return test_out.returncode == 0
 
 
-def setStatus(instance: str, action: str):
+def set_status(instance: str, action: str):
     """Apply a systemd action to a minecraft server service.
 
-    systemd is called to start, stop, restart, enable or disable a service of the Unit mcserver@.service.
+    systemd is called to start, stop, restart, enable or disable a service
+    of the Unit mcserver@.service.
 
     Arguments:
         instance {str} -- The name of the instance.
-        action {str} -- The systemd action to apply to the service. Can be ["start", "restart", "stop", "enable", "disable"].
+        action {str} -- The systemd action to apply to the service.
+            Can be ["start", "restart", "stop", "enable", "disable"].
     """
 
     assert action in ["start", "restart", "stop", "enable",
                       "disable"], "Invalid action '{}'".format(action)
-    serviceInstance = unitName + instance
-    cmd = shlex.split("systemctl {0} {1}".format(action, serviceInstance))
-    out = sp.run(cmd)
-    assert out.returncode == 0, "Exit Code {0} for command '{1}')".format(
-        out.returncode, instance)
+    service_instance = UNIT_NAME + instance
+    cmd = shlex.split("systemctl {0} {1}".format(action, service_instance))
+    try:
+        out = sp.run(cmd, check=True)
+    except sp.CalledProcessError:
+        # TODO: Change Exception
+        raise Exception("Exit Code {0} for command '{1}'".format(
+            out.returncode, instance))
     if action in ["start", "restart", "stop"]:
         time.sleep(1)
-        assert isActive(instance) != (action == "stop"), "Command Failed! (Service Action '{0}' on '{1}' failed)".format(
-            action, instance)
+        assert is_active(instance) != (
+            action == "stop"), "Command Failed! (Service Action '{0}' on '{1}' failed)".format(
+                action, instance)

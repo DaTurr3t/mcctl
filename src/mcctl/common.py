@@ -31,72 +31,72 @@ def create(instance: str, source: str, memory: str, properties: list):
         properties {list} -- A list with Strings in the format of "KEY=VALUE".
     """
 
-    instancePath = storage.getHomePath() / "instances" / instance
-    assert not instancePath.exists(), "Instance already exists"
-    storage.createDirs(instancePath)
+    instance_path = storage.get_home_path() / "instances" / instance
+    assert not instance_path.exists(), "Instance already exists"
+    storage.create_dirs(instance_path)
 
-    jarPathSrc = web.pull(source)
-    jarPathDest = instancePath / "server.jar"
-    storage.copy(jarPathSrc, jarPathDest)
-    proc.preStart(jarPathDest)
-    if config.acceptEula(instancePath):
+    jar_path_src = web.pull(source)
+    jar_path_dest = instance_path / "server.jar"
+    storage.copy(jar_path_src, jar_path_dest)
+    proc.pre_start(jar_path_dest)
+    if config.accept_eula(instance_path):
         if not properties is None:
-            propertiesDict = config.propertiesToDict(properties)
-            config.setProperties(
-                instancePath / "server.properties", propertiesDict)
+            properties_dict = config.properties_to_dict(properties)
+            config.set_properties(
+                instance_path / "server.properties", properties_dict)
         if not memory is None:
-            config.setProperties(instancePath / "jvm-env", {"MEM": memory})
+            config.set_properties(instance_path / "jvm-env", {"MEM": memory})
         print("Configured and ready to start.")
     else:
         print("How can you not agree that tacos are tasty?!?")
         storage.remove(instance, confirm=False)
 
 
-def getInstanceList(filter: str = ''):
+def get_instance_list(filter_str: str = ''):
     """Print a list of all instances
 
     Output a table of all instances with their respective Name, Server Version String, Status and persistence.
 
     Keyword Arguments:
-        filter {str} -- Filter the list by instance name. (default: {''})
+        filter_str {str} -- Filter the list by instance name. (default: {''})
     """
 
-    basePath = storage.getHomePath() / "instances"
-    serverPaths = basePath.iterdir()
-    servers = [x.name for x in serverPaths]
+    base_path = storage.get_home_path() / "instances"
+    server_paths = base_path.iterdir()
+    servers = [x.name for x in server_paths]
 
     template = "%-15s%-20s%-12s%-12s"
-    th = template % (
+    title = template % (
         "Name", "Server Version", "Status", "Persistent")
 
-    print(th)
+    print(title)
     for name in servers:
-        if filter in name:
-            cfg = config.getProperties(basePath / name / "server.properties")
+        if filter_str in name:
+            cfg = config.get_properties(base_path / name / "server.properties")
             port = int(cfg["server-port"])
-            ms = status.MineStat('localhost', port)
+            mc_ping = status.MineStat('localhost', port)
 
-            version = ms.version if not ms.version is None else "n/a"
-            runStatus = "Active" if service.isActive(name) else "Inactive"
+            version = mc_ping.version if not mc_ping.version is None else "n/a"
+            run_status = "Active" if service.is_active(name) else "Inactive"
             contents = template % (
                 name, version,
-                runStatus,
-                service.isEnabled(name))
+                run_status,
+                service.is_enabled(name))
             print(contents)
 
 
-def rename(instance: str, newName: str):
+def rename(instance: str, new_name: str):
     """Renames a server instance
 
     A server instance is renamed. The server has to be stopped and disabled, so no invalid service links can occur.
 
     Arguments:
         instance {str} -- Current name
-        newName {str} -- New name of the instance
+        new_name {str} -- New name of the instance
     """
 
-    assert not (service.isEnabled(instance) or service.isActive(
+    assert not (service.is_enabled(instance) or service.is_active(
         instance)), "The server is still persistent and/or running"
-    basePath = storage.getHomePath()
-    serverPath = basePath / "instances" / instance
-    serverPath.rename(serverPath.parent / newName)
+    base_path = storage.get_home_path()
+    server_path = base_path / "instances" / instance
+    server_path.rename(server_path.parent / new_name)

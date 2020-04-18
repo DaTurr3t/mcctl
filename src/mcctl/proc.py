@@ -19,12 +19,12 @@
 import shlex
 import time
 import os
-import subprocess as sp
+import subprocess as sproc
 from pathlib import Path
+from pwd import getpwnam
 from mcctl.storage import getHomePath
 from mcctl.service import isActive
 from mcctl.visuals import compute
-from pwd import getpwnam
 
 
 def attach(instance: str):
@@ -40,7 +40,7 @@ def attach(instance: str):
         instance), "The Server is not running"
     cmd = shlex.split(
         'screen -r mc-{}'.format(instance))
-    sp.run(cmd)
+    sproc.run(cmd, check=False)
 
 
 def exec(instance: str, command: list, timeout: int = 0.5):
@@ -61,73 +61,75 @@ def exec(instance: str, command: list, timeout: int = 0.5):
     assert isActive(
         instance), "The Server is not running"
 
-    logPath = getHomePath() / "instances" / instance / "logs/latest.log"
+    log_path = getHomePath() / "instances" / instance / "logs/latest.log"
 
-    oldCount = 0
-    lineCount = sum(1 for line in open(logPath))
+    old_count = 0
+    line_count = sum(1 for line in open(log_path))
 
-    jarCmd = " ".join(command)
+    jar_cmd = " ".join(command)
     cmd = shlex.split(
-        'screen -p 0 -S mc-{0} -X stuff "{1}^M"'.format(instance, jarCmd))
-    sp.run(cmd)
+        'screen -p 0 -S mc-{0} -X stuff "{1}^M"'.format(instance, jar_cmd))
+    sproc.run(cmd, check=False)
 
-    while lineCount > oldCount:
+    while line_count > old_count:
         time.sleep(timeout)
-        with open(logPath) as log:
+        i = 0
+        with open(log_path) as log:
             for i, line in enumerate(log):
-                if i >= lineCount:
+                if i >= line_count:
                     print(line.rstrip())
-        oldCount = lineCount
-        lineCount = i + 1
+        old_count = line_count
+        line_count = i + 1
 
 
-def demote(asUser: str):
+def demote(as_user: str):
     """Demotes the current python Script
 
     Demote the running Python script to the permissions of <asUser> via UID and GID.
 
     Arguments:
-        asUser {str} -- The User of which the UID and GID is used.
+        as_user {str} -- The User of which the UID and GID is used.
     """
 
-    userData = getpwnam(asUser)
-    os.setgid(userData.pw_gid)
-    os.setuid(userData.pw_uid)
+    user_data = getpwnam(as_user)
+    os.setgid(user_data.pw_gid)
+    os.setuid(user_data.pw_uid)
 
 
-def preStart(jarPath: Path, watchFile=None, killSec: int = 80) -> bool:
+def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
     """Prepares the server and lets it create configuration files and such.
 
     Starts the server and waits for it to exit or for [watchFile] to be created.
     If the file exists, the server is sent SIGTERM to shut it down again.
 
     Arguments:
-        jarPath {Path} -- Path to the jar-file of the server.
+        jar_path {Path} -- Path to the jar-file of the server.
 
     Keyword Arguments:
-        watchFile {Path} -- A file to be awaited for creation. Ignored if set to None. (default: {None})
-        killSec {int} -- Time to wait before killing the server. (default: {80})
+        watch_file {Path} -- A file to be awaited for creation. Ignored if set to None. (default: {None})
+        kill_sec {int} -- Time to wait before killing the server. (default: {80})
 
     Returns:
         bool -- True: The server stopped as expected. False: The server had to be killed.
     """
 
     cmd = shlex.split(
-        '/bin/java -jar {}'.format(jarPath))
-    p = sp.Popen(cmd, cwd=jarPath.parent, stdout=sp.PIPE, stderr=sp.PIPE)
+        '/bin/java -jar {}'.format(jar_path))
+    proc = sproc.Popen(cmd, cwd=jar_path.parent,
+                       stdout=sproc.PIPE, stderr=sproc.PIPE)
 
     fps = 4
     signaled = False
     success = False
-    for i in range(killSec*fps+1):
+    for i in range(kill_sec*fps+1):
         print("\r{} Setting up config files...".format(compute(2)), end="")
         time.sleep(1/fps)
-        if not signaled and watchFile != None and watchFile.exists():
-            p.terminate()
+        if not signaled and watch_file is not None and watch_file.exists():
+            proc.terminate()
             signaled = True
-        elif i == killSec * fps:
-            p.kill()
-        elif p.poll() != None:
+        elif i == kill_sec * fps:
+            proc.kill()
+        elif proc.poll() is not None:
             success = True
             break
     print()

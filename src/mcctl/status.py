@@ -37,7 +37,7 @@ class MineStat:
         self.online = None          # online or offline?
         self.version = None         # server version
         self.motd = None            # message of the day
-        self.current_plFayers = None  # current number of players online
+        self.current_players = None  # current number of players online
         self.max_players = None     # maximum player capacity
         self.latency = None         # ping time to server in milliseconds
 
