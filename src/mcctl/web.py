@@ -156,7 +156,7 @@ def get_paper_download_url(version_tag: str, base_url: str = DOWNLOAD_URLS['pape
         resolved_data = rest_get(test_url)
         resolved_tag = ":".join(list(resolved_data.values()))
     except Exception as ex:
-        raise Exception(
+        raise ValueError(
             "Server version not found for type 'paper'", version_tag, str(ex))
     return join_url(test_url, "download"), resolved_tag
 
@@ -181,7 +181,7 @@ def get_download_url(server_tag: str) -> tuple:
     elif type_tag == "vanilla":
         url, resolved_tag = get_vanilla_download_url(version_tag)
     else:
-        raise Exception("Unsupported server type: '{}'".format(type_tag))
+        raise ValueError("Unsupported server type: '{}'".format(type_tag))
     return url, resolved_tag
 
 

@@ -144,14 +144,14 @@ def main():
         try:
             common.create(args.instance, args.source,
                           args.memory, args.properties)
-        except Exception as ex:
+        except (AssertionError, FileNotFoundError, ValueError) as ex:
             print("Unable to create instance '{0}': {1}".format(
                 args.instance, ex))
 
     elif args.action == 'rm':
         try:
             storage.remove(args.instance)
-        except Exception as ex:
+        except FileNotFoundError as ex:
             print("Unable to remove instance '{0}': {1}".format(
                 args.instance, ex))
 
@@ -164,7 +164,7 @@ def main():
     elif args.action == 'pull':
         try:
             web.pull(args.source, args.url)
-        except Exception as ex:
+        except ValueError as ex:
             print("Unable to pull '{0}': {1}".format(args.source, ex))
 
     elif args.action == 'ls':

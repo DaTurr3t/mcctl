@@ -40,7 +40,6 @@ def is_active(instance: str) -> bool:
     service_instance = UNIT_NAME + instance
     test_cmd = shlex.split("systemctl is-active {0}".format(service_instance))
     test_out = sp.run(test_cmd, stdout=sp.PIPE, stderr=sp.PIPE, check=False)
-    # TODO: Learn more about check
     return test_out.returncode == 0
 
 
@@ -81,8 +80,7 @@ def set_status(instance: str, action: str):
     try:
         out = sp.run(cmd, check=True)
     except sp.CalledProcessError:
-        # TODO: Change Exception
-        raise Exception("Exit Code {0} for command '{1}'".format(
+        raise AssertionError("Exit Code {0} for command '{1}'".format(
             out.returncode, instance))
     if action in ["start", "restart", "stop"]:
         time.sleep(1)
