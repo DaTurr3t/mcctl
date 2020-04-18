@@ -22,8 +22,8 @@ import os
 import subprocess as sproc
 from pathlib import Path
 from pwd import getpwnam
-from mcctl.storage import getHomePath
-from mcctl.service import isActive
+from mcctl.storage import get_home_path
+from mcctl.service import is_active
 from mcctl.visuals import compute
 
 
@@ -36,7 +36,7 @@ def attach(instance: str):
         instance {str} -- The name of the instance.
     """
 
-    assert isActive(
+    assert is_active(
         instance), "The Server is not running"
     cmd = shlex.split(
         'screen -r mc-{}'.format(instance))
@@ -58,10 +58,10 @@ def exec(instance: str, command: list, timeout: int = 0.5):
         timeout {int} -- The timeout interval between log reads. (default: {0.5})
     """
 
-    assert isActive(
+    assert is_active(
         instance), "The Server is not running"
 
-    log_path = getHomePath() / "instances" / instance / "logs/latest.log"
+    log_path = get_home_path() / "instances" / instance / "logs/latest.log"
 
     old_count = 0
     line_count = sum(1 for line in open(log_path))
