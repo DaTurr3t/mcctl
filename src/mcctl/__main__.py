@@ -50,6 +50,13 @@ def main():
                 "must be in the form '<TYPE>:<VERSION>:<BUILD>' or URL")
         return value
 
+    def strict_type_id(value):
+        test_type_id = re.compile(r'(.+:)+.+|all')
+        if test_type_id.search(value) is None:
+            raise ap.ArgumentTypeError(
+                "must be in the form '<TYPE>:<VERSION>:<BUILD>' or 'all'")
+        return value
+
     def mem(value):
         test_mem = re.compile(r'^[0-9]+[KMG]$')
         if test_mem.search(value) is None:
@@ -91,7 +98,15 @@ def main():
         "-p", "--properties", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
 
     parser_remove = subparsers.add_parser(
-        "rm", parents=[instance_name_parser], help="Remove an Instance or Server Version.")
+        "rm", parents=[instance_name_parser], help="Remove an Instance.")
+
+    parser_remove_jar = subparsers.add_parser(
+        "rmj", help="Remove a Server Version.")
+    parser_remove_jar.add_argument(
+        "source", metavar="TYPEID", type=strict_type_id,
+        help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
+              "'<TYPE>:latest' or '<TYPE>:latest-snap' are NOT allowed.\n"
+              "'*' removes all cached Files.\n"))
 
     parser_exec = subparsers.add_parser(
         "exec", parents=[instance_name_parser], help="Execute a command in the Console of the Instance")
@@ -163,6 +178,13 @@ def main():
         except (FileNotFoundError, AssertionError) as ex:
             print("Unable to remove instance '{0}': {1}".format(
                 args.instance, ex))
+
+    elif args.action == 'rmj':
+        try:
+            storage.remove_jar(args.source)
+        except (FileNotFoundError, AssertionError) as ex:
+            print("Unable to remove .jar-File '{0}': {1}".format(
+                args.source, ex))
 
     elif args.action == 'export':
         proc.run_as(0, 0)

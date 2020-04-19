@@ -219,6 +219,35 @@ def remove(instance: str, confirm: bool = True):
         shutil.rmtree(del_path)
 
 
+def remove_jar(type_id: str):
+    """Remove an .jar-File from disk.
+
+    Arguments:
+        type_id {str} -- The type_id of the .jar-File to be deleted.
+    """
+
+    base_path = get_home_path() / "jars"
+    del_all = type_id == "all"
+
+    if not del_all:
+        del_path = base_path / "{}.jar".format(type_id.replace(":", "/"))
+        msg = "Are you absolutely sure you want to remove the Server Jar '{}'? [y/n]: ".format(
+            type_id)
+    else:
+        del_path = base_path
+        msg = "Are you sure you want to remove ALL cached Server Jars? [y/n]: "
+
+    assert del_path.exists(), "Type-ID not found in cache: {}".format(del_path)
+    ans = input(msg)
+    while ans.lower() not in ["y", "n"]:
+        ans = input("Please answer [y]es or [n]o: ")
+    if ans == "y":
+        if not del_all:
+            del_path.unlink()
+        else:
+            shutil.rmtree(del_path)
+
+
 def inspect(instance: str, limit: int = 0):
     """Get the last lines of the Log.
 
