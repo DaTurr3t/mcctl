@@ -138,7 +138,7 @@ def main():
         "source", metavar="TYPEID", type=strict_type_id,
         help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
               "'<TYPE>:latest' or '<TYPE>:latest-snap' are NOT allowed.\n"
-              "'*' removes all cached Files.\n"))
+              "'all' removes all cached Files.\n"))
 
     parser_start = subparsers.add_parser(
         "start", parents=[instance_name_parser], help="Start a Minecraft Server Instance")
