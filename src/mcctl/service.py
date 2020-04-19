@@ -19,7 +19,7 @@
 import shlex
 import time
 import subprocess as sp
-from mcctl import settings
+from mcctl import settings, proc
 
 
 UNIT_NAME = settings.CFG_DICT['systemd_service']
@@ -70,18 +70,20 @@ def set_status(instance: str, action: str):
     Arguments:
         instance {str} -- The name of the instance.
         action {str} -- The systemd action to apply to the service.
-            Can be ["start", "restart", "stop", "enable", "disable"].
+            Can be "start", "restart", "stop", "enable", "disable".
     """
 
     assert action in ["start", "restart", "stop", "enable",
                       "disable"], "Invalid action '{}'".format(action)
+
     service_instance = UNIT_NAME + instance
     cmd = shlex.split("systemctl {0} {1}".format(action, service_instance))
-    try:
-        out = sp.run(cmd, check=True)
-    except sp.CalledProcessError:
-        raise AssertionError("Exit Code {0} for command '{1}'".format(
-            out.returncode, instance))
+    reset = proc.run_as(0, 0)
+    out = sp.run(cmd, check=False)
+    proc.run_as(*reset)
+
+    assert out.returncode == 0, "Exit Code {0} for command '{1}'".format(
+        out.returncode, instance)
     if action in ["start", "restart", "stop"]:
         time.sleep(1)
         assert is_active(instance) != (

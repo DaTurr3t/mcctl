@@ -22,6 +22,7 @@ import os
 import subprocess as sproc
 from pathlib import Path
 from pwd import getpwnam
+from mcctl import settings
 from mcctl.storage import get_home_path
 from mcctl.service import is_active
 from mcctl.visuals import compute
@@ -36,11 +37,10 @@ def attach(instance: str):
         instance {str} -- The name of the instance.
     """
 
-    assert is_active(
-        instance), "The Server is not running"
-    cmd = shlex.split(
-        'screen -r mc-{}'.format(instance))
-    sproc.run(cmd, check=False)
+    assert is_active(instance), "The Server is not running"
+    cmd = shlex.split('screen -r mc-{}'.format(instance))
+    proc = sproc.Popen(cmd, preexec_fn=demote())
+    proc.wait()
 
 
 def mc_exec(instance: str, command: list, timeout: int = 0.5):
@@ -69,7 +69,8 @@ def mc_exec(instance: str, command: list, timeout: int = 0.5):
     jar_cmd = " ".join(command)
     cmd = shlex.split(
         'screen -p 0 -S mc-{0} -X stuff "{1}^M"'.format(instance, jar_cmd))
-    sproc.run(cmd, check=False)
+    proc = sproc.Popen(cmd, preexec_fn=demote())
+    proc.wait()
 
     while line_count > old_count:
         time.sleep(timeout)
@@ -82,18 +83,56 @@ def mc_exec(instance: str, command: list, timeout: int = 0.5):
         line_count = i + 1
 
 
-def demote(as_user: str):
-    """Demotes the current python Script
+def get_ids(user: str) -> tuple:
+    """Wrapper for getpwnam() that only returns UID and GID.
 
-    Demote the running Python script to the permissions of <asUser> via UID and GID.
+    Arguments:
+        user {str} -- User of which passwd information should be retrieved.
+
+    Returns:
+        tuple -- A Tuple containing th UID and GID of the user.
+    """
+    user_data = getpwnam(user)
+    return (user_data.pw_uid, user_data.pw_gid)
+
+
+def run_as(uid: int, gid: int) -> tuple:
+    """Changes the user of the current python Script
+
+    Set the EGID and EUID of the running Python script to the permissions of <as_user>.
 
     Arguments:
         as_user {str} -- The User of which the UID and GID is used.
-    """
 
-    user_data = getpwnam(as_user)
-    os.setegid(user_data.pw_gid)
-    os.seteuid(user_data.pw_uid)
+    Retruns:
+        old_ids {tuple}  -- A tuple of the UID and GID that were set before the change.
+    """
+    old_ids = (os.geteuid(), os.getegid())
+
+    os.setegid(gid)
+    os.seteuid(uid)
+
+    return old_ids
+
+
+def demote():
+    """A Function containing instructions to demote a subprocess.
+
+    Returns:
+        NoneType -- Returns a function executed by Popen() before running the external command.
+    """
+    user_name = settings.CFG_DICT['server_user']
+    user = getpwnam(user_name)
+
+    def set_ids():
+        # Set EGID and EUID so that GID and UID can be set correctly.
+        os.setegid(0)
+        os.seteuid(0)
+
+        os.setgid(user.pw_gid)
+        os.setuid(user.pw_uid)
+
+    return set_ids
 
 
 def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
@@ -113,10 +152,9 @@ def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
         bool -- True: The server stopped as expected. False: The server had to be killed.
     """
 
-    cmd = shlex.split(
-        '/bin/java -jar {}'.format(jar_path))
+    cmd = shlex.split('/bin/java -jar {}'.format(jar_path))
     proc = sproc.Popen(cmd, cwd=jar_path.parent,
-                       stdout=sproc.PIPE, stderr=sproc.PIPE)
+                       preexec_fn=demote(), stdout=sproc.PIPE, stderr=sproc.PIPE)
 
     fps = 4
     signaled = False

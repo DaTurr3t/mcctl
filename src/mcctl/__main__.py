@@ -148,8 +148,9 @@ def main():
         print("Must be root.")
         sys.exit(1)
 
-        user = settings.CFG_DICT['server_user']
-        proc.demote(user)
+    user = settings.CFG_DICT['server_user']
+    user_ids = proc.get_ids(user)
+    proc.run_as(*user_ids)
 
     if args.action == 'create':
         try:
@@ -167,6 +168,7 @@ def main():
                 args.instance, ex))
 
     elif args.action == 'export':
+        proc.run_as(0, 0)
         dest = storage.export(
             args.instance, compress=args.compress, world_only=args.world_only)
         storage.chown(dest, os.getlogin())
