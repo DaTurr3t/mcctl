@@ -19,7 +19,7 @@
 from mcctl import web, storage, service, config, proc, status
 
 
-def create(instance: str, source: str, memory: str, properties: list):
+def create(instance: str, source: str, memory: str, properties: list, start: bool):
     """Creates a new Minecraft Server Instance.
 
     Downloads the correct jar-file, configures the server and asks the user to accept the EULA.
@@ -29,6 +29,7 @@ def create(instance: str, source: str, memory: str, properties: list):
         source {str} -- The Type ID of the Minecraft Server Binary.
         memory {str} -- The Memory-String. Can be appended by K, M or G, to signal Kilo- Mega- or Gigabytes.
         properties {list} -- A list with Strings in the format of "KEY=VALUE".
+        start {bool} -- Starts the Server directly if set to True.
     """
 
     instance_path = storage.get_home_path() / "instances" / instance
@@ -46,7 +47,11 @@ def create(instance: str, source: str, memory: str, properties: list):
                 instance_path / "server.properties", properties_dict)
         if not memory is None:
             config.set_properties(instance_path / "jvm-env", {"MEM": memory})
-        print("Configured and ready to start.")
+        if start:
+            proc.run_as(0, 0)
+            service.set_status(instance, "enable")
+            service.set_status(instance, "start")
+            print("Configured and started.")
     else:
         print("How can you not agree that tacos are tasty?!?")
         storage.remove(instance, confirm=False)

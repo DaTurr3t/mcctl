@@ -84,10 +84,7 @@ def main():
     parser_create = subparsers.add_parser(
         "create", parents=[instance_name_parser, type_id_parser], help="Add a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
     parser_create.add_argument(
-        "-u" "--url", action='store_true', help="Use URL instead of TypeID.")
-    parser_create.add_argument(
-        "source", metavar="TYPEID_OR_URL", type=type_id,
-        help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
+        "-s", "--start", help="Start the Server after creation, persistent enabled")
     parser_create.add_argument(
         "-m", "--memory", type=mem, help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M")
     parser_create.add_argument(
@@ -155,7 +152,7 @@ def main():
     if args.action == 'create':
         try:
             common.create(args.instance, args.source,
-                          args.memory, args.properties)
+                          args.memory, args.properties, args.start)
         except (AssertionError, FileNotFoundError, ValueError) as ex:
             print("Unable to create instance '{0}': {1}".format(
                 args.instance, ex))
