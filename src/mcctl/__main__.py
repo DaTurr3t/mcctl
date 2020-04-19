@@ -71,6 +71,8 @@ def main():
     type_id_parser = ap.ArgumentParser(
         add_help=False, formatter_class=ap.RawTextHelpFormatter)
     type_id_parser.add_argument(
+        "-u", "--url", action='store_true', help="Use URL instead of TypeID.")
+    type_id_parser.add_argument(
         "source", metavar="TYPEID_OR_URL", type=type_id,
         help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
               "'<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\n"
@@ -78,10 +80,7 @@ def main():
               "Versions: e.g. '1.15.2', 'latest'\n"
               "Build (only for paper): e.g. '122', 'latest'\n"))
 
-    instance_name_parser = ap.ArgumentParser(
-        add_help=False)
-    instance_name_parser.add_argument(
-        "-u", "--url", action='store_true', help="Use URL instead of TypeID.")
+    instance_name_parser = ap.ArgumentParser(add_help=False)
     instance_name_parser.add_argument(
         "instance", metavar="INSTANCE_ID", help="Instance Name of the Minecraft Server")
 
@@ -91,7 +90,7 @@ def main():
     parser_create = subparsers.add_parser(
         "create", parents=[instance_name_parser, type_id_parser], help="Add a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
     parser_create.add_argument(
-        "-s", "--start", help="Start the Server after creation, persistent enabled")
+        "-s", "--start", action='store_true', help="Start the Server after creation, persistent enabled")
     parser_create.add_argument(
         "-m", "--memory", type=mem, help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M")
     parser_create.add_argument(

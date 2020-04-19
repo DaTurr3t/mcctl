@@ -52,7 +52,7 @@ def get_child_paths(path: Path) -> list:
         list -- A list of all paths found.
     """
 
-    return list(path.rglob("*"))
+    return sorted(path.rglob("*"))
 
 
 def get_jar_list(filter_str: str = ''):
@@ -268,8 +268,8 @@ def inspect(instance: str, limit: int = 0):
             if log.name.endswith(".gz"):
                 log_file = gzip.open(log, "rt")
             else:
-                log_file = open(log_path / "latest.log")
-            lines += log_file.readlines()
+                log_file = open(log)
+            lines = log_file.readlines() + lines
         except gzip.BadGzipFile:
             raise OSError("GZip File '{}' is invalid.".format(log.name))
         finally:

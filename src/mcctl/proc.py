@@ -72,6 +72,7 @@ def mc_exec(instance: str, command: list, timeout: int = 0.5):
     proc = sproc.Popen(cmd, preexec_fn=demote())
     proc.wait()
 
+    time.sleep(timeout)
     while line_count > old_count:
         time.sleep(timeout)
         i = 0
