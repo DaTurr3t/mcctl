@@ -96,17 +96,6 @@ def main():
     parser_create.add_argument(
         "-p", "--properties", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
 
-    parser_remove = subparsers.add_parser(
-        "rm", parents=[instance_name_parser], help="Remove an Instance.")
-
-    parser_remove_jar = subparsers.add_parser(
-        "rmj", help="Remove a Server Version.")
-    parser_remove_jar.add_argument(
-        "source", metavar="TYPEID", type=strict_type_id,
-        help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
-              "'<TYPE>:latest' or '<TYPE>:latest-snap' are NOT allowed.\n"
-              "'*' removes all cached Files.\n"))
-
     parser_exec = subparsers.add_parser(
         "exec", parents=[instance_name_parser], help="Execute a command in the Console of the Instance")
     parser_exec.add_argument("command", metavar="COMMAND", nargs="+",
@@ -118,6 +107,11 @@ def main():
         "-c", "--compress", action='store_true', help="Compress the Archive.")
     parser_export.add_argument(
         "-w", "--world-only", action='store_true', help="Only export World Data")
+
+    parser_inspect = subparsers.add_parser(
+        "inspect", parents=[instance_name_parser], help="Inspect the Log of a Server")
+    parser_inspect.add_argument(
+        "-n", "--lines", type=int, default=0, help="Limit the line output count to n.")
 
     parser_list = subparsers.add_parser(
         "ls", help="List Instances, installed Versions, etc.")
@@ -135,6 +129,17 @@ def main():
     parser_restart = subparsers.add_parser(
         "restart", parents=[instance_name_parser], help="Restart a Minecraft Server Instance")
 
+    parser_remove = subparsers.add_parser(
+        "rm", parents=[instance_name_parser], help="Remove an Instance.")
+
+    parser_remove_jar = subparsers.add_parser(
+        "rmj", help="Remove a Server Version.")
+    parser_remove_jar.add_argument(
+        "source", metavar="TYPEID", type=strict_type_id,
+        help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
+              "'<TYPE>:latest' or '<TYPE>:latest-snap' are NOT allowed.\n"
+              "'*' removes all cached Files.\n"))
+
     parser_start = subparsers.add_parser(
         "start", parents=[instance_name_parser], help="Start a Minecraft Server Instance")
     parser_start.add_argument("-p", "--persistent", action='store_true',
@@ -147,11 +152,6 @@ def main():
 
     parser_update = subparsers.add_parser(
         "update", parents=[instance_name_parser, type_id_parser], help="Update a Minecraft Server Instance")
-
-    parser_inspect = subparsers.add_parser(
-        "inspect", parents=[instance_name_parser], help="Inspect the Log of a Server")
-    parser_inspect.add_argument(
-        "-n", "--lines", type=int, default=0, help="Limit the line output count to n.")
 
     args = parser.parse_args()
 
