@@ -9,7 +9,7 @@ README = (REPO_ROOT / "README.md").read_text()
 
 setup(
     name="mcctl",
-    packages=find_packages(exclude=["tests"]),
+    packages=find_packages(where="src", exclude=["tests"]),
     version="0.2.0",
     description="Manage, configure, create multiple Minecraft servers in a docker-like fashion.",
     long_description=README,
@@ -28,6 +28,7 @@ setup(
         "Operating System :: POSIX :: Linux"
     ],
     include_package_data=True,
+    package_dir={'': 'src'},
     setup_requires=['wheel'],
     entry_points={
         "console_scripts": [

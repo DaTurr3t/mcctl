@@ -1,2 +1,2 @@
-include mcctl/*.ini
 include LICENSE
+include CHANGELOG.md
