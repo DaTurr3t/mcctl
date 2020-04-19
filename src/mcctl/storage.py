@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl.  If not, see <http:// www.gnu.org/licenses/>.
 
+import gzip
 import sys
 import shutil
 from pathlib import Path
@@ -25,6 +26,7 @@ from pwd import getpwnam
 from mcctl import service, config, settings
 
 SERVER_USER = settings.CFG_DICT['server_user']
+
 
 def get_home_path(user_name: str = SERVER_USER) -> Path:
     """Wrapper to return the home Directory of a user
@@ -215,3 +217,36 @@ def remove(instance: str, confirm: bool = True):
         ans = "y"
     if ans == "y":
         shutil.rmtree(del_path)
+
+
+def inspect(instance: str, limit: int = 0):
+    """Get the last lines of the Log.
+
+    Arguments:
+        instance {str} -- The name of the instance to be inspected.
+
+    Keyword Arguments:
+        limit {int} -- The amount of lines to output. 0 returns all lines. (default: {0})
+    """
+
+    assert limit >= 0, "Invalid Line Limit: {}".format(limit)
+    log_path = get_home_path() / "instances" / instance / "logs"
+    logs = get_child_paths(log_path)
+
+    lines = []
+    for log in reversed(logs):
+        try:
+            if log.name.endswith(".gz"):
+                log_file = gzip.open(log, "rt")
+            else:
+                log_file = open(log_path / "latest.log")
+            lines += log_file.readlines()
+        except gzip.BadGzipFile:
+            raise OSError("GZip File '{}' is invalid.".format(log.name))
+        finally:
+            log_file.close()
+        if len(lines) >= limit:
+            break
+
+    lines_out = lines[-limit:]
+    print(''.join(lines_out), end='')

@@ -125,7 +125,10 @@ def main():
     parser_stop.add_argument("-p", "--persistent", action='store_true',
                              help="Do not start again after Reboot")
 
-    # parser.add_argument("-v", help="Verbose Output", action="count", default=0)
+    parser_inspect = subparsers.add_parser(
+        "inspect", parents=[instance_name_parser], help="Inspect the Log of a Server")
+    parser_inspect.add_argument(
+        "-n", "--lines", type=int, default=0, help="Limit the line output count to n.")
 
     args = parser.parse_args()
 
@@ -216,6 +219,11 @@ def main():
             print("Unable to rename '{0}': {1}".format(
                 args.instance, str(ex).split(":")[0]))
 
+    elif args.action == 'inspect':
+        try:
+            storage.inspect(args.instance, args.lines)
+        except (AssertionError, OSError) as ex:
+            print("Unable to inspect '{0}': {1}".format(args.instance, ex))
     else:
         coming_soon()
 
