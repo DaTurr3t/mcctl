@@ -16,6 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
-from mcctl import config, proc, service, status, storage, web, common
+from mcctl import config, proc, service, status, storage, web, common, settings
 
-__version__ = "0.1.3"
+__version__ = "0.2.0"

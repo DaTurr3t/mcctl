@@ -1,16 +1,16 @@
-import pathlib
-from setuptools import setup
 import os
+import pathlib
+from setuptools import setup, find_packages
 
 os.chdir(os.path.dirname(__file__))
 
-repoRoot = pathlib.Path(__file__).absolute().parents[1]
-README = (repoRoot / "README.md").read_text()
+REPO_ROOT = pathlib.Path(__file__).absolute().parent
+README = (REPO_ROOT / "README.md").read_text()
 
 setup(
     name="mcctl",
-    packages=["mcctl"],
-    version="0.1.1",
+    packages=find_packages(exclude=["tests"]),
+    version="0.2.0",
     description="Manage, configure, create multiple Minecraft servers in a docker-like fashion.",
     long_description=README,
     long_description_content_type="text/markdown",
