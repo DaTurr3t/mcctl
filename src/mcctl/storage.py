@@ -205,7 +205,7 @@ def remove(instance: str, confirm: bool = True):
 
     base_path = get_home_path()
     del_path = base_path / "instances" / instance
-    assert del_path.exists(), "Instance not found"
+    assert del_path.exists(), "Instance not found: {}".format(del_path)
     assert not (service.is_enabled(instance) or service.is_active(
         instance)), "The server is still persistent and/or running"
     if confirm:

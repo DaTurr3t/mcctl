@@ -20,6 +20,7 @@
 
 import os
 import re
+import sys
 import argparse as ap
 from mcctl import proc, storage, service, web, common, settings
 
@@ -57,11 +58,23 @@ def main():
 
     parser = ap.ArgumentParser("mcctl", description="Management Utility for Minecraft Server Instances",
                                formatter_class=ap.ArgumentDefaultsHelpFormatter)
-    subparsers = parser.add_subparsers(
-        title="actions", dest="action")
+    subparsers = parser.add_subparsers(title="actions", dest="action")
     subparsers.required = True
 
-    instance_name_parser = ap.ArgumentParser(add_help=False)
+    type_id_parser = ap.ArgumentParser(
+        add_help=False, formatter_class=ap.RawTextHelpFormatter)
+    type_id_parser.add_argument(
+        "source", metavar="TYPEID_OR_URL", type=type_id,
+        help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
+              "'<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\n"
+              "Types: 'paper', 'vanilla'\n"
+              "Versions: e.g. '1.15.2', 'latest'\n"
+              "Build (only for paper): e.g. '122', 'latest'\n"))
+
+    instance_name_parser = ap.ArgumentParser(
+        add_help=False)
+    instance_name_parser.add_argument(
+        "-u", "--url", action='store_true', help="Use URL instead of TypeID.")
     instance_name_parser.add_argument(
         "instance", metavar="INSTANCE_ID", help="Instance Name of the Minecraft Server")
 
@@ -69,7 +82,7 @@ def main():
         "attach", parents=[instance_name_parser], help="Attach to the Console of the Instance")
 
     parser_create = subparsers.add_parser(
-        "create", parents=[instance_name_parser], help="Add a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
+        "create", parents=[instance_name_parser, type_id_parser], help="Add a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
     parser_create.add_argument(
         "-u" "--url", action='store_true', help="Use URL instead of TypeID.")
     parser_create.add_argument(
@@ -97,16 +110,12 @@ def main():
 
     parser_list = subparsers.add_parser(
         "ls", help="List Instances, installed Versions, etc.")
-    parser_list.add_argument("what", metavar="WHAT", nargs="?", choices=[
+    parser_list.add_argument("what", nargs="?", choices=[
         "instances", "jars"], default="instances")
     parser_list.add_argument("-f", "--filter", default='')
 
     parser_pull = subparsers.add_parser(
-        "pull", help="Pull a Minecraft Server Binary from the Internet", formatter_class=ap.RawTextHelpFormatter)
-    parser_pull.add_argument(
-        "-u", "--url", action='store_true', help="Pull a Minecraft Server from a direct URL instead of Type ID")
-    parser_pull.add_argument("source", metavar="TYPEID_OR_URL", type=type_id,
-                             help="Type ID in '<TYPE>:<VERSION>:<BUILD>' format. '<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\nTypes: 'paper', 'vanilla'\nVersions: e.g. '1.15.2', 'latest'\nBuild (only for paper): e.g. '122', 'latest'")
+        "pull", parents=[type_id_parser], help="Pull a Minecraft Server Binary from the Internet")
 
     parser_rename = subparsers.add_parser(
         "rename", parents=[instance_name_parser], help="Rename a Minecraft Server Instance")
@@ -132,14 +141,10 @@ def main():
 
     args = parser.parse_args()
 
-    # TODO
-    # Update command
-
     if os.geteuid() != 0:
         print("Must be root.")
-        exit(1)
+        sys.exit(1)
 
-    if not args.action in ["start", "stop", "restart", "export"]:
         user = settings.CFG_DICT['server_user']
         proc.demote(user)
 
@@ -154,7 +159,7 @@ def main():
     elif args.action == 'rm':
         try:
             storage.remove(args.instance)
-        except FileNotFoundError as ex:
+        except (FileNotFoundError, AssertionError) as ex:
             print("Unable to remove instance '{0}': {1}".format(
                 args.instance, ex))
 
@@ -202,8 +207,7 @@ def main():
         try:
             proc.attach(args.instance)
         except AssertionError as ex:
-            print("Unable to attach to '{0}': {1}".format(
-                args.instance, ex))
+            print("Unable to attach to '{0}': {1}".format(args.instance, ex))
 
     elif args.action == 'exec':
         try:
@@ -215,7 +219,7 @@ def main():
     elif args.action == 'rename':
         try:
             common.rename(args.instance, args.newName)
-        except (AssertionError, FileExistsError, FileNotFoundError) as ex:
+        except (AssertionError, FileExistsError) as ex:
             print("Unable to rename '{0}': {1}".format(
                 args.instance, str(ex).split(":")[0]))
 
