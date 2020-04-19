@@ -18,6 +18,8 @@ The easiest way to install mcctl is via pip:
 sudo pip install mcctl
 ```
 
+In some cases, the `secure_path` of `sudo` must be changed. If `sudo mcctl` returns "Command not found", add `/usr/local/bin` to your `secure_path`.
+
 ## Getting started
 
 As soon as mcctl is installed, you can create a new server:
@@ -50,6 +52,10 @@ sudo mcctl ls
 Name           Server Version      Status      Persistent  
 myserver       1.15.2              Active      True
 ```
+
+## Configuration
+
+In case you need to change the Unit Name or the Server User, it can be changed in `/etc/mcctl.conf`. The Config is generated at runtime, so mcctl needs to be started at least once.
 
 ## Documentation
 

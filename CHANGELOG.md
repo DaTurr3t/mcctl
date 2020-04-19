@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 - 19.04.2020
+## 0.2.1 - 19.04.2020
 
 ### Added
 
@@ -13,6 +13,7 @@
 #### Features
 
 - Create has now a parameter `--start` that allows to start the server directly after creation.
+- Settings can be changed in the File `/etc/mcctl.conf`.
 
 #### Under the hood
 

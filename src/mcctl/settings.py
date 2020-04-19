@@ -20,8 +20,20 @@ from configparser import ConfigParser
 from pathlib import Path
 
 PARSER = ConfigParser()
-PARSER.read(Path(__file__).parent / 'settings.ini')
+
+CFGPATH = Path("/etc/mcctl.conf")
+
+PARSER['settings'] = {
+    'systemd_service': 'mcserver@', 'server_user': 'mcserver'}
+
+# Overwrite default Values
+PARSER.read(CFGPATH)
+try:
+    with open(CFGPATH, 'w') as configfile:
+        PARSER.write(configfile)
+except PermissionError:
+    pass
 
 CFG_DICT = dict(PARSER.items('settings'))
 
-del PARSER
+del PARSER, CFGPATH

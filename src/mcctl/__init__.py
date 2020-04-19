@@ -18,4 +18,4 @@
 
 from mcctl import config, proc, service, status, storage, web, common, settings
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
