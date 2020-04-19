@@ -100,3 +100,26 @@ def rename(instance: str, new_name: str):
     base_path = storage.get_home_path()
     server_path = base_path / "instances" / instance
     server_path.rename(server_path.parent / new_name)
+
+
+def update(instance: str, new_type_id: str, literal_url: bool = False):
+    """Change the Jar File of a server
+
+    Stops the Server if necessary, deletes the old Jar File and copies the new one, starts the Server again.
+
+    Arguments:
+        instance {str} -- The Instance ID.
+        new_type_id {str} -- The Type ID of the new minecraft server Jar.
+    """
+
+    running = service.is_active(instance)
+    if running:
+        service.set_status(instance, "stop")
+
+    jar_src = web.pull(new_type_id, literal_url)
+    jar_dest = storage.get_home_path() / "instances" / instance / "server.jar"
+    storage.copy(jar_src, jar_dest)
+
+    if running:
+
+        service.set_status(instance, "start")

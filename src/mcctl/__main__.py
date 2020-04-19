@@ -134,6 +134,9 @@ def main():
     parser_stop.add_argument("-p", "--persistent", action='store_true',
                              help="Do not start again after Reboot")
 
+    parser_update = subparsers.add_parser(
+        "update", parents=[instance_name_parser, type_id_parser], help="Update a Minecraft Server Instance")
+
     parser_inspect = subparsers.add_parser(
         "inspect", parents=[instance_name_parser], help="Inspect the Log of a Server")
     parser_inspect.add_argument(
@@ -222,6 +225,12 @@ def main():
         except (AssertionError, FileExistsError) as ex:
             print("Unable to rename '{0}': {1}".format(
                 args.instance, str(ex).split(":")[0]))
+
+    elif args.action == 'update':
+        try:
+            common.update(args.instance, args.source)
+        except (AssertionError, FileNotFoundError, ValueError) as ex:
+            print("Unable to update '{0}': {1}".format(args.instance, ex))
 
     elif args.action == 'inspect':
         try:
