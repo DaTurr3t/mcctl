@@ -70,23 +70,22 @@ def get_instance_list(filter_str: str = ''):
     server_paths = base_path.iterdir()
     servers = [x.name for x in server_paths]
 
-    template = "%-15s%-20s%-12s%-12s"
+    template = "%-12s %-20s %-16s %-10s %-10s"
     title = template % (
-        "Name", "Server Version", "Status", "Persistent")
+        "Name", "Server Version", "Player Count", "Status", "Persistent")
 
     print(title)
     for name in servers:
         if filter_str in name:
             cfg = config.get_properties(base_path / name / "server.properties")
             port = int(cfg["server-port"])
-            mc_ping = status.MineStat('localhost', port)
+            mcp = status.MineStat('localhost', port)
 
-            version = mc_ping.version if not mc_ping.version is None else "n/a"
+            version = mcp.version if not mcp.version is None else "n/a"
             run_status = "Active" if service.is_active(name) else "Inactive"
             contents = template % (
-                name, version,
-                run_status,
-                service.is_enabled(name))
+                name, version, "{0}/{1}".format(mcp.current_players, mcp.max_players),
+                run_status, service.is_enabled(name))
             print(contents)
 
 
