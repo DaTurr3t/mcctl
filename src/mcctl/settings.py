@@ -27,12 +27,12 @@ PARSER['settings'] = {
     'systemd_service': 'mcserver@', 'server_user': 'mcserver'}
 
 # Overwrite default Values
-PARSER.read(CFGPATH)
-try:
-    with open(CFGPATH, 'w') as configfile:
-        PARSER.write(configfile)
-except PermissionError:
-    pass
+if PARSER.read(CFGPATH) == []:
+    try:
+        with open(CFGPATH, 'w') as configfile:
+            PARSER.write(configfile)
+    except PermissionError:
+        pass
 
 CFG_DICT = dict(PARSER.items('settings'))
 
