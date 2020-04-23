@@ -43,19 +43,23 @@ def attach(instance: str):
     proc.wait()
 
 
-def mc_exec(instance: str, command: list, timeout: int = 0.5):
+def mc_exec(instance: str, command: list, timeout: int = 0.1, retries: int = 20, flush_retries: int = 3):
     """Execute a command on the console of a server.
 
     Uses the 'stuff' command of screen to pass the minecraft command to the server.
     Return Values are read from 'latest.log' shortly after the command is executed.
-    The logfile is read every <timeout> seconds. If nothing is appended to the Log in this timespan, the function completes.
+    The logfile is read every <timeout> seconds. If nothing is appended to the Log after the set amount of <retries>,
+    the function exits. If there were already some lines received, the function tries <flush_retries> times before exiting.
+    Like this, the function will more likely give an output, and will exit faster.
 
     Arguments:
         instance {str} -- The name of the instance.
         command {list} -- A list of the individual parts of the command executed on the server console.
 
     Keyword Arguments:
-        timeout {int} -- The timeout interval between log reads. (default: {0.5})
+        timeout {int} -- The timeout interval between log reads. (default: {0.1})
+        retries {int} -- The amount of retries when no lines have been pushed to console. (default: {20})
+        flush_retries {int} -- The amount of retries when some lines have been pushed to console. (default: {3})
     """
 
     assert is_active(
@@ -63,8 +67,8 @@ def mc_exec(instance: str, command: list, timeout: int = 0.5):
 
     log_path = get_home_path() / "instances" / instance / "logs/latest.log"
 
-    old_count = 0
-    line_count = sum(1 for line in open(log_path))
+    file_hnd = open(log_path)
+    old_count = sum(1 for line in file_hnd) - 1
 
     jar_cmd = " ".join(command)
     cmd = shlex.split(
@@ -72,16 +76,17 @@ def mc_exec(instance: str, command: list, timeout: int = 0.5):
     proc = sproc.Popen(cmd, preexec_fn=demote())
     proc.wait()
 
-    time.sleep(timeout)
-    while line_count > old_count:
+    i = 0
+    while i < retries:
+        i += 1
         time.sleep(timeout)
-        i = 0
-        with open(log_path) as log:
-            for i, line in enumerate(log):
-                if i >= line_count:
-                    print(line.rstrip())
-        old_count = line_count
-        line_count = i + 1
+        file_hnd.seek(0)
+        for j, line in enumerate(file_hnd):
+            if j > old_count:
+                i = retries - flush_retries
+                print(line.rstrip())
+                old_count += 1
+    file_hnd.close()
 
 
 def get_ids(user: str) -> tuple:
