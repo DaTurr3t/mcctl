@@ -89,3 +89,25 @@ def set_status(instance: str, action: str):
         assert is_active(instance) != (
             action == "stop"), "Command Failed! (Service Action '{0}' on '{1}' failed)".format(
                 action, instance)
+
+
+def notified_stop(instance: str, reason: str, persistent: bool = False, restart: bool = False):
+    """Notifies the Players on the Server why a Shutdown is occuring.
+
+    Arguments:
+        instance {str} -- The name of the instance.
+        reason {str} -- The Reason the Server is shut down.
+
+    Keyword Arguments:
+        persistent {bool} -- If True, the Server will not start after a Machine reboot (default: {False})
+        restart {bool} -- IF True, persistent wil be ignored and the server wil be restarted (default: {False})
+    """
+    action = "restart" if restart else "stop"
+    msgcol = "6" if restart else "4"
+    if persistent and not restart:
+        set_status(instance, "disable")
+
+    reason_msg = "say §{0}{1}ing Server. Reason: {2}".format(
+        msgcol, action.capitalize(), reason)
+    proc.mc_exec(instance, reason_msg.split())
+    set_status(instance, action)

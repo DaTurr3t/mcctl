@@ -84,6 +84,11 @@ def main():
     instance_name_parser.add_argument(
         "instance", metavar="INSTANCE_ID", help="Instance Name of the Minecraft Server")
 
+    reason_parser = ap.ArgumentParser(add_help=False)
+    reason_parser.add_argument(
+        "reason", nargs="+", help="Reason to be appended to the 'say' Command."
+    )
+
     parser_attach = subparsers.add_parser(
         "attach", parents=[instance_name_parser], help="Attach to the Console of the Instance")
 
@@ -127,7 +132,7 @@ def main():
     parser_rename.add_argument("new_name")
 
     parser_restart = subparsers.add_parser(
-        "restart", parents=[instance_name_parser], help="Restart a Minecraft Server Instance")
+        "restart", parents=[instance_name_parser, reason_parser], help="Restart a Minecraft Server Instance")
 
     parser_remove = subparsers.add_parser(
         "rm", parents=[instance_name_parser], help="Remove an Instance.")
@@ -146,7 +151,7 @@ def main():
                               help="Start even after Reboot")
 
     parser_stop = subparsers.add_parser(
-        "stop", parents=[instance_name_parser], help="Stop a Minecraft Server Instance")
+        "stop", parents=[instance_name_parser, reason_parser], help="Stop a Minecraft Server Instance")
     parser_stop.add_argument("-p", "--persistent", action='store_true',
                              help="Do not start again after Reboot")
 
@@ -214,16 +219,15 @@ def main():
             print(ex)
 
     elif args.action == 'stop':
-        if args.persistent:
-            service.set_status(args.instance, "disable")
         try:
-            service.set_status(args.instance, args.action)
+            service.notified_stop(args.instance, args.reason, args.persistent)
         except AssertionError as ex:
             print(ex)
 
     elif args.action == 'restart':
         try:
-            service.set_status(args.instance, args.action)
+            service.notified_stop(
+                args.instance, args.reason, restart=True)
         except AssertionError as ex:
             print(ex)
 
