@@ -16,7 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
-from mcctl import web, storage, service, config, proc, status
+from socket import error as sock_error
+from mcstatus import MinecraftServer
+from mcctl import web, storage, service, config, proc
 
 
 def create(instance: str, source: str, memory: str, properties: list, start: bool):
@@ -79,12 +81,20 @@ def get_instance_list(filter_str: str = ''):
         if filter_str in name:
             cfg = config.get_properties(base_path / name / "server.properties")
             port = int(cfg["server-port"])
-            mcp = status.MineStat('localhost', port)
 
-            version = mcp.version if not mcp.version is None else "n/a"
+            try:
+                server = MinecraftServer('localhost', port)
+                status = server.status()
+                online = status.players.online
+                version = status.version.name
+            except (ConnectionError, sock_error):
+                online = 0
+                version = "n/a"
+
             run_status = "Active" if service.is_active(name) else "Inactive"
             contents = template % (
-                name, version, "{0}/{1}".format(mcp.current_players, mcp.max_players),
+                name, version, "{0}/{1}".format(online,
+                                                cfg["max-players"]),
                 run_status, service.is_enabled(name))
             print(contents)
 
