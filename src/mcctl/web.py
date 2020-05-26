@@ -218,4 +218,5 @@ def pull(source: str, literal_url: bool = False) -> Path:
     else:
         print("Already cached, no download required.")
 
-    return dest
+    return dest, tag
+ 

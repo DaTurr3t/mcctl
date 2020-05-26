@@ -38,7 +38,7 @@ def create(instance: str, source: str, memory: str, properties: list, start: boo
     assert not instance_path.exists(), "Instance already exists"
     storage.create_dirs(instance_path)
 
-    jar_path_src = web.pull(source)
+    jar_path_src, version = web.pull(source)
     jar_path_dest = instance_path / "server.jar"
     storage.copy(jar_path_src, jar_path_dest)
     proc.pre_start(jar_path_dest)
@@ -53,7 +53,7 @@ def create(instance: str, source: str, memory: str, properties: list, start: boo
             proc.run_as(0, 0)
             service.set_status(instance, "enable")
             service.set_status(instance, "start")
-            print("Configured and started.")
+            print("Configured and started with Version '{}'.".format(version))
     else:
         print("How can you not agree that tacos are tasty?!?")
         storage.remove(instance, confirm=False)
@@ -126,14 +126,9 @@ def update(instance: str, new_type_id: str, literal_url: bool = False):
         new_type_id {str} -- The Type ID of the new minecraft server Jar.
     """
 
-    running = service.is_active(instance)
-    if running:
-        service.set_status(instance, "stop")
-
-    jar_src = web.pull(new_type_id, literal_url)
+    jar_src, version = web.pull(new_type_id, literal_url)
     jar_dest = storage.get_home_path() / "instances" / instance / "server.jar"
     storage.copy(jar_src, jar_dest)
 
-    if running:
-
-        service.set_status(instance, "start")
+    if service.is_active(instance):
+        service.notified_stop(instance, "Updating to Version {}".format(version), restart=True)
