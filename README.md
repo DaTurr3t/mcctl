@@ -71,4 +71,4 @@ If you have suggestions, questions or issues, feel free to report it as an Issue
 
 ## License
 
-This Project is Licensed under the GPLv3. Please see [LICENSE](https://github.com/DaTurret/mcctl/blob/master/LICENSE) for details.
+This Project is licensed under the GPLv3. Please see [LICENSE](https://github.com/DaTurret/mcctl/blob/master/LICENSE) for details.

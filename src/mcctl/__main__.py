@@ -98,7 +98,7 @@ def main():
 
     parser_exec = subparsers.add_parser(
         "exec", parents=[instance_name_parser], help="Execute a command in the Console of the Instance")
-    parser_exec.add_argument("command", metavar="COMMAND", nargs="+",
+    parser_exec.add_argument("command", nargs="+",
                              help="Command to execute")
 
     parser_export = subparsers.add_parser(
@@ -124,7 +124,7 @@ def main():
 
     parser_rename = subparsers.add_parser(
         "rename", parents=[instance_name_parser], help="Rename a Minecraft Server Instance")
-    parser_rename.add_argument("newName", metavar="NEW_NAME")
+    parser_rename.add_argument("new_name")
 
     parser_restart = subparsers.add_parser(
         "restart", parents=[instance_name_parser], help="Restart a Minecraft Server Instance")
@@ -159,6 +159,7 @@ def main():
         print("Must be root.")
         sys.exit(1)
 
+    # Starts Program as server_user
     user = settings.CFG_DICT['server_user']
     user_ids = proc.get_ids(user)
     proc.run_as(*user_ids)
@@ -209,7 +210,7 @@ def main():
             service.set_status(args.instance, "enable")
         try:
             service.set_status(args.instance, args.action)
-        except AssertionError:
+        except AssertionError as ex:
             print(ex)
 
     elif args.action == 'stop':
@@ -217,13 +218,13 @@ def main():
             service.set_status(args.instance, "disable")
         try:
             service.set_status(args.instance, args.action)
-        except AssertionError:
+        except AssertionError as ex:
             print(ex)
 
     elif args.action == 'restart':
         try:
             service.set_status(args.instance, args.action)
-        except AssertionError:
+        except AssertionError as ex:
             print(ex)
 
     elif args.action == 'attach':
@@ -241,7 +242,7 @@ def main():
 
     elif args.action == 'rename':
         try:
-            common.rename(args.instance, args.newName)
+            common.rename(args.instance, args.new_name)
         except (AssertionError, FileExistsError) as ex:
             print("Unable to rename '{0}': {1}".format(
                 args.instance, str(ex).split(":")[0]))

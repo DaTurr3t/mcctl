@@ -39,7 +39,7 @@ def attach(instance: str):
 
     assert is_active(instance), "The Server is not running"
     cmd = shlex.split('screen -r mc-{}'.format(instance))
-    proc = sproc.Popen(cmd, preexec_fn=demote())
+    proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
     proc.wait()
 
 
@@ -73,7 +73,7 @@ def mc_exec(instance: str, command: list, timeout: int = 0.1, retries: int = 20,
     jar_cmd = " ".join(command)
     cmd = shlex.split(
         'screen -p 0 -S mc-{0} -X stuff "{1}^M"'.format(instance, jar_cmd))
-    proc = sproc.Popen(cmd, preexec_fn=demote())
+    proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
     proc.wait()
 
     i = 0
@@ -159,7 +159,7 @@ def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
     """
 
     cmd = shlex.split('/bin/java -jar {}'.format(jar_path))
-    proc = sproc.Popen(cmd, cwd=jar_path.parent,
+    proc = sproc.Popen(cmd, cwd=jar_path.parent,  # pylint: disable=subprocess-popen-preexec-fn
                        preexec_fn=demote(), stdout=sproc.PIPE, stderr=sproc.PIPE)
 
     fps = 4
