@@ -1,10 +1,15 @@
 import os
+import shutil
 import pathlib
 from setuptools import setup, find_packages
 
-os.chdir(os.path.dirname(__file__))
 
 REPO_ROOT = pathlib.Path(__file__).absolute().parent
+
+shutil.rmtree(REPO_ROOT / "build", ignore_errors=True)
+shutil.rmtree(REPO_ROOT / "dist", ignore_errors=True)
+
+os.chdir(REPO_ROOT)
 README = (REPO_ROOT / "README.md").read_text()
 
 setup(
@@ -29,6 +34,7 @@ setup(
     ],
     include_package_data=True,
     package_dir={'': 'src'},
+    install_requires=['mcstatus'],
     setup_requires=['wheel'],
     entry_points={
         "console_scripts": [
