@@ -86,7 +86,7 @@ def main():
 
     reason_parser = ap.ArgumentParser(add_help=False)
     reason_parser.add_argument(
-        "reason", nargs="+", help="Reason to be appended to the 'say' Command."
+        "reason", metavar="REASON", nargs="+", help="Words to be appended to the 'say' Command."
     )
 
     parser_attach = subparsers.add_parser(

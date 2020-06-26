@@ -107,7 +107,8 @@ def notified_stop(instance: str, reason: str, persistent: bool = False, restart:
     if persistent and not restart:
         set_status(instance, "disable")
 
-    reason_msg = "say §{0}{1}ing Server. Reason: {2}".format(
-        msgcol, action.capitalize(), reason)
-    proc.mc_exec(instance, reason_msg.split())
+    msg = "say §{0}{1}ing Server. Reason:".format(msgcol, action.capitalize())
+    msg_list = msg.split()
+    msg_list.extend(reason)
+    proc.mc_exec(instance, msg_list)
     set_status(instance, action)
