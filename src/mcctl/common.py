@@ -132,3 +132,4 @@ def update(instance: str, new_type_id: str, literal_url: bool = False):
 
     if service.is_active(instance):
         service.notified_stop(instance, "Updating to Version {}".format(version), restart=True)
+    print("Update successful.")

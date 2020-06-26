@@ -43,7 +43,7 @@ def attach(instance: str):
     proc.wait()
 
 
-def mc_exec(instance: str, command: list, timeout: int = 0.1, retries: int = 20, flush_retries: int = 3):
+def mc_exec(instance: str, command: list, timeout: int = 0.1, retries: int = 20, flush_retries: int = 5):
     """Execute a command on the console of a server.
 
     Uses the 'stuff' command of screen to pass the minecraft command to the server.
@@ -59,7 +59,7 @@ def mc_exec(instance: str, command: list, timeout: int = 0.1, retries: int = 20,
     Keyword Arguments:
         timeout {int} -- The timeout interval between log reads. (default: {0.1})
         retries {int} -- The amount of retries when no lines have been pushed to console. (default: {20})
-        flush_retries {int} -- The amount of retries when some lines have been pushed to console. (default: {3})
+        flush_retries {int} -- The amount of retries when some lines have been pushed to console. (default: {5})
     """
 
     assert is_active(
