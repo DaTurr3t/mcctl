@@ -270,8 +270,6 @@ def inspect(instance: str, limit: int = 0):
             else:
                 log_file = open(log)
             lines = log_file.readlines() + lines
-        except gzip.BadGzipFile:
-            raise OSError("GZip File '{}' is invalid.".format(log.name))
         finally:
             log_file.close()
         if len(lines) >= limit:
