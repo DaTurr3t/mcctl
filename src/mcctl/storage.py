@@ -272,7 +272,7 @@ def inspect(instance: str, limit: int = 0):
             lines = log_file.readlines() + lines
         finally:
             log_file.close()
-        if len(lines) >= limit:
+        if len(lines) >= limit and limit != 0:
             break
 
     lines_out = lines[-limit:]
