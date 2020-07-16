@@ -127,7 +127,7 @@ def demote():
     Returns:
         NoneType -- Returns a function executed by Popen() before running the external command.
     """
-    user_name = settings.CFG_DICT['server_user']
+    user_name = settings.CONFIG.get('settings', 'server_user')
     user = getpwnam(user_name)
 
     def set_ids():

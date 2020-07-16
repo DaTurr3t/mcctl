@@ -19,21 +19,22 @@
 from configparser import ConfigParser
 from pathlib import Path
 
-PARSER = ConfigParser()
+CONFIG = ConfigParser()
 
 CFGPATH = Path("/etc/mcctl.conf")
 
-PARSER['settings'] = {
-    'systemd_service': 'mcserver@', 'server_user': 'mcserver'}
+CONFIG['settings'] = {
+    'systemd_service': 'mcserver@',
+    'server_user': 'mcserver',
+    'default_editor': 'nano',
+}
 
 # Overwrite default Values
-if PARSER.read(CFGPATH) == []:
+if not CONFIG.read(CFGPATH):
     try:
         with open(CFGPATH, 'w') as configfile:
-            PARSER.write(configfile)
-    except PermissionError:
-        pass
+            CONFIG.write(configfile)
+    except OSError as ex:
+        print("WARN: Unable to write Config: {}".format(ex))
 
-CFG_DICT = dict(PARSER.items('settings'))
-
-del PARSER, CFGPATH
+del CFGPATH

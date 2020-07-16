@@ -22,7 +22,7 @@ import subprocess as sp
 from mcctl import settings, proc
 
 
-UNIT_NAME = settings.CFG_DICT['systemd_service']
+UNIT_NAME = settings.CONFIG.get('settings', 'systemd_service')
 
 
 def is_active(instance: str) -> bool:

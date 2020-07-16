@@ -25,7 +25,7 @@ from datetime import datetime
 from pwd import getpwnam
 from mcctl import service, config, settings
 
-SERVER_USER = settings.CFG_DICT['server_user']
+SERVER_USER = settings.CONFIG.get('settings', 'server_user')
 
 
 def get_home_path(user_name: str = SERVER_USER) -> Path:
