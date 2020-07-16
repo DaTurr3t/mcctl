@@ -84,7 +84,7 @@ def chown(path: Path, user: str, group=None):
         group {[type]} -- Group that should own the path. (default: {None})
     """
 
-    if group is None:
+    if not group:
         group = getpwnam(user).pw_gid
     if path.is_dir():
         file_list = get_child_paths(path)
@@ -167,7 +167,7 @@ def export(instance: str, zip_path=None, compress: bool = False, world_only: boo
         Path -- The Path where the Zip-File was saved to.
     """
 
-    if zip_path is None:
+    if not zip_path:
         zip_path = Path("{0}_{1}.zip".format(
             instance, datetime.now().strftime("%y-%m-%d-%H.%M.%S")))
     base_path = get_home_path()

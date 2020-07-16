@@ -45,21 +45,21 @@ def main():
     def type_id(value):
         test_type_id = re.compile(
             r'(.+:)+.+|https?: \/\/(-\.)?([ ^\s /?\.#-]+\.?)+(/[^\s]*)?$')
-        if test_type_id.search(value) is None:
+        if not test_type_id.search(value):
             raise ap.ArgumentTypeError(
                 "must be in the form '<TYPE>:<VERSION>:<BUILD>' or URL")
         return value
 
     def strict_type_id(value):
         test_type_id = re.compile(r'(.+:)+.+|all')
-        if test_type_id.search(value) is None:
+        if not test_type_id.search(value):
             raise ap.ArgumentTypeError(
                 "must be in the form '<TYPE>:<VERSION>:<BUILD>' or 'all'")
         return value
 
     def mem(value):
         test_mem = re.compile(r'^[0-9]+[KMG]$')
-        if test_mem.search(value) is None:
+        if not test_mem.search(value):
             raise ap.ArgumentTypeError("Must be in Format <NUMBER>{K,M,G}")
         return value
 

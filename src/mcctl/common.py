@@ -43,11 +43,11 @@ def create(instance: str, source: str, memory: str, properties: list, start: boo
     storage.copy(jar_path_src, jar_path_dest)
     proc.pre_start(jar_path_dest)
     if config.accept_eula(instance_path):
-        if not properties is None:
+        if properties:
             properties_dict = config.properties_to_dict(properties)
             config.set_properties(
                 instance_path / "server.properties", properties_dict)
-        if not memory is None:
+        if memory:
             config.set_properties(instance_path / "jvm-env", {"MEM": memory})
         if start:
             proc.run_as(0, 0)
