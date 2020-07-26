@@ -16,10 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib.request as req
 from pathlib import Path
-import json
+import time
 import hashlib
+import requests as req
 from mcctl import visuals, storage
 
 DOWNLOAD_URLS = {
@@ -41,13 +41,12 @@ def rest_get(url: str) -> dict:
     """
 
     header = {'User-Agent': 'curl/7.4'}
-    request = req.Request(url=url, headers=header)
-    with req.urlopen(request, timeout=5) as response:
-        data = response.read()
-    return json.loads(data)
+    response = req.get(url, headers=header, timeout=5)
+    response.raise_for_status()
+    return response.json()
 
 
-def download(url: str, dest: Path) -> tuple:
+def download(url: str, dest: Path):
     """Download a file with progress report.
 
     A file is downloaded from a webserver, progress is shown via the reporthook-Parameter.
@@ -60,30 +59,43 @@ def download(url: str, dest: Path) -> tuple:
         tuple -- data about the downloaded file, from urllib.urlretrieve()
     """
 
-    store_data = req.urlretrieve(url, dest, reporthook)
-    print()
-    return store_data
+    response = req.get(url, stream=True)
+    with open(dest, "wb") as dest_hnd:
+        total_length = response.headers.get('content-length')
+
+        if not total_length:
+            dest_hnd.write(response.content)
+        else:
+            chunk_size = 4096
+            loaded = 0
+            inital = time.time()
+            total_length = int(total_length)
+            for data in response.iter_content(chunk_size):
+                loaded += len(data)
+                dest_hnd.write(data)
+                elapsed = time.time() - inital
+                progress(loaded, elapsed, total_length)
+        print()
 
 
-def reporthook(blockcount: int, blocksize: int, total: int):
+def progress(current: int, elapsed: int, total: int):
     """Print Progress
 
     Output the progress of the download given blockcount, blocksize and total bytes.
 
     Arguments:
-        blockcount {int} -- The number of the recieved block.
-        blocksize {int} -- The size of the recieved blocks.
+        downloaded {int} -- The number of bits recieved.
+        elapsed {int} -- Elapsed time in seconds.
         total {int} -- The size of the complete File.
     """
 
-    current = blockcount * blocksize
-    if total > 0:
-        percent = current * 100 / total
-        out = "\r%s %3.0f%% %*dkB / %dkB" % (
-            visuals.spinner(int(percent), 1), percent, len(str(total//1024)), current/1024, total/1024)
-    else:
-        out = "\r%s %dkB / %skB" % (visuals.spinner(blockcount),
-                                    current/1024, "???")
+    spinner = visuals.SPINNERS[1]
+    chars = spinner.get('chars')
+    char_idx = int((elapsed * spinner.get('speed')) % 4)
+
+    percent = current * 100 / total
+    out = "\r%s %3.0f%% %*dkB / %dkB" % (
+        chars[char_idx], percent, len(str(total//1024)), current/1024, total/1024)
     print(out, end="")
 
 
@@ -219,4 +231,3 @@ def pull(source: str, literal_url: bool = False) -> Path:
         print("Already cached, no download required.")
 
     return dest, tag
- 
