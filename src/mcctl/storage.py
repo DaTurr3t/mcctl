@@ -19,8 +19,10 @@
 import gzip
 import sys
 import shutil
-from pathlib import Path
+import random
+import string
 import zipfile as zf
+from pathlib import Path
 from datetime import datetime
 from pwd import getpwnam
 from mcctl import service, config, settings
@@ -277,3 +279,18 @@ def inspect(instance: str, limit: int = 0):
 
     lines_out = lines[-limit:]
     print(''.join(lines_out), end='')
+
+
+def tmpcopy(file_path: Path) -> Path:
+    """[summary]
+
+    Args:
+        file_path (Path): The file which will be copied to a temporary location.
+
+    Returns:
+        Path: The Path where the temporary file is saved.
+    """
+    tmpid = ''.join(random.choice(string.ascii_letters) for _ in range(16))
+    tmp_path = file_path.parent / Path("{0}.{1}".format(file_path.name, tmpid))
+    shutil.copy(file_path, tmp_path)
+    return tmp_path
