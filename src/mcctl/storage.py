@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with mcctl.  If not, see <http:// www.gnu.org/licenses/>.
+# along with mcctl. If not, see <http:// www.gnu.org/licenses/>.
 
 import gzip
 import sys
@@ -99,17 +99,17 @@ def chown(path: Path, user: str, group=None):
 def get_relative_paths(path: Path, filter_str: str = '', filter_idx: int = 0) -> list:
     """Get relative subdirectories of path.
 
-    Get the subdirectories of a path, without any of the path itself.
+    Get the subdirectories of a path, without any of the path itself. Files are omitted.
     E.g. if 'path/to/dir' has two subdirectories 'path/to/dir/one' and 'path/to/dir/two', 'one' and 'two' are listed.
 
-    The Filter allows simple tests on a directory in the truncated Path. The directory to test against is specified by filterIdx.
+    The Filter allows simple tests on a directory in the truncated Path. The directory to test against is specified by filter_idx.
     0 -  the first directory of the path is tested. -1 - the last directory is tested, etc.
 
     Arguments:
         path {Path} -- The path of which the subdirecories should be returned.
 
     Keyword Arguments:
-        filter_str {str} -- A string that is checked agains a specified  (default: {''})
+        filter_str {str} -- A string that is checked against a specified directory. (default: {''})
         filter_idx {int} -- The index of the directory to test against. (default: {0})
 
     Returns:

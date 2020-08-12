@@ -68,7 +68,7 @@ def get_properties(file_path: Path) -> dict:
 def set_properties(file_path: Path, properties: dict):
     """Write a configuration file from dict
 
-    The properties is written into the specified file in "KEY=VALUE" form.
+    The properties are written into the specified file in "KEY=VALUE" form.
 
     Arguments:
         file_path {Path} -- The path of the output file.

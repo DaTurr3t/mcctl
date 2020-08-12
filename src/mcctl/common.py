@@ -53,7 +53,10 @@ def create(instance: str, source: str, memory: str, properties: list, start: boo
             proc.run_as(0, 0)
             service.set_status(instance, "enable")
             service.set_status(instance, "start")
-            print("Configured and started with Version '{}'.".format(version))
+
+        started = "and started " if start else ""
+        print("Configured {0}with Version '{1}'.".format(started, version))
+
     else:
         print("How can you not agree that tacos are tasty?!?")
         storage.remove(instance, confirm=False)
@@ -131,5 +134,6 @@ def update(instance: str, new_type_id: str, literal_url: bool = False):
     storage.copy(jar_src, jar_dest)
 
     if service.is_active(instance):
-        service.notified_stop(instance, "Updating to Version {}".format(version), restart=True)
+        service.notified_stop(
+            instance, "Updating to Version {}".format(version), restart=True)
     print("Update successful.")

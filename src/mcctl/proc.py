@@ -65,7 +65,7 @@ def mc_exec(instance: str, command: list, timeout: int = 0.1, retries: int = 20,
     assert is_active(
         instance), "The Server is not running"
 
-    log_path = get_home_path() / "instances" / instance / "logs/latest.log"
+    log_path = storage.get_home_path() / "instances" / instance / "logs/latest.log"
 
     file_hnd = open(log_path)
     old_count = sum(1 for line in file_hnd) - 1
