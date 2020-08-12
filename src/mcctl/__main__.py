@@ -32,14 +32,14 @@ def coming_soon():
     print("Not yet implemented!")
 
 
-def main():
-    """The main function of mcctl.
+def parse_args():
+    """Parses Arguments from the Command Line input and returns the Converted Values.
 
-    This function handles all arguments.
-    The logic is moved into the other files as much as possible, except for input checking.
+    Returns:
+        argparse.Namespace: All Arguments, parsed.
 
     Raises:
-        ap.ArgumentTypeError: Raised when the parameters given cannot be parsed correctly.
+        argparse.ArgumentTypeError: Raised when the parameters given cannot be parsed correctly.
     """
 
     def type_id(value):
@@ -158,7 +158,19 @@ def main():
     parser_update = subparsers.add_parser(
         "update", parents=[instance_name_parser, type_id_parser], help="Update a Minecraft Server Instance")
 
-    args = parser.parse_args()
+
+
+    return parser.parse_args()
+
+
+def main():
+    """The main function of mcctl.
+
+    This function handles all arguments.
+    The logic is moved into the other files as much as possible, except for input checking.
+    """
+
+    args = parse_args()
 
     if os.geteuid() != 0:
         print("Must be root.")
@@ -226,8 +238,7 @@ def main():
 
     elif args.action == 'restart':
         try:
-            service.notified_stop(
-                args.instance, args.reason, restart=True)
+            service.notified_stop(args.instance, args.reason, restart=True)
         except AssertionError as ex:
             print(ex)
 
