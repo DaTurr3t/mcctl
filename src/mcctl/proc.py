@@ -42,6 +42,22 @@ def attach(instance: str):
     proc.wait()
 
 
+def shell(instance: str, shell_path: Path):
+    """Create a shell process in the server directory.
+
+    Launches a shell from the config file.
+
+    Arguments:
+        instance {str} -- The name of the instance.
+    """
+
+    instance_path = storage.get_home_path() / "instances" / instance
+
+    cmd = shlex.split(shell_path)
+    proc = sproc.Popen(cmd, preexec_fn=demote(), cwd=instance_path)  # nopep8 pylint: disable=subprocess-popen-preexec-fn
+    proc.wait()
+
+
 def mc_exec(instance: str, command: list, timeout: int = 0.1, retries: int = 20, flush_retries: int = 5):
     """Execute a command on the console of a server.
 
@@ -177,3 +193,17 @@ def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
             break
     print()
     return success
+
+
+def edit(file_path: Path, editor: str):
+    """Attach to the console of a server.
+
+    Launches screen to reattach to the screen session of the server.
+
+    Arguments:
+        file_path {Path} -- The file to be edited in the Editor.
+    """
+
+    cmd = shlex.split("{0} '{1}'".format(editor, file_path))
+    proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
+    proc.wait()

@@ -21,6 +21,7 @@ import sys
 import shutil
 import random
 import string
+import hashlib
 import zipfile as zf
 from pathlib import Path
 from datetime import datetime
@@ -294,3 +295,18 @@ def tmpcopy(file_path: Path) -> Path:
     tmp_path = file_path.parent / Path("{0}.{1}".format(file_path.name, tmpid))
     shutil.copy(file_path, tmp_path)
     return tmp_path
+
+def get_file_hash(file_path: Path) -> str:
+    """Generate the Hash of a File.
+
+    Args:
+        file_path (Path): The Path of the File to be hashed.
+
+    Returns:
+        str: The Hash as a String.
+    """
+    hash_sha1 = hashlib.sha1()
+    with open(file_path, "rb") as fhnd:
+        for chunk in iter(lambda: fhnd.read(4096), b""):
+            hash_sha1.update(chunk)
+    return hash_sha1.hexdigest()

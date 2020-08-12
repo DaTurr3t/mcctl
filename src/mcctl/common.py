@@ -137,3 +137,46 @@ def update(instance: str, new_type_id: str, literal_url: bool = False):
         service.notified_stop(
             instance, "Updating to Version {}".format(version), restart=True)
     print("Update successful.")
+
+
+def configure(instance: str, edit_paths: list, properties: list, editor: str, force: bool = False):
+    """Edits configurations, restarts the server if forced,
+    and swaps in the new configurations.
+
+    Args:
+        instance (str): The Instance ID.
+        edit_paths (list): The Paths to be edited interactively with the specified Editor.
+        properties (list): The Properties to be changed in the server.properties File.
+        editor (str): A Path to an Editor Binary.
+        force (bool, optional): Stops the server, applies changes and starts it again when set to true.
+        Defaults to False.
+    """
+
+    instance_path = storage.get_home_path() / "instances" / instance
+    paths = set()
+
+    if properties:
+        properties_path = instance_path / "server.properties"
+        tmp_path = storage.tmpcopy(properties_path)
+        properties_dict = config.properties_to_dict(properties)
+        config.set_properties(
+            tmp_path, properties_dict)
+        paths.add((tmp_path, properties_path))
+
+    if edit_paths:
+        for file_path in edit_paths:
+            abspath = instance_path / file_path
+            tmp_path = storage.tmpcopy(abspath)
+            proc.edit(tmp_path, editor)
+            if storage.get_file_hash(tmp_path) != storage.get_file_hash(abspath):
+                paths.add((tmp_path, abspath))
+
+    restart = service.is_active(instance) and force and len(paths) > 0
+    if restart:
+        service.notified_stop(instance, "Reconfiguring and restarting Server")
+
+    for pair in paths:
+        storage.copy(*pair)
+
+    if restart:
+        service.set_status(instance, "start")

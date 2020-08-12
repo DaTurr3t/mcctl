@@ -158,7 +158,17 @@ def parse_args():
     parser_update = subparsers.add_parser(
         "update", parents=[instance_name_parser, type_id_parser], help="Update a Minecraft Server Instance")
 
+    parser_configure = subparsers.add_parser(
+        "configure", parents=[instance_name_parser], help="Configure Files of a Minecraft Server Instance")
+    parser_configure.add_argument(
+        "-e", "--edit", nargs="+", metavar="FILE", help="Edit one or multiple Files in the Instance Folder, interactively.")
+    parser_configure.add_argument(
+        "-p", "--properties", nargs="+", help="Change server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
+    parser_configure.add_argument(
+        "-f", "--force", action='store_true', help="Stop the Server, apply config changes, and start it again.")
 
+    parser_shell = subparsers.add_parser(
+        "shell", parents=[instance_name_parser], help="Invoke a Shell in the Folder of a Minecraft Server Instance")
 
     return parser.parse_args()
 
@@ -178,7 +188,12 @@ def main():
 
     # Starts Program as server_user
     user = CFGVARS.get('settings', 'server_user')
-    user_ids = proc.get_ids(user)
+    try:
+        user_ids = proc.get_ids(user)
+    except KeyError as ex:
+        print("User '{0}' not found: {1}".format(user, ex))
+        sys.exit(1)
+
     proc.run_as(*user_ids)
 
     if args.action == 'create':
@@ -273,6 +288,20 @@ def main():
             storage.inspect(args.instance, args.lines)
         except (AssertionError, OSError) as ex:
             print("Unable to inspect '{0}': {1}".format(args.instance, ex))
+
+    elif args.action == 'configure':
+        try:
+            common.configure(args.instance, args.edit, args.properties,
+                             CFGVARS.get('settings', 'default_editor'), args.force)
+        except (AssertionError, OSError) as ex:
+            print("Unable to configure '{0}': {1}".format(args.instance, ex))
+
+    elif args.action == 'shell':
+        try:
+            proc.shell(args.instance,
+                       CFGVARS.get('settings', 'default_shell'))
+        except OSError as ex:
+            print("Unable to invoke a shell: {}".format(ex))
     else:
         coming_soon()
 
