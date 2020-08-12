@@ -22,8 +22,7 @@ import os
 import subprocess as sproc
 from pathlib import Path
 from pwd import getpwnam
-from mcctl import settings
-from mcctl.storage import get_home_path
+from mcctl import CFGVARS, storage
 from mcctl.service import is_active
 from mcctl.visuals import compute
 
@@ -127,7 +126,7 @@ def demote():
     Returns:
         NoneType -- Returns a function executed by Popen() before running the external command.
     """
-    user_name = settings.CONFIG.get('settings', 'server_user')
+    user_name = CFGVARS.get('settings', 'server_user')
     user = getpwnam(user_name)
 
     def set_ids():

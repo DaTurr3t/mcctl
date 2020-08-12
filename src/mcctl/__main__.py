@@ -22,7 +22,7 @@ import os
 import re
 import sys
 import argparse as ap
-from mcctl import proc, storage, service, web, common, settings
+from mcctl import proc, storage, service, web, common, CFGVARS
 
 
 def coming_soon():
@@ -165,7 +165,7 @@ def main():
         sys.exit(1)
 
     # Starts Program as server_user
-    user = settings.CONFIG.get('settings', 'server_user')
+    user = CFGVARS.get('settings', 'server_user')
     user_ids = proc.get_ids(user)
     proc.run_as(*user_ids)
 

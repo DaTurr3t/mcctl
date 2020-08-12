@@ -19,10 +19,10 @@
 import shlex
 import time
 import subprocess as sp
-from mcctl import settings, proc
+from mcctl import CFGVARS, proc
 
 
-UNIT_NAME = settings.CONFIG.get('settings', 'systemd_service')
+UNIT_NAME = CFGVARS.get('settings', 'systemd_service')
 
 
 def is_active(instance: str) -> bool:
