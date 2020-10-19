@@ -41,3 +41,5 @@ if not CFGVARS.read(CFGPATH):
         print("WARN: Unable to write Config: {}".format(ex))
 
 del CFGPATH
+
+from mcctl import common, config, proc, service, storage, visuals, web  # nopep8 pylint: disable=wrong-import-position
