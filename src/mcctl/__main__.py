@@ -86,7 +86,7 @@ def parse_args():
 
     reason_parser = ap.ArgumentParser(add_help=False)
     reason_parser.add_argument(
-        "reason", metavar="REASON", nargs="+", help="Words to be appended to the 'say' Command."
+        "-r", "--reason", metavar="WORD", nargs="+", help="Words to be appended to the 'say' Command."
     )
 
     parser_attach = subparsers.add_parser(
@@ -161,7 +161,7 @@ def parse_args():
     parser_configure = subparsers.add_parser(
         "configure", parents=[instance_name_parser], help="Configure Files of a Minecraft Server Instance")
     parser_configure.add_argument(
-        "-e", "--edit", nargs="+", metavar="FILE", help="Edit one or multiple Files in the Instance Folder, interactively.")
+        "-e", "--edit", metavar="FILE", help="Edit a File in the Instance Folder, interactively.")
     parser_configure.add_argument(
         "-p", "--properties", nargs="+", help="Change server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
     parser_configure.add_argument(
