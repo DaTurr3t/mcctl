@@ -151,24 +151,28 @@ def configure(instance: str, edit_paths: list, properties: list, editor: str, fo
         Defaults to False.
     """
 
-    instance_path = storage.get_home_path() / "instances" / instance
-    paths = set()
+    instance_path = storage.get_instance_path(instance)
+    paths = {}
 
     if properties:
         properties_path = instance_path / "server.properties"
         tmp_path = storage.tmpcopy(properties_path)
         properties_dict = config.properties_to_dict(properties)
-        config.set_properties(
-            tmp_path, properties_dict)
-        paths.add((tmp_path, properties_path))
+        config.set_properties(tmp_path, properties_dict)
+        paths.update({properties_path: tmp_path})
 
     if edit_paths:
         for file_path in edit_paths:
-            abspath = instance_path / file_path
-            tmp_path = storage.tmpcopy(abspath)
-            proc.edit(tmp_path, editor)
-            if storage.get_file_hash(tmp_path) != storage.get_file_hash(abspath):
-                paths.add((tmp_path, abspath))
+            # Check if a Temporary File of the Config already exists
+            if file_path not in list(paths.keys()):
+                abspath = instance_path / file_path
+                tmp_path = storage.tmpcopy(abspath)
+                proc.edit(tmp_path, editor)
+                if storage.get_file_hash(tmp_path) != storage.get_file_hash(abspath):
+                    paths.update({abspath: tmp_path})
+
+            else:
+                proc.edit(paths[file_path], editor)
 
     restart = service.is_active(instance) and force and len(paths) > 0
     if restart:
