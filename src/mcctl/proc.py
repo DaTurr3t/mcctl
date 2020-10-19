@@ -22,8 +22,7 @@ import os
 import subprocess as sproc
 from pathlib import Path
 from pwd import getpwnam
-from mcctl import CFGVARS, storage
-from mcctl.service import is_active
+from mcctl import CFGVARS, storage, service
 from mcctl.visuals import compute
 
 
@@ -36,7 +35,7 @@ def attach(instance: str):
         instance {str} -- The name of the instance.
     """
 
-    assert is_active(instance), "The Server is not running"
+    assert service.is_active(instance), "The Server is not running"
     cmd = shlex.split('screen -r mc-{}'.format(instance))
     proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
     proc.wait()
@@ -77,8 +76,7 @@ def mc_exec(instance: str, command: list, timeout: int = 0.1, retries: int = 20,
         flush_retries {int} -- The amount of retries when some lines have been pushed to console. (default: {5})
     """
 
-    assert is_active(
-        instance), "The Server is not running"
+    assert service.is_active(instance), "The Server is not running"
 
     log_path = storage.get_instance_path(instance) / "logs/latest.log"
 

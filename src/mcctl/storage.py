@@ -310,6 +310,7 @@ def tmpcopy(file_path: Path) -> Path:
     shutil.copy(file_path, tmp_path)
     return tmp_path
 
+
 def get_file_hash(file_path: Path) -> str:
     """Generate the Hash of a File.
 
