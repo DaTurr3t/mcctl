@@ -61,7 +61,7 @@ def get_properties(file_path: Path) -> dict:
     """
 
     with open(file_path, "r") as config_file:
-        config = properties_to_dict(list(config_file))
+        config = properties_to_dict(config_file.read().splitlines())
     return config
 
 
@@ -77,16 +77,16 @@ def set_properties(file_path: Path, properties: dict):
 
     if not file_path.exists():
         file_path.touch()
-    with open(file_path, "r+") as config_file:
-        old_config = properties_to_dict(list(config_file))
-        old_config.update(properties)
 
-        new_config = []
-        for key, value in old_config.items():
-            new_config.append("{0}={1}".format(key, value))
-        config_file.seek(0)
+    old_config = get_properties(file_path)
+    old_config.update(properties)
+
+    new_config = []
+    for key, value in old_config.items():
+        new_config.append("{0}={1}".format(key, value))
+
+    with open(file_path, "w") as config_file:
         config_file.write('\n'.join(new_config) + '\n')
-        config_file.truncate()
 
 
 def accept_eula(instance_path: Path) -> bool:
