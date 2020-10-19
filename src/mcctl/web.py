@@ -91,7 +91,7 @@ def progress(current: int, elapsed: int, total: int):
 
     spinner = visuals.SPINNERS[1]
     chars = spinner.get('chars')
-    char_idx = int((elapsed * spinner.get('speed')) % 4)
+    char_idx = int((elapsed * spinner.get('fps')) % len(chars))
 
     percent = current * 100 / total
     out = "\r%s %3.0f%% %*dkB / %dkB" % (

@@ -22,16 +22,16 @@ HALFCIRCLE = 2
 
 SPINNERS = [
     {
-        "speed": 30,
+        "fps": 4,
         "chars": '|/-\\'
     },
 
     {
-        "speed": 60,
+        "fps": 8,
         "chars": '◜◝◞◟'
     },
     {
-        "speed": 20,
+        "fps": 3,
         "chars": '◐◓◑◒'
     }
 ]
