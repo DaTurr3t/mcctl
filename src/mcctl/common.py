@@ -34,7 +34,7 @@ def create(instance: str, source: str, memory: str, properties: list, start: boo
         start {bool} -- Starts the Server directly if set to True.
     """
 
-    instance_path = storage.get_home_path() / "instances" / instance
+    instance_path = storage.get_instance_path(instance)
     assert not instance_path.exists(), "Instance already exists"
     storage.create_dirs(instance_path)
 
@@ -71,7 +71,7 @@ def get_instance_list(filter_str: str = ''):
         filter_str {str} -- Filter the list by instance name. (default: {''})
     """
 
-    base_path = storage.get_home_path() / "instances"
+    base_path = storage.get_instance_path(bare=True)
     server_paths = base_path.iterdir()
     servers = [x.name for x in server_paths]
 
@@ -114,8 +114,7 @@ def rename(instance: str, new_name: str):
 
     assert not (service.is_enabled(instance) or service.is_active(
         instance)), "The server is still persistent and/or running"
-    base_path = storage.get_home_path()
-    server_path = base_path / "instances" / instance
+    server_path = storage.get_instance_path(instance)
     server_path.rename(server_path.parent / new_name)
 
 
@@ -130,7 +129,7 @@ def update(instance: str, new_type_id: str, literal_url: bool = False):
     """
 
     jar_src, version = web.pull(new_type_id, literal_url)
-    jar_dest = storage.get_home_path() / "instances" / instance / "server.jar"
+    jar_dest = storage.get_instance_path(instance) / "server.jar"
     storage.copy(jar_src, jar_dest)
 
     if service.is_active(instance):

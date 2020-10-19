@@ -45,6 +45,21 @@ def get_home_path(user_name: str = SERVER_USER) -> Path:
     return Path(user_data.pw_dir)
 
 
+def get_instance_path(instance: str = '', bare: bool = False) -> Path:
+    """Return the assembled absolute Instance Path
+
+    Keyword Arguments:
+        instance {str} -- The name of the Instance.
+        bare {bool} -- Allow returning the bare Instance Folder.
+
+    Returns:
+        Path: The absolute Path to the Instance
+    """
+
+    assert instance or bare, "No valid Instance supplied"
+    return get_home_path() / "instances" / instance
+
+
 def get_child_paths(path: Path) -> list:
     """Wrapper to get all subdirectories and files.
 
@@ -173,8 +188,8 @@ def export(instance: str, zip_path=None, compress: bool = False, world_only: boo
     if not zip_path:
         zip_path = Path("{0}_{1}.zip".format(
             instance, datetime.now().strftime("%y-%m-%d-%H.%M.%S")))
-    base_path = get_home_path()
-    server_path = Path(base_path, "instances", instance)
+
+    server_path = get_instance_path(instance)
 
     world = ""
     if world_only:
@@ -206,11 +221,10 @@ def remove(instance: str, confirm: bool = True):
         confirm {bool} -- Ask the user if they are sure to delete the instance. (default: {True})
     """
 
-    base_path = get_home_path()
-    del_path = base_path / "instances" / instance
-    assert del_path.exists(), "Instance not found: {}".format(del_path)
+    del_path = get_instance_path(instance)
+    assert del_path.exists(), "Instance Path not found: {}".format(del_path)
     assert not (service.is_enabled(instance) or service.is_active(
-        instance)), "The server is still persistent and/or running"
+        instance)), "The server is still running and/or persistent"
     if confirm:
         ans = input(
             "Are you absolutely sure you want to remove the Instance '{}'? [y/n]: ".format(instance))
@@ -262,7 +276,7 @@ def inspect(instance: str, limit: int = 0):
     """
 
     assert limit >= 0, "Invalid Line Limit: {}".format(limit)
-    log_path = get_home_path() / "instances" / instance / "logs"
+    log_path = get_instance_path(instance) / "logs"
     logs = get_child_paths(log_path)
 
     lines = []
