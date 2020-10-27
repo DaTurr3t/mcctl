@@ -37,8 +37,7 @@ def properties_to_dict(property_list: list) -> dict:
 
     property_dict = {}
     for line in property_list:
-        line = line.rstrip()
-        if not line.startswith("#"):
+        if "=" in line:
             try:
                 key, value = line.split("=", 1)
                 property_dict[key] = value

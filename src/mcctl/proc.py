@@ -62,7 +62,7 @@ def shell(instance, shell_path: Path):
     proc.wait()
 
 
-def mc_exec(instance: str, command: list, timeout: int = 0.1, retries: int = 20, flush_retries: int = 5):
+def mc_exec(instance: str, command: list, pollrate: int = 0.1, max_retries: int = 20, max_flush_retries: int = 5):
     """Execute a command on the console of a server.
 
     Uses the 'stuff' command of screen to pass the minecraft command to the server.
@@ -76,9 +76,9 @@ def mc_exec(instance: str, command: list, timeout: int = 0.1, retries: int = 20,
         command {list} -- A list of the individual parts of the command executed on the server console.
 
     Keyword Arguments:
-        timeout {int} -- The timeout interval between log reads. (default: {0.1})
-        retries {int} -- The amount of retries when no lines have been pushed to console. (default: {20})
-        flush_retries {int} -- The amount of retries when some lines have been pushed to console. (default: {5})
+        pollrate {int} -- The polling interval between log reads. (default: {0.1})
+        max_retries {int} -- The amount of retries when no lines have been pushed to console. (default: {20})
+        max_flush_retries {int} -- The amount of retries when some lines have been pushed to console. (default: {5})
     """
 
     assert service.is_active(instance), "The Server is not running"
@@ -95,13 +95,13 @@ def mc_exec(instance: str, command: list, timeout: int = 0.1, retries: int = 20,
     proc.wait()
 
     i = 0
-    while i < retries:
+    while i < max_retries:
         i += 1
-        time.sleep(timeout)
+        time.sleep(pollrate)
         file_hnd.seek(0)
         for j, line in enumerate(file_hnd):
             if j > old_count:
-                i = retries - flush_retries
+                i = max_retries - max_flush_retries
                 print(line.rstrip())
                 old_count += 1
     file_hnd.close()
