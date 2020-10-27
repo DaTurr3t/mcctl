@@ -170,7 +170,8 @@ def configure(instance: str, edit_paths: list, properties: list, editor: str, fo
                 proc.edit(tmp_path, editor)
                 if storage.get_file_hash(tmp_path) != storage.get_file_hash(abspath):
                     paths.update({abspath: tmp_path})
-
+                else:
+                    tmp_path.unlink()
             else:
                 proc.edit(paths[file_path], editor)
 
@@ -178,8 +179,8 @@ def configure(instance: str, edit_paths: list, properties: list, editor: str, fo
     if restart:
         service.notified_stop(instance, "Reconfiguring and restarting Server")
 
-    for pair in paths:
-        storage.copy(*pair)
+    for pair in list(paths.items()):
+        storage.move(*pair[::-1])
 
     if restart:
         service.set_status(instance, "start")

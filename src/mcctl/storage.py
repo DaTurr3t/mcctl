@@ -167,6 +167,22 @@ def copy(source: Path, dest: Path):
     return shutil.copy(source, dest)
 
 
+def move(source: Path, dest: Path):
+    """Wrapper to move a file or directory
+
+    If [dest] is a directory and [source] is a file, the filename of [source] is retained.
+
+    Arguments:
+        source {Path} -- Source file
+        dest {Path} -- Destionation file or directory
+
+    Returns:
+        Path -- The Destination Path of the copied file.
+    """
+
+    return shutil.move(source, dest)
+
+
 def export(instance: str, zip_path=None, compress: bool = False, world_only: bool = False) -> Path:
     """Export a minecraft server instance to a Zip-File.
 
