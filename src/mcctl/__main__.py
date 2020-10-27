@@ -71,7 +71,7 @@ def parse_args():
     type_id_parser = ap.ArgumentParser(
         add_help=False, formatter_class=ap.RawTextHelpFormatter)
     type_id_parser.add_argument(
-        "-u", "--url", action='store_true', help="Use URL instead of TypeID.")
+        "-u", "--url", action='store_true', help="Treat the TypeID Value as a URL.")
     type_id_parser.add_argument(
         "source", metavar="TYPEID_OR_URL", type=type_id,
         help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
@@ -83,6 +83,10 @@ def parse_args():
     instance_name_parser = ap.ArgumentParser(add_help=False)
     instance_name_parser.add_argument(
         "instance", metavar="INSTANCE_ID", help="Instance Name of the Minecraft Server")
+    # Optional Instance Name
+    instance_subfolder_parser = ap.ArgumentParser(add_help=False)
+    instance_subfolder_parser.add_argument(
+        "instance_subfolder", metavar="INSTANCE/SUBFOLDER", nargs="?", help="Instance Name or Subpath in Instance Files, e.g. INSTANCE/world.")
 
     reason_parser = ap.ArgumentParser(add_help=False)
     reason_parser.add_argument(
@@ -168,7 +172,7 @@ def parse_args():
         "-f", "--force", action='store_true', help="Stop the Server, apply config changes, and start it again.")
 
     parser_shell = subparsers.add_parser(
-        "shell", parents=[instance_name_parser], help="Invoke a Shell in the Folder of a Minecraft Server Instance")
+        "shell", parents=[instance_subfolder_parser], help="Invoke a Shell in the Folder of a Minecraft Server Instance")
 
     return parser.parse_args()
 
@@ -298,9 +302,8 @@ def main():
 
     elif args.action == 'shell':
         try:
-            proc.shell(args.instance,
-                       CFGVARS.get('settings', 'default_shell'))
-        except OSError as ex:
+            proc.shell(args.instance_subfolder, CFGVARS.get('settings', 'default_shell'))
+        except (AssertionError, OSError) as ex:
             print("Unable to invoke a shell: {}".format(ex))
     else:
         coming_soon()

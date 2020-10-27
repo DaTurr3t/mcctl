@@ -41,19 +41,24 @@ def attach(instance: str):
     proc.wait()
 
 
-def shell(instance: str, shell_path: Path):
+def shell(instance, shell_path: Path):
     """Create a shell process in the server directory.
 
     Launches a shell from the config file.
 
     Arguments:
-        instance {str} -- The name of the instance.
+        shell_path {Path} -- The Path to the Unix shell binary.
+        cwd {str} -- The name of the instance or a subfolder in the Instance.
     """
 
-    instance_path = storage.get_instance_path(instance)
+    if instance:
+        sh_cwd = storage.get_instance_path(instance)
+        assert sh_cwd.exists(), "Instance or subfolder not found: {}".format(sh_cwd)
+    else:
+        sh_cwd = storage.get_home_path()
 
     cmd = shlex.split(shell_path)
-    proc = sproc.Popen(cmd, preexec_fn=demote(), cwd=instance_path)  # nopep8 pylint: disable=subprocess-popen-preexec-fn
+    proc = sproc.Popen(cmd, preexec_fn=demote(), cwd=sh_cwd)  # nopep8 pylint: disable=subprocess-popen-preexec-fn
     proc.wait()
 
 
