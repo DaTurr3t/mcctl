@@ -91,14 +91,14 @@ def set_status(instance: str, action: str):
                 action, instance)
 
 
-def notified_stop(instance: str, reason: str, persistent: bool = False, restart: bool = False):
+def notified_stop(instance: str, reason: str = '', persistent: bool = False, restart: bool = False):
     """Notifies the Players on the Server why a Shutdown is occuring.
 
     Arguments:
         instance {str} -- The name of the instance.
-        reason {str} -- The Reason the Server is shut down.
 
     Keyword Arguments:
+        reason {str} -- The Reason the Server is shut down.
         persistent {bool} -- If True, the Server will not start after a Machine reboot (default: {False})
         restart {bool} -- IF True, persistent wil be ignored and the server wil be restarted (default: {False})
     """
@@ -107,8 +107,9 @@ def notified_stop(instance: str, reason: str, persistent: bool = False, restart:
     if persistent and not restart:
         set_status(instance, "disable")
 
-    msg = "say §{0}{1}ing Server. Reason:".format(msgcol, action.capitalize())
-    msg_list = msg.split()
-    msg_list.extend(reason)
-    proc.mc_exec(instance, msg_list)
+    msg = "say §{0}{1}ing Server.".format(msgcol, action.capitalize())
+    if reason:
+        msg += " Reason: {0}".format(reason)
+    proc.mc_exec(instance, msg.split())
+
     set_status(instance, action)

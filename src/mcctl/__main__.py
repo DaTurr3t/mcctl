@@ -88,10 +88,9 @@ def parse_args():
     instance_subfolder_parser.add_argument(
         "instance_subfolder", metavar="INSTANCE/SUBFOLDER", nargs="?", help="Instance Name or Subpath in Instance Files, e.g. INSTANCE/world.")
 
-    reason_parser = ap.ArgumentParser(add_help=False)
-    reason_parser.add_argument(
-        "-r", "--reason", metavar="WORD", nargs="+", help="Words to be appended to the 'say' Command."
-    )
+    message_parser = ap.ArgumentParser(add_help=False)
+    message_parser.add_argument(
+        "-m", "--message", help="Reason to inform the Players on the Server.")
 
     parser_attach = subparsers.add_parser(
         "attach", parents=[instance_name_parser], help="Attach to the Console of the Instance")
@@ -136,7 +135,7 @@ def parse_args():
     parser_rename.add_argument("new_name")
 
     parser_restart = subparsers.add_parser(
-        "restart", parents=[instance_name_parser, reason_parser], help="Restart a Minecraft Server Instance")
+        "restart", parents=[instance_name_parser, message_parser], help="Restart a Minecraft Server Instance")
 
     parser_remove = subparsers.add_parser(
         "rm", parents=[instance_name_parser], help="Remove an Instance.")
@@ -155,7 +154,7 @@ def parse_args():
                               help="Start even after Reboot")
 
     parser_stop = subparsers.add_parser(
-        "stop", parents=[instance_name_parser, reason_parser], help="Stop a Minecraft Server Instance")
+        "stop", parents=[instance_name_parser, message_parser], help="Stop a Minecraft Server Instance")
     parser_stop.add_argument("-p", "--persistent", action='store_true',
                              help="Do not start again after Reboot")
 
@@ -249,15 +248,10 @@ def main():
         except AssertionError as ex:
             print(ex)
 
-    elif args.action == 'stop':
+    elif args.action in ('stop', 'restart'):
         try:
-            service.notified_stop(args.instance, args.reason, args.persistent)
-        except AssertionError as ex:
-            print(ex)
-
-    elif args.action == 'restart':
-        try:
-            service.notified_stop(args.instance, args.reason, restart=True)
+            service.notified_stop(
+                args.instance, args.message, restart=args.action == "restart")
         except AssertionError as ex:
             print(ex)
 
