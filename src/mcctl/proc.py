@@ -62,23 +62,23 @@ def shell(instance, shell_path: Path):
     proc.wait()
 
 
-def mc_exec(instance: str, command: list, pollrate: int = 0.1, max_retries: int = 20, max_flush_retries: int = 5):
+def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: int = 25, max_flush_retries: int = 10):
     """Execute a command on the console of a server.
 
     Uses the 'stuff' command of screen to pass the minecraft command to the server.
     Return Values are read from 'latest.log' shortly after the command is executed.
     The logfile is read every <timeout> seconds. If nothing is appended to the Log after the set amount of <retries>,
     the function exits. If there were already some lines received, the function tries <flush_retries> times before exiting.
-    Like this, the function will more likely give an output, and will exit faster.
+    Like this, the function will more likely give an output, and will exit faster if an output was already returned.
 
     Arguments:
         instance {str} -- The name of the instance.
         command {list} -- A list of the individual parts of the command executed on the server console.
 
     Keyword Arguments:
-        pollrate {int} -- The polling interval between log reads. (default: {0.1})
-        max_retries {int} -- The amount of retries when no lines have been pushed to console. (default: {20})
-        max_flush_retries {int} -- The amount of retries when some lines have been pushed to console. (default: {5})
+        pollrate {float} -- The polling interval between log reads/checks. (default: {0.2})
+        max_retries {int} -- The amount of retries when no lines have been pushed to console. (default: {25})
+        max_flush_retries {int} -- The amount of retries when some lines have been pushed to console. (default: {10})
     """
 
     assert service.is_active(instance), "The Server is not running"
