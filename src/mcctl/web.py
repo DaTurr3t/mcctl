@@ -129,17 +129,17 @@ def get_vanilla_download_url(version_tag: str, manifest_url: str = DOWNLOAD_URLS
 
     version_manifest = rest_get(manifest_url)
     if version_tag == "latest":
-        version_tag = version_manifest["latest"]["release"]
+        version_tag = version_manifest.get("latest").get("release")
     elif version_tag == "latest-snap":
-        version_tag = version_manifest["latest"]["snapshot"]
+        version_tag = version_manifest.get("latest").get("snapshot")
 
-    for version in version_manifest["versions"]:
-        if version["id"] == version_tag:
-            download_url = version["url"]
+    for version in version_manifest.get("versions"):
+        if version.get("id") == version_tag:
+            download_url = version.get("url")
             break
     version_data = rest_get(download_url)
     resolved_tag = "vanilla:{}".format(version_tag)
-    return version_data["downloads"]["server"]["url"], resolved_tag
+    return version_data.get("downloads").get("server").get("url"), resolved_tag
 
 
 def get_paper_download_url(version_tag: str, base_url: str = DOWNLOAD_URLS['paper']) -> tuple:
@@ -159,7 +159,7 @@ def get_paper_download_url(version_tag: str, base_url: str = DOWNLOAD_URLS['pape
 
     if version_tag == "latest":
         versions = rest_get(base_url)
-        major = versions["versions"][0]
+        major = versions.get("versions")[0]
         minor = version_tag
     else:
         major, minor = version_tag.split(":", 1)

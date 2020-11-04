@@ -84,7 +84,7 @@ def set_status(instance: str, action: str):
 
     assert out.returncode == 0, "Exit Code {0} for command '{1}'".format(
         out.returncode, instance)
-    if action in ["start", "restart", "stop"]:
+    if action in ("start", "restart", "stop"):
         time.sleep(1)
         assert is_active(instance) != (
             action == "stop"), "Command Failed! (Service Action '{0}' on '{1}' failed)".format(

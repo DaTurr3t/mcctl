@@ -210,7 +210,7 @@ def export(instance: str, zip_path=None, compress: bool = False, world_only: boo
     world = ""
     if world_only:
         server_cfg = config.get_properties(server_path / "server.properties")
-        world = server_cfg["level-name"]
+        world = server_cfg.get("level-name")
 
     file_list = get_relative_paths(server_path, world)
     total_size = sum([(server_path / x).stat().st_size for x in file_list])
@@ -244,7 +244,7 @@ def remove(instance: str, confirm: bool = True):
     if confirm:
         ans = input(
             "Are you absolutely sure you want to remove the Instance '{}'? [y/n]: ".format(instance))
-        while ans.lower() not in ["y", "n"]:
+        while ans.lower() not in ("y", "n"):
             ans = input("Please answer [y]es or [n]o: ")
     else:
         ans = "y"
@@ -272,7 +272,7 @@ def remove_jar(type_id: str):
 
     assert del_path.exists(), "Type-ID not found in cache: {}".format(del_path)
     ans = input(msg)
-    while ans.lower() not in ["y", "n"]:
+    while ans.lower() not in ("y", "n"):
         ans = input("Please answer [y]es or [n]o: ")
     if ans == "y":
         if not del_all:

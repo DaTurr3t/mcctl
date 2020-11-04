@@ -83,7 +83,7 @@ def get_instance_list(filter_str: str = ''):
     for name in servers:
         if filter_str in name:
             cfg = config.get_properties(base_path / name / "server.properties")
-            port = int(cfg["server-port"])
+            port = int(cfg.get("server-port"))
 
             try:
                 server = MinecraftServer('localhost', port)
@@ -97,7 +97,7 @@ def get_instance_list(filter_str: str = ''):
             run_status = "Active" if service.is_active(name) else "Inactive"
             contents = template % (
                 name, version, "{0}/{1}".format(online,
-                                                cfg["max-players"]),
+                                                cfg.get("max-players")),
                 run_status, service.is_enabled(name))
             print(contents)
 

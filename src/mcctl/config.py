@@ -111,7 +111,7 @@ def accept_eula(instance_path: Path) -> bool:
             else:
                 ans = input(
                     "Enter [true] to accept the EULA or [false] to abort: ")
-                while not ans.lower() in ["true", "false"]:
+                while not ans.lower() in ("true", "false"):
                     ans = input("Please Type 'true' or 'false': ")
                 accepted = ans.lower() == "true"
                 if accepted:
