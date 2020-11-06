@@ -96,8 +96,17 @@ def parse_args():
     parser_attach = subparsers.add_parser(
         "attach", parents=[instance_name_parser], help="Attach to the Console of the Instance")
 
+    parser_config = subparsers.add_parser(
+        "config", parents=[instance_name_parser], help="Configure Files of a Minecraft Server Instance")
+    parser_config.add_argument(
+        "-e", "--edit", metavar="FILE", help="Edit a File in the Instance Folder, interactively.")
+    parser_config.add_argument(
+        "-p", "--properties", nargs="+", help="Change server.properties options, e.g. server-port=25567 'motd=My new and cool Server'")
+    parser_config.add_argument(
+        "-r", "--restart", action='store_true', help="Stop the Server, apply config changes, and start it again.")
+
     parser_create = subparsers.add_parser(
-        "create", parents=[instance_name_parser, type_id_parser], help="Add a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
+        "create", parents=[instance_name_parser, type_id_parser], help="Create a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
     parser_create.add_argument(
         "-s", "--start", action='store_true', help="Start the Server after creation, persistent enabled")
     parser_create.add_argument(
@@ -161,15 +170,6 @@ def parse_args():
 
     parser_update = subparsers.add_parser(
         "update", parents=[instance_name_parser, type_id_parser], help="Update a Minecraft Server Instance")
-
-    parser_configure = subparsers.add_parser(
-        "configure", parents=[instance_name_parser], help="Configure Files of a Minecraft Server Instance")
-    parser_configure.add_argument(
-        "-e", "--edit", metavar="FILE", help="Edit a File in the Instance Folder, interactively.")
-    parser_configure.add_argument(
-        "-p", "--properties", nargs="+", help="Change server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
-    parser_configure.add_argument(
-        "-f", "--force", action='store_true', help="Stop the Server, apply config changes, and start it again.")
 
     parser_shell = subparsers.add_parser(
         "shell", parents=[instance_subfolder_parser], help="Invoke a Shell in the Folder of a Minecraft Server Instance")
@@ -291,7 +291,7 @@ def main():
         except (AssertionError, OSError) as ex:
             print("Unable to inspect '{0}': {1}".format(args.instance, ex))
 
-    elif args.action == 'configure':
+    elif args.action == 'config':
         try:
             common.configure(args.instance, args.edit, args.properties,
                              CFGVARS.get('settings', 'default_editor'), args.force)
