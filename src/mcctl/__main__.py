@@ -22,6 +22,7 @@ import os
 import re
 import sys
 import argparse as ap
+from mcctl.__config__ import write_cfg
 from mcctl import proc, storage, service, web, common, CFGVARS
 
 
@@ -182,6 +183,9 @@ def main():
     This function handles all arguments.
     The logic is moved into the other files as much as possible, except for input checking.
     """
+
+    # Write Config if the Package is not imported.
+    write_cfg()
 
     args = parse_args()
 
