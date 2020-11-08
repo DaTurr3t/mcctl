@@ -45,6 +45,7 @@ def get_permlevel(args: str):
     root_cmds = {
         'create': ['start'],
         'config': ['restart'],
+        'update': ['restart'],
         'export': None,
         'restart': None,
         'start': None,
@@ -129,18 +130,19 @@ def parse_args():
     message_parser = ap.ArgumentParser(add_help=False)
     message_parser.add_argument(
         "-m", "--message", help="Reason to inform the Players on the Server.")
+    restart_parser = ap.ArgumentParser(add_help=False)
+    restart_parser.add_argument(
+        "-r", "--restart", action='store_true', help="Stop the Server, apply config changes, and start it again.")
 
     parser_attach = subparsers.add_parser(
         "attach", parents=[instance_name_parser], help="Attach to the Console of the Instance")
 
     parser_config = subparsers.add_parser(
-        "config", parents=[instance_name_parser], help="Configure Files of a Minecraft Server Instance")
+        "config", parents=[instance_name_parser, restart_parser], help="Configure Files of a Minecraft Server Instance")
     parser_config.add_argument(
         "-e", "--edit", metavar="FILE", help="Edit a File in the Instance Folder, interactively.")
     parser_config.add_argument(
         "-p", "--properties", nargs="+", help="Change server.properties options, e.g. server-port=25567 'motd=My new and cool Server'")
-    parser_config.add_argument(
-        "-r", "--restart", action='store_true', help="Stop the Server, apply config changes, and start it again.")
 
     parser_create = subparsers.add_parser(
         "create", parents=[instance_name_parser, type_id_parser], help="Create a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
@@ -206,7 +208,7 @@ def parse_args():
                              help="Do not start again after Reboot")
 
     parser_update = subparsers.add_parser(
-        "update", parents=[instance_name_parser, type_id_parser], help="Update a Minecraft Server Instance")
+        "update", parents=[instance_name_parser, type_id_parser, restart_parser], help="Update a Minecraft Server Instance")
 
     parser_shell = subparsers.add_parser(
         "shell", parents=[instance_subfolder_parser], help="Invoke a Shell in the Folder of a Minecraft Server Instance")
@@ -250,7 +252,7 @@ def main():
     elif args.action == 'rm':
         try:
             storage.remove(args.instance)
-        except (FileNotFoundError, AssertionError) as ex:
+        except (OSError, AssertionError) as ex:
             print("Unable to remove instance '{0}': {1}".format(
                 args.instance, ex))
 
@@ -323,7 +325,7 @@ def main():
 
     elif args.action == 'update':
         try:
-            common.update(args.instance, args.source)
+            common.update(args.instance, args.source, args.url, args.restart)
         except (AssertionError, FileNotFoundError, ValueError) as ex:
             print("Unable to update '{0}': {1}".format(args.instance, ex))
 

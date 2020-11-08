@@ -120,7 +120,7 @@ def rename(instance: str, new_name: str):
     server_path.rename(server_path.parent / new_name)
 
 
-def update(instance: str, new_type_id: str, literal_url: bool = False):
+def update(instance: str, new_type_id: str, literal_url: bool = False, allow_restart: bool = False):
     """Change the Jar File of a server
 
     Stops the Server if necessary, deletes the old Jar File and copies the new one, starts the Server again.
@@ -128,17 +128,21 @@ def update(instance: str, new_type_id: str, literal_url: bool = False):
     Arguments:
         instance {str} -- The Instance ID.
         new_type_id {str} -- The Type ID of the new minecraft server Jar.
+        literal_url {bool} -- Determines if the TypeID is a literal URL. Default: False
+        allow_restart {bool} -- Allows a Server restart if the Server is running. Default: False
     """
 
     jar_src, version = web.pull(new_type_id, literal_url)
     jar_dest = storage.get_instance_path(instance) / "server.jar"
     storage.copy(jar_src, jar_dest)
 
-    if service.is_active(instance):
+    additions = ''
+    if service.is_active(instance) and allow_restart:
         service.notified_stop(
             instance, "Updating to Version {}".format(version), restart=True)
-    print("Update successful.")
-
+    else:
+        additions = " Manual restart required."
+    print("Update successful.{0}".format(additions))
 
 def configure(instance: str, edit_paths: list, properties: list, editor: str, force: bool = False):
     """Edits configurations, restarts the server if forced,
