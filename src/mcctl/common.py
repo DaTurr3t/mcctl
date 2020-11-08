@@ -1,3 +1,5 @@
+#!/bin/env python3
+
 # mcctl: A Minecraft Server Management Utility written in Python
 # Copyright (C) 2020 Matthias Cotting
 
