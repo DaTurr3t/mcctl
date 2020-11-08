@@ -115,7 +115,7 @@ def parse_args():
         "source", metavar="TYPEID_OR_URL", type=type_id,
         help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
               "'<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\n"
-              "Types: 'paper', 'vanilla'\n"
+              "Types: 'paper', 'spigot', 'vanilla'\n"
               "Versions: e.g. '1.15.2', 'latest'\n"
               "Build (only for paper): e.g. '122', 'latest'\n"))
 
