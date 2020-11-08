@@ -20,6 +20,7 @@
 
 import gzip
 import sys
+import os
 import shutil
 import random
 import string
@@ -226,6 +227,8 @@ def export(instance: str, zip_path=None, compress: bool = False, world_only: boo
                 written * 100 / total_size, file_path))
             zip_file.write(full_path, file_path)
     print()
+    chown(zip_path, os.getlogin())
+    print("Archive saved in '{}'".format(zip_path))
     return zip_path
 
 
