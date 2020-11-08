@@ -93,25 +93,30 @@ def set_status(instance: str, action: str):
                 action, instance)
 
 
-def notified_stop(instance: str, reason: str = '', persistent: bool = False, restart: bool = False):
-    """Notifies the Players on the Server why a Shutdown is occuring.
+def notified_set_status(instance: str, action: str, reason: str = '', persistent: bool = False):
+    """Notifies the Players on the Server if applicable and sets the Service Status.
 
     Arguments:
         instance {str} -- The name of the instance.
+        action {str} -- The systemd action to apply to the service. Can be "start", "restart", "stop".
 
     Keyword Arguments:
-        reason {str} -- The Reason the Server is shut down.
+        reason {str} -- The Reason the Server is shutting down.
         persistent {bool} -- If True, the Server will not start after a Machine reboot (default: {False})
-        restart {bool} -- IF True, persistent wil be ignored and the server wil be restarted (default: {False})
+        restart {bool} -- If True, persistent wil be ignored and the server wil be restarted (default: {False})
     """
-    action = "restart" if restart else "stop"
-    msgcol = "6" if restart else "4"
-    if persistent and not restart:
-        set_status(instance, "disable")
 
-    msg = "say §{0}{1}ing Server.".format(msgcol, action.capitalize())
-    if reason:
-        msg += " Reason: {0}".format(reason)
-    proc.mc_exec(instance, msg.split())
+    allowed = ("start", "restart", "stop")
+    assert action in allowed, "Invalid action '{}'".format(action)
 
+    if persistent and action != "restart":
+        persistent_action = {"start": "enable", "stop": "disable"}
+        set_status(instance, persistent_action.get(action))
+
+    if action in ("stop", "restart"):
+        msgcol = "6" if action == "restart" else "4"
+        msg = "say §{0}Server {1} pending.".format(msgcol, action)
+        if reason:
+            msg += " Reason: {0}".format(reason)
+            proc.mc_exec(instance, msg.split())
     set_status(instance, action)

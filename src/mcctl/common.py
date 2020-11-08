@@ -157,8 +157,8 @@ def update(instance: str, new_type_id: str, literal_url: bool = False, allow_res
 
     additions = ''
     if service.is_active(instance) and allow_restart:
-        service.notified_stop(
-            instance, "Updating to Version {}".format(version), restart=True)
+        service.notified_set_status(
+            instance, "restart", "Updating to Version {}".format(version))
     else:
         additions = " Manual restart required."
     print("Update successful.{0}".format(additions))
@@ -203,7 +203,7 @@ def configure(instance: str, edit_paths: list, properties: list, editor: str, fo
 
     restart = service.is_active(instance) and force and len(paths) > 0
     if restart:
-        service.notified_stop(instance, "Reconfiguring and restarting Server")
+        service.notified_set_status(instance, "stop", "Reconfiguring and restarting Server")
 
     for pair in list(paths.items()):
         storage.move(*pair[::-1])
