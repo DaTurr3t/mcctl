@@ -103,6 +103,25 @@ def get_instance_list(filter_str: str = ''):
                 run_status, service.is_enabled(name))
             print(contents)
 
+def mc_ls(what: str, filter_str: str = ''):
+    """Lists things such as jars or instances
+
+    A Function to bundle all Listing Functions, invokes selected Function.
+
+    Args:
+        what (str): What to list (jars or instances)
+        filter (str): Filter by Instance Name, type or version. (default: '')
+
+    Raises:
+        ValueError: Raised if "what" is invalid.
+    """
+    if what == 'jars':
+        storage.get_jar_list(filter_str)
+    elif what == 'instances':
+        get_instance_list(filter_str)
+    else:
+        raise ValueError("Cannot List '{}'".format(what))
+
 
 def rename(instance: str, new_name: str):
     """Renames a server instance
@@ -143,6 +162,7 @@ def update(instance: str, new_type_id: str, literal_url: bool = False, allow_res
     else:
         additions = " Manual restart required."
     print("Update successful.{0}".format(additions))
+
 
 def configure(instance: str, edit_paths: list, properties: list, editor: str, force: bool = False):
     """Edits configurations, restarts the server if forced,
