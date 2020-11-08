@@ -40,12 +40,12 @@ def get_permlevel(args: str):
         action (str): The Action from the Config Parser
 
     Returns:
-        str: The Username of the User with sufficient permissions for the Action.
+        dict: The Name of the User with sufficient permissions for the Action, and if no further demotion is needed.
     """
     root_cmds = {
-        'create': ['start'],
-        'config': ['restart'],
-        'update': ['restart'],
+        'create': ('start'),
+        'config': ('restart'),
+        'update': ('restart'),
         'export': None,
         'restart': None,
         'start': None,
@@ -54,7 +54,7 @@ def get_permlevel(args: str):
 
     perms = {
         'user': CFGVARS.get('settings', 'server_user'),
-        'hard': True
+        'needs_demote': False
     }
 
     if args.action in root_cmds.keys():
@@ -65,7 +65,7 @@ def get_permlevel(args: str):
         else:
             for arg in triggerargs:
                 if dictargs.get(arg):
-                    perms['hard'] = False
+                    perms['needs_demote'] = True
                     perms['user'] = 'root'
 
     return perms
@@ -228,7 +228,7 @@ def main():
     plvl = get_permlevel(args)
     proc.elevate(plvl.get('user'))
 
-    if not plvl.get('hard'):
+    if plvl.get('needs_demote'):
         # Starts Program as server_user even if Logged in as root.
         user = CFGVARS.get('settings', 'server_user')
         try:
