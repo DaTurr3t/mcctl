@@ -19,6 +19,7 @@
 import shlex
 import time
 import os
+import sys
 import subprocess as sproc
 from pathlib import Path
 from pwd import getpwnam
@@ -37,7 +38,7 @@ def attach(instance: str):
 
     assert service.is_active(instance), "The Server is not running"
     cmd = shlex.split('screen -r mc-{}'.format(instance))
-    proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
+    proc = sproc.Popen(cmd)
     proc.wait()
 
 
@@ -58,7 +59,7 @@ def shell(instance, shell_path: Path):
         sh_cwd = storage.get_home_path()
 
     cmd = shlex.split(shell_path)
-    proc = sproc.Popen(cmd, preexec_fn=demote(), cwd=sh_cwd)  # nopep8 pylint: disable=subprocess-popen-preexec-fn
+    proc = sproc.Popen(cmd, cwd=sh_cwd)
     proc.wait()
 
 
@@ -91,7 +92,7 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
     jar_cmd = " ".join(command)
     cmd = shlex.split(
         'screen -p 0 -S mc-{0} -X stuff "{1}^M"'.format(instance, jar_cmd))
-    proc = sproc.Popen(cmd, preexec_fn=demote()) # nopep8 pylint: disable=subprocess-popen-preexec-fn
+    proc = sproc.Popen(cmd)
     proc.wait()
 
     i = 0
@@ -178,7 +179,7 @@ def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
 
     cmd = shlex.split('/bin/java -jar {}'.format(jar_path))
     proc = sproc.Popen(cmd, cwd=jar_path.parent,  # pylint: disable=subprocess-popen-preexec-fn
-                       preexec_fn=demote(), stdout=sproc.PIPE, stderr=sproc.PIPE)
+                       stdout=sproc.PIPE, stderr=sproc.PIPE)
 
     fps = 4
     signaled = False
@@ -208,5 +209,27 @@ def edit(file_path: Path, editor: str):
     """
 
     cmd = shlex.split("{0} '{1}'".format(editor, file_path))
-    proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
+    proc = sproc.Popen(cmd)
     proc.wait()
+
+
+def elevate(user="root"):
+    """Replaces the current Process with a new one as a different User. Requires sudo.
+
+    Args:
+        user (str, optional): The User that will be switched to. Defaults to "root".
+    """
+
+    desired_uid = getpwnam(user).pw_uid
+    if os.getuid() == desired_uid:
+        return
+
+    package = sys.modules['__main__'].__package__
+    if package is None:
+        args = sys.argv
+    else:
+        args = [sys.executable, "-m", package] + sys.argv[1:]
+
+    userargs = ["-u", user] if user != 'root' else []
+    sudoargs = ["sudo"] + userargs + args
+    os.execvp(sudoargs[0], sudoargs)

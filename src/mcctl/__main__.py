@@ -33,6 +33,43 @@ def coming_soon():
     print("Not yet implemented!")
 
 
+def get_permlevel(args: str):
+    """Determine the Permission Level by arguments. Returns the User with sufficient Permissions.
+
+    Args:
+        action (str): The Action from the Config Parser
+
+    Returns:
+        str: The Username of the User with sufficient permissions for the Action.
+    """
+    root_cmds = {
+        'create': ['start'],
+        'config': ['restart'],
+        'export': None,
+        'restart': None,
+        'start': None,
+        'stop': None
+    }
+
+    perms = {
+        'user': CFGVARS.get('settings', 'server_user'),
+        'hard': True
+    }
+
+    if args.action in root_cmds.keys():
+        triggerargs = root_cmds.get(args.action)
+        dictargs = vars(args)
+        if triggerargs is None:
+            perms['user'] = 'root'
+        else:
+            for arg in triggerargs:
+                if dictargs.get(arg):
+                    perms['hard'] = False
+                    perms['user'] = 'root'
+
+    return perms
+
+
 def parse_args():
     """Parses Arguments from the Command Line input and returns the Converted Values.
 
@@ -184,24 +221,23 @@ def main():
     The logic is moved into the other files as much as possible, except for input checking.
     """
 
+    # Determine needed Permission Level and restart with sudo.
+    args = parse_args()
+    plvl = get_permlevel(args)
+    proc.elevate(plvl.get('user'))
+
+    if not plvl.get('hard'):
+        # Starts Program as server_user even if Logged in as root.
+        user = CFGVARS.get('settings', 'server_user')
+        try:
+            user_ids = proc.get_ids(user)
+        except KeyError as ex:
+            print("User '{0}' not found: {1}".format(user, ex))
+            sys.exit(1)
+        proc.run_as(*user_ids)
+
     # Write Config if the Package is not imported.
     write_cfg()
-
-    args = parse_args()
-
-    if os.geteuid() != 0:
-        print("Must be root.")
-        sys.exit(1)
-
-    # Starts Program as server_user
-    user = CFGVARS.get('settings', 'server_user')
-    try:
-        user_ids = proc.get_ids(user)
-    except KeyError as ex:
-        print("User '{0}' not found: {1}".format(user, ex))
-        sys.exit(1)
-
-    proc.run_as(*user_ids)
 
     if args.action == 'create':
         try:
@@ -226,7 +262,6 @@ def main():
                 args.source, ex))
 
     elif args.action == 'export':
-        proc.run_as(0, 0)
         dest = storage.export(
             args.instance, compress=args.compress, world_only=args.world_only)
         storage.chown(dest, os.getlogin())
