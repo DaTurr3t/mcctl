@@ -39,7 +39,7 @@ def is_active(instance: str) -> bool:
         bool -- true: Server running, false: Server inactive/dead
     """
 
-    service_instance = UNIT_NAME + instance
+    service_instance = "@".join((UNIT_NAME, instance))
     test_cmd = shlex.split("systemctl is-active {0}".format(service_instance))
     test_out = sp.run(test_cmd, stdout=sp.PIPE, stderr=sp.PIPE, check=False)
     return test_out.returncode == 0
@@ -57,7 +57,7 @@ def is_enabled(instance: str) -> bool:
         bool -- true: Server starts on system boot, false: Server stays inactive/dead
     """
 
-    service_instance = UNIT_NAME + instance
+    service_instance = "@".join((UNIT_NAME, instance))
     test_cmd = shlex.split("systemctl is-enabled {0}".format(service_instance))
     test_out = sp.run(test_cmd, stdout=sp.PIPE, stderr=sp.PIPE, check=False)
     return test_out.returncode == 0
@@ -75,10 +75,10 @@ def set_status(instance: str, action: str):
             Can be "start", "restart", "stop", "enable", "disable".
     """
 
-    assert action in ["start", "restart", "stop", "enable",
-                      "disable"], "Invalid action '{}'".format(action)
+    assert action in ("start", "restart", "stop", "enable",
+                      "disable"), "Invalid action '{}'".format(action)
 
-    service_instance = UNIT_NAME + instance
+    service_instance = "@".join((UNIT_NAME, instance))
     cmd = shlex.split("systemctl {0} {1}".format(action, service_instance))
     reset = proc.run_as(0, 0)
     out = sp.run(cmd, check=False)

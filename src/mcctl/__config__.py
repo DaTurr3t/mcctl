@@ -29,8 +29,8 @@ LOCALCFG = Path("~/.local/mcctl.conf")
 DEFAULTS = {
     'systemd_service': 'mcserver@',
     'server_user': 'mcserver',
-    'default_editor': '/usr/bin/vi',
-    'default_shell': '/bin/bash'
+    'default_editor': '/usr/bin/vim',
+    'default_shell': '/usr/bin/bash'
 }
 CFGVARS['settings'] = DEFAULTS
 
