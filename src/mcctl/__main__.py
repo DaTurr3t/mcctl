@@ -252,10 +252,17 @@ def main():
         except AssertionError as ex:
             print(ex)
 
-    elif args.action in ('stop', 'restart'):
+    elif args.action == 'stop':
+        if args.persistent:
+            service.set_status(args.instance, "disable")
         try:
-            service.notified_stop(
-                args.instance, args.message, restart=args.action == "restart")
+            service.set_status(args.instance, args.action)
+        except AssertionError as ex:
+            print(ex)
+
+    elif args.action == 'restart':
+        try:
+            service.notified_stop(args.instance, args.message, restart=True)
         except AssertionError as ex:
             print(ex)
 
@@ -300,7 +307,8 @@ def main():
 
     elif args.action == 'shell':
         try:
-            proc.shell(args.instance_subfolder, CFGVARS.get('settings', 'default_shell'))
+            proc.shell(args.instance_subfolder, CFGVARS.get(
+                'settings', 'default_shell'))
         except (AssertionError, OSError) as ex:
             print("Unable to invoke a shell: {}".format(ex))
     else:
