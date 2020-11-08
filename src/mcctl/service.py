@@ -84,8 +84,8 @@ def set_status(instance: str, action: str):
     out = sp.run(cmd, check=False)
     proc.run_as(*reset)
 
-    assert out.returncode == 0, "Exit Code {0} for command '{1}'".format(
-        out.returncode, instance)
+    assert out.returncode == 0, "Exit Code {0} for action '{1}'".format(
+        out.returncode, action)
     if action in ("start", "restart", "stop"):
         time.sleep(1)
         assert is_active(instance) != (

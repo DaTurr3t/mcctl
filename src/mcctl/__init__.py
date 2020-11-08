@@ -22,4 +22,4 @@
 __version__ = "0.3.0"
 
 from mcctl.__config__ import CFGVARS
-from mcctl import common, config, proc, service, storage, visuals, web # nopep8 pylint: disable=wrong-import-position
+from mcctl import common, config, proc, service, storage, visuals, web

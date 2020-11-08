@@ -93,7 +93,7 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
 
     jar_cmd = " ".join(command)
     cmd = shlex.split(
-        'screen -p 0 -S mc-{0} -X stuff "{1}^M"'.format(instance, jar_cmd))
+        'screen -p 0 -S mc-{0} -X stuff "^U{1}^M"'.format(instance, jar_cmd))
     proc = sproc.Popen(cmd)
     proc.wait()
 
