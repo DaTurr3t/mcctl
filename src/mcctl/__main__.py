@@ -18,9 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import re
 import sys
+import inspect
 import argparse as ap
 from mcctl.__config__ import write_cfg
 from mcctl import proc, storage, service, web, common, CFGVARS
@@ -71,6 +71,24 @@ def get_permlevel(args: str):
     return perms
 
 
+def filter_args(unfiltered_kwargs, func):
+    """Filter Keyword Arguments for a function that does not accept some.
+
+    Args:
+        unfiltered_kwargs (dict): Keyword Arguments which could cause unexpected Keywords.
+        func (function): The function that should accept the Keyword Arguments.
+
+    Returns:
+        [type]: [description]
+    """
+    sig = inspect.signature(func)
+    filter_keys = [
+        param.name for param in sig.parameters.values() if param.kind == param.POSITIONAL_OR_KEYWORD]
+    filtered_dict = {
+        filter_key: unfiltered_kwargs.get(filter_key) for filter_key in filter_keys if unfiltered_kwargs.get(filter_key) is not None}
+    return filtered_dict
+
+
 def parse_args():
     """Parses Arguments from the Command Line input and returns the Converted Values.
 
@@ -102,8 +120,13 @@ def parse_args():
             raise ap.ArgumentTypeError("Must be in Format <NUMBER>{K,M,G}")
         return value
 
+    action_instance_template = "{args.action} instance '{args.instance}'"
+
     parser = ap.ArgumentParser("mcctl", description="Management Utility for Minecraft Server Instances",
                                formatter_class=ap.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-v", "--verbose", action='store_true',
+                        help="Enable verbose/debugging output")
+
     subparsers = parser.add_subparsers(title="actions", dest="action")
     subparsers.required = True
 
@@ -129,13 +152,16 @@ def parse_args():
 
     message_parser = ap.ArgumentParser(add_help=False)
     message_parser.add_argument(
-        "-m", "--message", help="Reason to inform the Players on the Server.")
+        "-m", "--message", dest="reason", help="Reason for the restart/stop. Informs the Players on the Server.")
+
     restart_parser = ap.ArgumentParser(add_help=False)
     restart_parser.add_argument(
         "-r", "--restart", action='store_true', help="Stop the Server, apply config changes, and start it again.")
 
     parser_attach = subparsers.add_parser(
         "attach", parents=[instance_name_parser], help="Attach to the Console of the Instance")
+    parser_attach.set_defaults(
+        func=proc.attach, err_template="attach to '{args.instance}'")
 
     parser_config = subparsers.add_parser(
         "config", parents=[instance_name_parser, restart_parser], help="Configure Files of a Minecraft Server Instance")
@@ -143,6 +169,8 @@ def parse_args():
         "-e", "--edit", metavar="FILE", help="Edit a File in the Instance Folder, interactively.")
     parser_config.add_argument(
         "-p", "--properties", nargs="+", help="Change server.properties options, e.g. server-port=25567 'motd=My new and cool Server'")
+    parser_config.set_defaults(
+        func=common.configure, err_template="configure '{args.instance}'", editor=CFGVARS.get('settings', 'default_editor'))
 
     parser_create = subparsers.add_parser(
         "create", parents=[instance_name_parser, type_id_parser], help="Create a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
@@ -152,11 +180,14 @@ def parse_args():
         "-m", "--memory", type=mem, help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M")
     parser_create.add_argument(
         "-p", "--properties", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
+    parser_create.set_defaults(
+        func=common.create, err_template=action_instance_template)
 
     parser_exec = subparsers.add_parser(
         "exec", parents=[instance_name_parser], help="Execute a command in the Console of the Instance")
-    parser_exec.add_argument("command", nargs="+",
-                             help="Command to execute")
+    parser_exec.add_argument("command", nargs="+", help="Command to execute")
+    parser_exec.set_defaults(
+        func=proc.mc_exec, err_template=action_instance_template)
 
     parser_export = subparsers.add_parser(
         "export", parents=[instance_name_parser], help="Export an Instance to a zip File.")
@@ -164,30 +195,44 @@ def parse_args():
         "-c", "--compress", action='store_true', help="Compress the Archive.")
     parser_export.add_argument(
         "-w", "--world-only", action='store_true', help="Only export World Data")
+    parser_export.set_defaults(
+        func=storage.export, err_template=action_instance_template)
 
     parser_inspect = subparsers.add_parser(
         "inspect", parents=[instance_name_parser], help="Inspect the Log of a Server")
     parser_inspect.add_argument(
         "-n", "--lines", type=int, default=0, help="Limit the line output count to n.")
+    parser_inspect.set_defaults(
+        func=storage.inspect, err_template="{args.action} logs of '{args.instance}'")
 
     parser_list = subparsers.add_parser(
         "ls", help="List Instances, installed Versions, etc.")
     parser_list.add_argument("what", nargs="?", choices=[
         "instances", "jars"], default="instances")
     parser_list.add_argument("-f", "--filter", default='')
+    parser_list.set_defaults(
+        func=common.mc_ls, err_template="list {args.what}")
 
     parser_pull = subparsers.add_parser(
         "pull", parents=[type_id_parser], help="Pull a Minecraft Server Binary from the Internet")
+    parser_pull.set_defaults(
+        func=web.pull, err_template="{args.action} {args.source}")
 
     parser_rename = subparsers.add_parser(
         "rename", parents=[instance_name_parser], help="Rename a Minecraft Server Instance")
     parser_rename.add_argument("new_name")
+    parser_rename.set_defaults(
+        func=common.rename, err_template=action_instance_template)
 
     parser_restart = subparsers.add_parser(
         "restart", parents=[instance_name_parser, message_parser], help="Restart a Minecraft Server Instance")
+    parser_restart.set_defaults(
+        func=service.notified_set_status, err_template=action_instance_template)
 
     parser_remove = subparsers.add_parser(
         "rm", parents=[instance_name_parser], help="Remove an Instance.")
+    parser_remove.set_defaults(
+        func=storage.remove, err_template="remove '{args.instance}'")
 
     parser_remove_jar = subparsers.add_parser(
         "rmj", help="Remove a Server Version.")
@@ -196,22 +241,32 @@ def parse_args():
         help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
               "'<TYPE>:latest' or '<TYPE>:latest-snap' are NOT allowed.\n"
               "'all' removes all cached Files.\n"))
+    parser_remove_jar.set_defaults(
+        func=storage.remove_jar, err_template="remove .jar File '{args.source}'")
 
     parser_start = subparsers.add_parser(
         "start", parents=[instance_name_parser], help="Start a Minecraft Server Instance")
     parser_start.add_argument("-p", "--persistent", action='store_true',
                               help="Start even after Reboot")
+    parser_start.set_defaults(
+        func=service.notified_set_status, err_template=action_instance_template)
 
     parser_stop = subparsers.add_parser(
         "stop", parents=[instance_name_parser, message_parser], help="Stop a Minecraft Server Instance")
     parser_stop.add_argument("-p", "--persistent", action='store_true',
                              help="Do not start again after Reboot")
+    parser_start.set_defaults(
+        func=service.notified_set_status, err_template=action_instance_template)
 
     parser_update = subparsers.add_parser(
         "update", parents=[instance_name_parser, type_id_parser, restart_parser], help="Update a Minecraft Server Instance")
+    parser_update.set_defaults(
+        func=common.update, err_template=action_instance_template)
 
     parser_shell = subparsers.add_parser(
         "shell", parents=[instance_subfolder_parser], help="Invoke a Shell in the Folder of a Minecraft Server Instance")
+    parser_shell.set_defaults(func=proc.shell, err_template="invoke a Shell",
+                              shell_path=CFGVARS.get('settings', 'default_shell'))
 
     return parser.parse_args()
 
@@ -241,115 +296,19 @@ def main():
     # Write Config if the Package is not imported.
     write_cfg()
 
-    if args.action == 'create':
-        try:
-            common.create(args.instance, args.source,
-                          args.memory, args.properties, args.start)
-        except (AssertionError, FileNotFoundError, ValueError) as ex:
-            print("Unable to create instance '{0}': {1}".format(
-                args.instance, ex))
+    safe_kwargs = filter_args(vars(args), args.func)
 
-    elif args.action == 'rm':
-        try:
-            storage.remove(args.instance)
-        except (OSError, AssertionError) as ex:
-            print("Unable to remove instance '{0}': {1}".format(
-                args.instance, ex))
-
-    elif args.action == 'rmj':
-        try:
-            storage.remove_jar(args.source)
-        except (FileNotFoundError, AssertionError) as ex:
-            print("Unable to remove .jar-File '{0}': {1}".format(
-                args.source, ex))
-
-    elif args.action == 'export':
-        dest = storage.export(
-            args.instance, compress=args.compress, world_only=args.world_only)
-        storage.chown(dest, os.getlogin())
-        print("Archive saved in '{}'".format(dest))
-
-    elif args.action == 'pull':
-        try:
-            web.pull(args.source, args.url)
-        except ValueError as ex:
-            print("Unable to pull '{0}': {1}".format(args.source, ex))
-
-    elif args.action == 'ls':
-        if args.what == 'instances':
-            common.get_instance_list(args.filter)
-        elif args.what == 'jars':
-            storage.get_jar_list(args.filter)
-
-    elif args.action == 'start':
-        if args.persistent:
-            service.set_status(args.instance, "enable")
-        try:
-            service.set_status(args.instance, args.action)
-        except AssertionError as ex:
-            print(ex)
-
-    elif args.action == 'stop':
-        if args.persistent:
-            service.set_status(args.instance, "disable")
-        try:
-            service.set_status(args.instance, args.action)
-        except AssertionError as ex:
-            print(ex)
-
-    elif args.action == 'restart':
-        try:
-            service.notified_stop(args.instance, args.message, restart=True)
-        except AssertionError as ex:
-            print(ex)
-
-    elif args.action == 'attach':
-        try:
-            proc.attach(args.instance)
-        except AssertionError as ex:
-            print("Unable to attach to '{0}': {1}".format(args.instance, ex))
-
-    elif args.action == 'exec':
-        try:
-            proc.mc_exec(args.instance, args.command)
-        except AssertionError as ex:
-            print("Unable to pass command to '{0}': {1}".format(
-                args.instance, ex))
-
-    elif args.action == 'rename':
-        try:
-            common.rename(args.instance, args.new_name)
-        except (AssertionError, FileExistsError) as ex:
-            print("Unable to rename '{0}': {1}".format(
-                args.instance, str(ex).split(":")[0]))
-
-    elif args.action == 'update':
-        try:
-            common.update(args.instance, args.source, args.url, args.restart)
-        except (AssertionError, FileNotFoundError, ValueError) as ex:
-            print("Unable to update '{0}': {1}".format(args.instance, ex))
-
-    elif args.action == 'inspect':
-        try:
-            storage.inspect(args.instance, args.lines)
-        except (AssertionError, OSError) as ex:
-            print("Unable to inspect '{0}': {1}".format(args.instance, ex))
-
-    elif args.action == 'config':
-        try:
-            common.configure(args.instance, args.edit, args.properties,
-                             CFGVARS.get('settings', 'default_editor'), args.force)
-        except (AssertionError, OSError) as ex:
-            print("Unable to configure '{0}': {1}".format(args.instance, ex))
-
-    elif args.action == 'shell':
-        try:
-            proc.shell(args.instance_subfolder, CFGVARS.get(
-                'settings', 'default_shell'))
-        except (AssertionError, OSError) as ex:
-            print("Unable to invoke a shell: {}".format(ex))
-    else:
-        coming_soon()
+    try:
+        args.func(**safe_kwargs)
+    except Exception as ex:  # pylint: disable=broad-except
+        if args.verbose:
+            raise
+        print("Unable to {0}: {1}".format(
+            args.err_template.format(args=args), ex))
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print("Interrupted by User")
+        sys.exit(130)
 
 
 if __name__ == "__main__":
