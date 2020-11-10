@@ -44,7 +44,7 @@ def attach(instance: str):
     proc.wait()
 
 
-def shell(instance, shell_path: Path):
+def shell(instance: str, shell_path: Path):
     """Create a shell process in the server directory.
 
     Launches a shell from the config file.
@@ -94,7 +94,7 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
     jar_cmd = " ".join(command)
     cmd = shlex.split(
         'screen -p 0 -S mc-{0} -X stuff "^U{1}^M"'.format(instance, jar_cmd))
-    proc = sproc.Popen(cmd)
+    proc = sproc.Popen(cmd, preexec_fn=demote()) # nopep8 pylint: disable=subprocess-popen-preexec-fn
     proc.wait()
 
     i = 0
@@ -152,12 +152,14 @@ def demote():
     user = getpwnam(user_name)
 
     def set_ids():
-        # Set EGID and EUID so that GID and UID can be set correctly.
-        os.setegid(0)
-        os.seteuid(0)
 
-        os.setgid(user.pw_gid)
-        os.setuid(user.pw_uid)
+        if (os.getuid, os.getgid) != (user.pw_uid, user.pw_gid):
+            # Set EGID and EUID so that GID and UID can be set correctly.
+            os.setegid(0)
+            os.seteuid(0)
+
+            os.setgid(user.pw_gid)
+            os.setuid(user.pw_uid)
 
     return set_ids
 
@@ -180,8 +182,8 @@ def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
     """
 
     cmd = shlex.split('/bin/java -jar {}'.format(jar_path))
-    proc = sproc.Popen(cmd, cwd=jar_path.parent,  # pylint: disable=subprocess-popen-preexec-fn
-                       stdout=sproc.PIPE, stderr=sproc.PIPE)
+    proc = sproc.Popen(cmd, cwd=jar_path.parent, stdout=sproc.PIPE,  # nopep8 pylint: disable=subprocess-popen-preexec-fn
+                       stderr=sproc.PIPE, preexec_fn=demote())
 
     fps = 4
     signaled = False
@@ -211,7 +213,7 @@ def edit(file_path: Path, editor: str):
     """
 
     cmd = shlex.split("{0} '{1}'".format(editor, file_path))
-    proc = sproc.Popen(cmd)
+    proc = sproc.Popen(cmd, preexec_fn=demote()) # nopep8 pylint: disable=subprocess-popen-preexec-fn
     proc.wait()
 
 
@@ -226,7 +228,7 @@ def elevate(user="root"):
     if os.getuid() == desired_uid:
         return
 
-    package = sys.modules['__main__'].__package__
+    package = sys.modules.get('__main__', {}).__package__
     if package is None:
         args = sys.argv
     else:

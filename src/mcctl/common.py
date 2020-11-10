@@ -52,7 +52,6 @@ def create(instance: str, source: str, memory: str, properties: list, start: boo
         if memory:
             config.set_properties(instance_path / "jvm-env", {"MEM": memory})
         if start:
-            proc.run_as(0, 0)
             service.set_status(instance, "enable")
             service.set_status(instance, "start")
 
