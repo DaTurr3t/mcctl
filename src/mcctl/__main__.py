@@ -43,9 +43,9 @@ def get_permlevel(args: str):
         dict: The Name of the User with sufficient permissions for the Action, and if no further demotion is needed.
     """
     root_cmds = {
-        'create': ('start'),
-        'config': ('restart'),
-        'update': ('restart'),
+        'create': ('start',),
+        'config': ('restart',),
+        'update': ('restart',),
         'export': None,
         'restart': None,
         'start': None,
@@ -67,6 +67,7 @@ def get_permlevel(args: str):
                 if dictargs.get(arg):
                     perms['needs_demote'] = True
                     perms['user'] = 'root'
+                    break
 
     return perms
 
@@ -281,7 +282,14 @@ def main():
     # Determine needed Permission Level and restart with sudo.
     args = parse_args()
     plvl = get_permlevel(args)
-    proc.elevate(plvl.get('user'))
+
+    try:
+        proc.elevate(plvl.get('user'))
+    except (KeyError, OSError) as ex:
+        if args.verbose:
+            raise
+        print("Process Elevation failed: {}".format(ex))
+        sys.exit(1)
 
     if plvl.get('needs_demote'):
         # Starts Program as server_user even if Logged in as root.
