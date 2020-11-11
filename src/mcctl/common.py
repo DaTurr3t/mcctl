@@ -138,24 +138,24 @@ def rename(instance: str, new_name: str):
     server_path.rename(server_path.parent / new_name)
 
 
-def update(instance: str, new_type_id: str, literal_url: bool = False, allow_restart: bool = False):
+def update(instance: str, source: str, literal_url: bool = False, restart: bool = False):
     """Change the Jar File of a server
 
     Stops the Server if necessary, deletes the old Jar File and copies the new one, starts the Server again.
 
     Arguments:
         instance {str} -- The Instance ID.
-        new_type_id {str} -- The Type ID of the new minecraft server Jar.
+        source {str} -- The Type ID or URL of the new minecraft server Jar.
         literal_url {bool} -- Determines if the TypeID is a literal URL. Default: False
         allow_restart {bool} -- Allows a Server restart if the Server is running. Default: False
     """
 
-    jar_src, version = web.pull(new_type_id, literal_url)
+    jar_src, version = web.pull(source, literal_url)
     jar_dest = storage.get_instance_path(instance) / "server.jar"
     storage.copy(jar_src, jar_dest)
 
     additions = ''
-    if service.is_active(instance) and allow_restart:
+    if service.is_active(instance) and restart:
         service.notified_set_status(
             instance, "restart", "Updating to Version {}".format(version))
     else:
@@ -163,7 +163,7 @@ def update(instance: str, new_type_id: str, literal_url: bool = False, allow_res
     print("Update successful.{0}".format(additions))
 
 
-def configure(instance: str, edit_paths: list, properties: list, editor: str, force: bool = False):
+def configure(instance: str, edit_paths: list, properties: list, editor: str, restart: bool = False):
     """Edits configurations, restarts the server if forced,
     and swaps in the new configurations.
 
@@ -200,8 +200,8 @@ def configure(instance: str, edit_paths: list, properties: list, editor: str, fo
             else:
                 proc.edit(paths[file_path], editor)
 
-    restart = service.is_active(instance) and force and len(paths) > 0
-    if restart:
+    do_restart = service.is_active(instance) and restart and len(paths) > 0
+    if do_restart:
         service.notified_set_status(instance, "stop", "Reconfiguring and restarting Server")
 
     for pair in list(paths.items()):

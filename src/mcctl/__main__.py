@@ -72,7 +72,7 @@ def get_permlevel(args: str):
     return perms
 
 
-def filter_args(unfiltered_kwargs, func):
+def filter_args(unfiltered_kwargs: dict, func: object) -> dict:
     """Filter Keyword Arguments for a function that does not accept some.
 
     Args:
@@ -90,7 +90,7 @@ def filter_args(unfiltered_kwargs, func):
     return filtered_dict
 
 
-def parse_args():
+def get_parser():
     """Parses Arguments from the Command Line input and returns the Converted Values.
 
     Returns:
@@ -134,7 +134,7 @@ def parse_args():
     type_id_parser = ap.ArgumentParser(
         add_help=False, formatter_class=ap.RawTextHelpFormatter)
     type_id_parser.add_argument(
-        "-u", "--url", action='store_true', help="Treat the TypeID Value as a URL.")
+        "-u", "--url", dest="literal_url", action='store_true', help="Treat the TypeID Value as a URL.")
     type_id_parser.add_argument(
         "source", metavar="TYPEID_OR_URL", type=type_id,
         help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
@@ -160,21 +160,21 @@ def parse_args():
         "-r", "--restart", action='store_true', help="Stop the Server, apply config changes, and start it again.")
 
     parser_attach = subparsers.add_parser(
-        "attach", parents=[instance_name_parser], help="Attach to the Console of the Instance")
+        "attach", parents=[instance_name_parser], help="Attach to the Console of the Minecraft Instance")
     parser_attach.set_defaults(
         func=proc.attach, err_template="attach to '{args.instance}'")
 
     parser_config = subparsers.add_parser(
         "config", parents=[instance_name_parser, restart_parser], help="Configure Files of a Minecraft Server Instance")
     parser_config.add_argument(
-        "-e", "--edit", metavar="FILE", help="Edit a File in the Instance Folder, interactively.")
+        "-e", "--edit", dest="edit_paths", metavar="FILE", help="Edit a File in the Instance Folder interactively")
     parser_config.add_argument(
         "-p", "--properties", nargs="+", help="Change server.properties options, e.g. server-port=25567 'motd=My new and cool Server'")
     parser_config.set_defaults(
         func=common.configure, err_template="configure '{args.instance}'", editor=CFGVARS.get('settings', 'default_editor'))
 
     parser_create = subparsers.add_parser(
-        "create", parents=[instance_name_parser, type_id_parser], help="Create a new Minecraft Server Instance", formatter_class=ap.RawTextHelpFormatter)
+        "create", parents=[instance_name_parser, type_id_parser], help="Create a new Server Instance", formatter_class=ap.RawTextHelpFormatter)
     parser_create.add_argument(
         "-s", "--start", action='store_true', help="Start the Server after creation, persistent enabled")
     parser_create.add_argument(
@@ -191,9 +191,9 @@ def parse_args():
         func=proc.mc_exec, err_template=action_instance_template)
 
     parser_export = subparsers.add_parser(
-        "export", parents=[instance_name_parser], help="Export an Instance to a zip File.")
+        "export", parents=[instance_name_parser], help="Export an Instance to a zip File")
     parser_export.add_argument(
-        "-c", "--compress", action='store_true', help="Compress the Archive.")
+        "-c", "--compress", action='store_true', help="Compress the Archive")
     parser_export.add_argument(
         "-w", "--world-only", action='store_true', help="Only export World Data")
     parser_export.set_defaults(
@@ -202,7 +202,7 @@ def parse_args():
     parser_inspect = subparsers.add_parser(
         "inspect", parents=[instance_name_parser], help="Inspect the Log of a Server")
     parser_inspect.add_argument(
-        "-n", "--lines", type=int, default=0, help="Limit the line output count to n.")
+        "-n", "--lines", dest="limit", type=int, default=0, help="Limit the line output count to n")
     parser_inspect.set_defaults(
         func=storage.inspect, err_template="{args.action} logs of '{args.instance}'")
 
@@ -210,28 +210,29 @@ def parse_args():
         "ls", help="List Instances, installed Versions, etc.")
     parser_list.add_argument("what", nargs="?", choices=[
         "instances", "jars"], default="instances")
-    parser_list.add_argument("-f", "--filter", default='')
+    parser_list.add_argument("-f", "--filter", dest="filter_str",
+                             default='', help="Filter by Version or Instance Name, etc.")
     parser_list.set_defaults(
         func=common.mc_ls, err_template="list {args.what}")
 
     parser_pull = subparsers.add_parser(
-        "pull", parents=[type_id_parser], help="Pull a Minecraft Server Binary from the Internet")
+        "pull", parents=[type_id_parser], help="Pull a Server .jar-File from the Internet")
     parser_pull.set_defaults(
         func=web.pull, err_template="{args.action} {args.source}")
 
     parser_rename = subparsers.add_parser(
-        "rename", parents=[instance_name_parser], help="Rename a Minecraft Server Instance")
+        "rename", parents=[instance_name_parser], help="Rename a Server Instance")
     parser_rename.add_argument("new_name")
     parser_rename.set_defaults(
         func=common.rename, err_template=action_instance_template)
 
     parser_restart = subparsers.add_parser(
-        "restart", parents=[instance_name_parser, message_parser], help="Restart a Minecraft Server Instance")
+        "restart", parents=[instance_name_parser, message_parser], help="Restart a Server Instance")
     parser_restart.set_defaults(
         func=service.notified_set_status, err_template=action_instance_template)
 
     parser_remove = subparsers.add_parser(
-        "rm", parents=[instance_name_parser], help="Remove an Instance.")
+        "rm", parents=[instance_name_parser], help="Remove a Server Instance.")
     parser_remove.set_defaults(
         func=storage.remove, err_template="remove '{args.instance}'")
 
@@ -246,30 +247,30 @@ def parse_args():
         func=storage.remove_jar, err_template="remove .jar File '{args.source}'")
 
     parser_start = subparsers.add_parser(
-        "start", parents=[instance_name_parser], help="Start a Minecraft Server Instance")
+        "start", parents=[instance_name_parser], help="Start a Server Instance")
     parser_start.add_argument("-p", "--persistent", action='store_true',
                               help="Start even after Reboot")
     parser_start.set_defaults(
         func=service.notified_set_status, err_template=action_instance_template)
 
     parser_stop = subparsers.add_parser(
-        "stop", parents=[instance_name_parser, message_parser], help="Stop a Minecraft Server Instance")
+        "stop", parents=[instance_name_parser, message_parser], help="Stop a Server Instance")
     parser_stop.add_argument("-p", "--persistent", action='store_true',
                              help="Do not start again after Reboot")
-    parser_start.set_defaults(
+    parser_stop.set_defaults(
         func=service.notified_set_status, err_template=action_instance_template)
 
     parser_update = subparsers.add_parser(
-        "update", parents=[instance_name_parser, type_id_parser, restart_parser], help="Update a Minecraft Server Instance")
+        "update", parents=[instance_name_parser, type_id_parser, restart_parser], help="Update a Server Instance")
     parser_update.set_defaults(
         func=common.update, err_template=action_instance_template)
 
     parser_shell = subparsers.add_parser(
-        "shell", parents=[instance_subfolder_parser], help="Invoke a Shell in the Folder of a Minecraft Server Instance")
+        "shell", parents=[instance_subfolder_parser], help="Use a Shell to interactively edit a Server Instance")
     parser_shell.set_defaults(func=proc.shell, err_template="invoke a Shell",
                               shell_path=CFGVARS.get('settings', 'default_shell'))
 
-    return parser.parse_args()
+    return parser
 
 
 def main():
@@ -280,7 +281,7 @@ def main():
     """
 
     # Determine needed Permission Level and restart with sudo.
-    args = parse_args()
+    args = get_parser().parse_args()
     plvl = get_permlevel(args)
 
     try:

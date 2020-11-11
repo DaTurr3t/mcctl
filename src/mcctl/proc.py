@@ -44,18 +44,18 @@ def attach(instance: str):
     proc.wait()
 
 
-def shell(instance: str, shell_path: Path):
+def shell(instance_subfolder: str, shell_path: Path):
     """Create a shell process in the server directory.
 
     Launches a shell from the config file.
 
     Arguments:
         shell_path {Path} -- The Path to the Unix shell binary.
-        cwd {str} -- The name of the instance or a subfolder in the Instance.
+        instance_subfolder {str} -- The name of the instance or a subfolder in the Instance.
     """
 
-    if instance:
-        sh_cwd = storage.get_instance_path(instance)
+    if instance_subfolder:
+        sh_cwd = storage.get_instance_path(instance_subfolder)
         assert sh_cwd.exists(), "Instance or subfolder not found: {}".format(sh_cwd)
     else:
         sh_cwd = storage.get_home_path()
