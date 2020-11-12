@@ -38,10 +38,9 @@ CFGVARS['settings'] = DEFAULTS
 LOADED = bool(CFGVARS.read(GLOBALCFG))
 CFGVARS.read(LOCALCFG)
 
-def write_cfg():
-    """Write the Config File to prevent writing when running as module
-    """
 
+def write_cfg():
+    """Write the Config File to prevent writing when running as module."""
     if not LOADED:
         cfg = ConfigParser()
         cfg['settings'] = DEFAULTS

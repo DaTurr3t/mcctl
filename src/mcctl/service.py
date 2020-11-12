@@ -28,15 +28,15 @@ UNIT_NAME = CFGVARS.get('settings', 'systemd_service')
 
 
 def is_active(instance: str) -> bool:
-    """Test if an instance is running
+    """Test if an instance is running.
 
     systemd is queried to determine if the service of the server is running.
 
     Arguments:
-        instance {str} -- The name of the instance.
+        instance (str): The name of the instance.
 
     Returns:
-        bool -- true: Server running, false: Server inactive/dead
+        bool: true: Server running, false: Server inactive/dead
     """
     service_instance = "@".join((UNIT_NAME, instance))
     test_cmd = shlex.split(f"systemctl is-active {service_instance}")
@@ -46,17 +46,16 @@ def is_active(instance: str) -> bool:
 
 
 def is_enabled(instance: str) -> bool:
-    """Test if an instance is enabled
+    """Test if an instance is enabled.
 
     systemd is queried to determine if the service of the server is flagged to start on system boot.
 
     Arguments:
-        instance {str} -- The name of the instance.
+        instance (str): The name of the instance.
 
     Returns:
-        bool -- true: Server starts on system boot, false: Server stays inactive/dead
+        bool: true: Server starts on system boot, false: Server stays inactive/dead
     """
-
     service_instance = "@".join((UNIT_NAME, instance))
     test_cmd = shlex.split(f"systemctl is-enabled {service_instance}")
     test_out = sproc.run(test_cmd, stdout=sproc.PIPE,
@@ -71,8 +70,8 @@ def set_status(instance: str, action: str):
     of the Unit mcserver@.service.
 
     Arguments:
-        instance {str} -- The name of the instance.
-        action {str} -- The systemd action to apply to the service.
+        instance (str): The name of the instance.
+        action (str): The systemd action to apply to the service.
             Can be "start", "restart", "stop", "enable", "disable".
     """
     allowed = ("start", "restart", "stop", "enable", "disable")
@@ -94,15 +93,14 @@ def notified_set_status(instance: str, action: str, message: str = '', persisten
     """Notifies the Players on the Server if applicable and sets the Service Status.
 
     Arguments:
-        instance {str} -- The name of the instance.
-        action {str} -- The systemd action to apply to the service. Can be "start", "restart", "stop".
+        instance (str): The name of the instance.
+        action (str): The systemd action to apply to the service. Can be "start", "restart", "stop".
 
     Keyword Arguments:
-        message {str} -- A message relayed to Server Chat, e.g. reason the Server is shutting down.
-        persistent {bool} -- If True, the Server will not start after a Machine reboot (default: {False})
-        restart {bool} -- If True, persistent wil be ignored and the server wil be restarted (default: {False})
+        message (str): A message relayed to Server Chat, e.g. reason the Server is shutting down.
+        persistent (bool): If True, the Server will not start after a Machine reboot (default: {False})
+        restart (bool): If True, persistent wil be ignored and the server wil be restarted (default: {False})
     """
-
     allowed = ("start", "restart", "stop")
     assert action in allowed, f"Invalid action '{action}'"
 

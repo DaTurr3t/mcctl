@@ -40,17 +40,16 @@ SPINNERS = [
 
 
 def compute(length: int = 1) -> str:
-    """Returns a character looking like a panel of blinkling lamps.
+    """Return a character looking like a panel of blinkling lamps.
 
     Uses the braille range in unicode to create a 'running' Indicator, showing that a Process is still running.
 
     Keyword Arguments:
-        length {int} -- Determines how many characters are returned. (default: {1})
+        length (int): Determines how many characters are returned. (default: {1})
 
     Returns:
-        str -- A string containig characters that can be animated in subsequent functions.
+        str: A string containig characters that can be animated in subsequent functions.
     """
-
     c_min = 10240
     c_max = 10495
 

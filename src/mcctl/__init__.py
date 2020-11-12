@@ -21,5 +21,5 @@
 
 __version__ = "0.3.0"
 
-from mcctl.__config__ import CFGVARS
-from mcctl import common, config, proc, service, storage, visuals, web
+from mcctl.__config__ import CFGVARS  # noqa: F401
+from mcctl import common, config, proc, service, storage, visuals, web  # noqa: F401

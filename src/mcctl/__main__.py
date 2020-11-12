@@ -22,21 +22,20 @@ import re
 import sys
 import inspect
 import argparse as ap
+from typing import Callable
 from mcctl.__config__ import write_cfg
 from mcctl import proc, storage, service, web, common, CFGVARS
 
 
-
-
-
-def get_permlevel(args: str):
+def get_permlevel(args: ap.Namespace) -> dict:
     """Determine the Permission Level by arguments. Returns the User with sufficient Permissions.
 
     Args:
-        action (str): The Action from the Config Parser
+        args (Namespace): Parsed Parameters.
 
     Returns:
-        dict: The Name of the User with sufficient permissions for the Action, and if no further demotion is needed.
+        dict: The Name of the User with sufficient permissions for the Action,
+              and if no further demotion is needed.
     """
     root_cmds = {
         'create': ('start',),
@@ -68,7 +67,7 @@ def get_permlevel(args: str):
     return perms
 
 
-def filter_args(unfiltered_kwargs: dict, func: object) -> dict:
+def filter_args(unfiltered_kwargs: dict, func: Callable) -> dict:
     """Filter Keyword Arguments for a function that does not accept some.
 
     Args:
@@ -76,18 +75,20 @@ def filter_args(unfiltered_kwargs: dict, func: object) -> dict:
         func (function): The function that should accept the Keyword Arguments.
 
     Returns:
-        [type]: [description]
+        dict: A dictionary containing all Arguments safe for the supplied function.
     """
     sig = inspect.signature(func)
-    filter_keys = [
-        param.name for param in sig.parameters.values() if param.kind == param.POSITIONAL_OR_KEYWORD]
-    filtered_dict = {
-        filter_key: unfiltered_kwargs.get(filter_key) for filter_key in filter_keys if unfiltered_kwargs.get(filter_key) is not None}
+    filter_keys = [param.name for param in sig.parameters.values()
+                   if param.kind == param.POSITIONAL_OR_KEYWORD]
+    filtered_dict = {filter_key: unfiltered_kwargs.get(filter_key)
+                     for filter_key in filter_keys
+                     if unfiltered_kwargs.get(filter_key) is not None}
+
     return filtered_dict
 
 
-def get_parser():
-    """Parses Arguments from the Command Line input and returns the Converted Values.
+def get_parser() -> ap.ArgumentParser:
+    """Parse Arguments from the Command Line input and returns the converted Values.
 
     Returns:
         argparse.Namespace: All Arguments, parsed.
@@ -95,8 +96,7 @@ def get_parser():
     Raises:
         argparse.ArgumentTypeError: Raised when the parameters given cannot be parsed correctly.
     """
-
-    def type_id(value):
+    def type_id(value: str) -> str:
         test_type_id = re.compile(
             r'(.+:)+.+|https?: \/\/(-\.)?([ ^\s /?\.#-]+\.?)+(/[^\s]*)?$')
         if not test_type_id.search(value):
@@ -104,14 +104,14 @@ def get_parser():
                 "must be in the form '<TYPE>:<VERSION>:<BUILD>' or URL")
         return value
 
-    def strict_type_id(value):
+    def strict_type_id(value: str) -> str:
         test_type_id = re.compile(r'(.+:)+.+|all')
         if not test_type_id.search(value):
             raise ap.ArgumentTypeError(
                 "must be in the form '<TYPE>:<VERSION>:<BUILD>' or 'all'")
         return value
 
-    def mem(value):
+    def mem(value: str) -> str:
         test_mem = re.compile(r'^[0-9]+[KMG]$')
         if not test_mem.search(value):
             raise ap.ArgumentTypeError("Must be in Format <NUMBER>{K,M,G}")
@@ -182,7 +182,8 @@ def get_parser():
 
     parser_exec = subparsers.add_parser(
         "exec", parents=[instance_name_parser], help="Execute a command in the Console of the Instance")
-    parser_exec.add_argument("command", nargs="+", help="Command to execute")
+    parser_exec.add_argument("command", nargs="+",
+                             help="Command to execute in the Server Console")
     parser_exec.set_defaults(
         func=proc.mc_exec, err_template=action_instance_template)
 
@@ -204,8 +205,8 @@ def get_parser():
 
     parser_list = subparsers.add_parser(
         "ls", help="List Instances, installed Versions, etc.")
-    parser_list.add_argument("what", nargs="?", choices=[
-        "instances", "jars"], default="instances")
+    parser_list.add_argument("what", metavar="WHAT", nargs="?", choices=[
+        "instances", "jars"], default="instances", help="What Type (instnaces/jars) return")
     parser_list.add_argument("-f", "--filter", dest="filter_str",
                              default='', help="Filter by Version or Instance Name, etc.")
     parser_list.set_defaults(
@@ -218,7 +219,8 @@ def get_parser():
 
     parser_rename = subparsers.add_parser(
         "rename", parents=[instance_name_parser], help="Rename a Server Instance")
-    parser_rename.add_argument("new_name")
+    parser_rename.add_argument(
+        "new_name", metavar="NEW_NAME", help="The new Name of the Server Instance")
     parser_rename.set_defaults(
         func=common.rename, err_template=action_instance_template)
 
@@ -233,7 +235,7 @@ def get_parser():
         func=storage.remove, err_template="remove '{args.instance}'")
 
     parser_remove_jar = subparsers.add_parser(
-        "rmj", help="Remove a Server Version.")
+        "rmj", help="Remove a cached Server Binary.")
     parser_remove_jar.add_argument(
         "source", metavar="TYPEID", type=strict_type_id,
         help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
@@ -270,12 +272,11 @@ def get_parser():
 
 
 def main():
-    """The main function of mcctl.
+    """Start mcctl.
 
-    This function handles all arguments.
-    The logic is moved into the other files as much as possible, except for input checking.
+    This function handles all arguments, elevation and parameters for functions.
+    The logic is moved into the other files as much as possible.
     """
-
     # Determine needed Permission Level and restart with sudo.
     args = get_parser().parse_args()
     plvl = get_permlevel(args)

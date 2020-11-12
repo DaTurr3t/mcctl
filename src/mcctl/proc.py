@@ -23,6 +23,8 @@ import time
 import os
 import sys
 import subprocess as sproc
+from typing import Callable
+from contextlib import contextmanager
 from pathlib import Path
 from pwd import getpwnam
 from mcctl import CFGVARS, storage, service
@@ -35,9 +37,8 @@ def attach(instance: str):
     Launches screen to reattach to the screen session of the server.
 
     Arguments:
-        instance {str} -- The name of the instance.
+        instance (str): The name of the instance.
     """
-
     if not service.is_active(instance):
         raise OSError("The Server is not running")
     cmd = shlex.split(f"screen -r mc-{instance}")
@@ -51,10 +52,9 @@ def shell(instance_subfolder: str, shell_path: Path):
     Launches a shell from the config file.
 
     Arguments:
-        shell_path {Path} -- The Path to the Unix shell binary.
-        instance_subfolder {str} -- The name of the instance or a subfolder in the Instance.
+        shell_path (Path): The Path to the Unix shell binary.
+        instance_subfolder (str): The name of the instance or a subfolder in the Instance.
     """
-
     if instance_subfolder:
         sh_cwd = storage.get_instance_path(instance_subfolder)
         if not sh_cwd.exists():
@@ -78,15 +78,14 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
     Like this, the function will more likely give an output, and will exit faster if an output was already returned.
 
     Arguments:
-        instance {str} -- The name of the instance.
-        command {list} -- A list of the individual parts of the command executed on the server console.
+        instance (str): The name of the instance.
+        command (list): A list of the individual parts of the command executed on the server console.
 
     Keyword Arguments:
-        pollrate {float} -- The polling interval between log reads/checks. (default: {0.2})
-        max_retries {int} -- The amount of retries when no lines have been pushed to console. (default: {25})
-        max_flush_retries {int} -- The amount of retries when some lines have been pushed to console. (default: {10})
+        pollrate (float): The polling interval between log reads/checks. (default: {0.2})
+        max_retries (int): The amount of retries when no lines have been pushed to console. (default: {25})
+        max_flush_retries (int): The amount of retries when some lines have been pushed to console. (default: {10})
     """
-
     if not service.is_active(instance):
         raise OSError("The Server is not running")
 
@@ -115,28 +114,29 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
 
 
 def get_ids(user: str) -> tuple:
-    """Wrapper for getpwnam() that only returns UID and GID.
+    """Return UID and GID of a user.
 
     Arguments:
-        user {str} -- User of which passwd information should be retrieved.
+        user (str): User of which passwd information should be retrieved.
 
     Returns:
-        tuple -- A Tuple containing th UID and GID of the user.
+        tuple: A Tuple containing th UID and GID of the user.
     """
     user_data = getpwnam(user)
     return user_data.pw_uid, user_data.pw_gid
 
 
 def run_as(uid: int, gid: int) -> tuple:
-    """Changes the user of the current python Script
+    """Change the user of the currently running python instance.
 
     Set the EGID and EUID of the running Python script to the permissions of <as_user>.
 
     Arguments:
-        as_user {str} -- The User of which the UID and GID is used.
+        uid (int): The Effective User ID that is set.
+        gid (int): The Effective Group ID that is set.
 
     Retruns:
-        old_ids {tuple}  -- A tuple of the UID and GID that were set before the change.
+        old_ids (tuple): A tuple of the UID and GID that were set before the change.
     """
     old_ids = (os.geteuid(), os.getegid())
 
@@ -146,11 +146,11 @@ def run_as(uid: int, gid: int) -> tuple:
     return old_ids
 
 
-def demote():
-    """A Function containing instructions to demote a subprocess.
+def demote() -> Callable:
+    """Demote a subprocess. for use in preexec_fn.
 
     Returns:
-        NoneType -- Returns a function executed by Popen() before running the external command.
+        Callable: Returns a function executed by Popen() before running the external command.
     """
     user_name = CFGVARS.get('settings', 'server_user')
     user = getpwnam(user_name)
@@ -169,20 +169,20 @@ def demote():
 
 
 def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
-    """Prepares the server and lets it create configuration files and such.
+    """Prepare the server and lets it create configuration files and such.
 
-    Starts the server and waits for it to exit or for [watchFile] to be created.
+    Starts the server and waits for it to exit or for {watch_file} to be created.
     If the file exists, the server is sent SIGTERM to shut it down again.
 
     Arguments:
-        jar_path {Path} -- Path to the jar-file of the server.
+        jar_path (Path): Path to the jar-file of the server.
 
     Keyword Arguments:
-        watch_file {Path} -- A file to be awaited for creation. Ignored if set to None. (default: {None})
-        kill_sec {int} -- Time to wait before killing the server. (default: {80})
+        watch_file (Path): A file to be awaited for creation. Ignored if set to None. (default: {None})
+        kill_sec (int): Time to wait before killing the server. (default: {80})
 
     Returns:
-        bool -- True: The server stopped as expected. False: The server had to be killed.
+        bool: True: The server stopped as expected. False: The server had to be killed.
     """
     cmd = shlex.split(f"/bin/java -jar {jar_path}")
     proc = sproc.Popen(cmd, cwd=jar_path.parent, stdout=sproc.PIPE,  # nopep8 pylint: disable=subprocess-popen-preexec-fn
@@ -212,20 +212,19 @@ def edit(file_path: Path, editor: str):
     Launches screen to reattach to the screen session of the server.
 
     Arguments:
-        file_path {Path} -- The file to be edited in the Editor.
+        file_path (Path): The file to be edited in the Editor.
     """
     cmd = shlex.split(f"{editor} '{file_path}'")
     proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
     proc.wait()
 
 
-def elevate(user="root"):
-    """Replaces the current Process with a new one as a different User. Requires sudo.
+def elevate(user: str = "root"):
+    """Replace the current Process with a new one as a different User. Requires sudo.
 
     Args:
         user (str, optional): The User that will be switched to. Defaults to "root".
     """
-
     desired_uid = getpwnam(user).pw_uid
     if os.getuid() == desired_uid:
         return

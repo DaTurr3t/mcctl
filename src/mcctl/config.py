@@ -22,21 +22,20 @@ from pathlib import Path
 
 
 def properties_to_dict(property_list: list) -> dict:
-    """Convert an array of properties to a dict
+    """Convert an array of properties to a dict.
 
     Takes a list of strings in "KEY=VALUE" form, and remodels it into a dict.
     Comments are removed from the File.
 
     Arguments:
-        property_list {list} -- The list to convert
+        property_list (list): A list of strings to turn into properties.
 
     Raises:
         ValueError: Raised if a property is missing the "="-sign.
 
     Returns:
-        dict -- A dict with all properties from the property list.
+        dict: A dict with all properties from the property list.
     """
-
     property_dict = {}
     for line in property_list:
         if "=" in line:
@@ -49,32 +48,30 @@ def properties_to_dict(property_list: list) -> dict:
 
 
 def get_properties(file_path: Path) -> dict:
-    """Create a dict from a property file
+    """Create a dict from a property file.
 
     Takes a the contents of a file line by line in "KEY=VALUE" form, and remodels it into a dict.
 
     Arguments:
-        file_path {Path} -- The path of the input file.
+        file_path (Path): The path of the input file.
 
     Returns:
-        dict -- A dict with all properties from the specified file.
+        dict: A dict with all properties from the specified file.
     """
-
     with open(file_path, "r") as config_file:
         config = properties_to_dict(config_file.read().splitlines())
     return config
 
 
 def set_properties(file_path: Path, properties: dict):
-    """Write a configuration file from dict
+    """Write a server.properties file from dict.
 
     The properties are written into the specified file in "KEY=VALUE" form.
 
     Arguments:
-        file_path {Path} -- The path of the output file.
-        properties {dict} -- A dict with properties.
+        file_path (Path): The path of the output file.
+        properties (dict): A dict with properties.
     """
-
     if not file_path.exists():
         file_path.touch()
 
@@ -90,15 +87,15 @@ def set_properties(file_path: Path, properties: dict):
 
 
 def accept_eula(instance_path: Path) -> bool:
-    """Prints and modufies EULA according to user input
+    """Print and modify EULA according to user input.
 
     The EULA will be displayed to Console and a dialog will ask the user to accept.
 
     Arguments:
-        instance_path {Path} -- path to the instance.
+        instance_path (Path): path to the instance.
 
     Returns:
-        bool -- returns if the EULA was accepted.
+        bool: returns if the EULA was accepted.
     """
     accepted = False
     file_path = instance_path / "eula.txt"

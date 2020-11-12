@@ -27,18 +27,17 @@ from mcctl import visuals, storage
 
 
 def get_vanilla_download_url(version_tag: str, manifest_url: str) -> tuple:
-    """Get the download URL of a vanilla server
+    """Get the download URL of a vanilla server.
 
     Find the download URL of a vanilla server using Mojangs Launcher-Meta API.
 
     Keyword Arguments:
-        manifest_url {str} -- The URL of version_manifest.json (default: {downloadUrls['vanilla']})
-        version_tag {str} -- The Tag of the server without the type (vanilla/paper).
+        manifest_url (str): The URL of version_manifest.json (default: {downloadUrls['vanilla']})
+        version_tag (str): The Tag of the server without the type (vanilla/paper).
 
     Returns:
-        tuple -- A tuple with the download URL and the complete, resolved Tag
+        tuple: A tuple with the download URL and the complete, resolved Tag
     """
-
     version_manifest = rest_get(manifest_url)
     if version_tag == "latest":
         version_tag = version_manifest.get("latest", {}).get("release")
@@ -56,18 +55,17 @@ def get_vanilla_download_url(version_tag: str, manifest_url: str) -> tuple:
 
 
 def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
-    """Get the download URL of a paper server
+    """Get the download URL of a paper server.
 
     Find the download URL of a paper server using PaperMCs Version API.
 
     Arguments:
-        version_tag {str} -- The Tag of the server without the type (vanilla/paper).
-        base_url {str} --  The API URL for paper. (default: {downloadUrls['vanilla']})
+        version_tag (str): The Tag of the server without the type (vanilla/paper).
+        base_url (str):  The API URL for paper. (default: {downloadUrls['vanilla']})
 
     Returns:
-        tuple -- A tuple with the download URL and the complete, resolved Tag
+        tuple: A tuple with the download URL and the complete, resolved Tag
     """
-
     if version_tag == "latest":
         versions = rest_get(base_url)
         major = versions.get("versions", [])[0]
@@ -85,16 +83,16 @@ def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
 
 
 def get_spigot_download_url(version_tag: str, base_url: str) -> tuple:
-    """Get the download URL of a paper server
+    """Get the download URL of a paper server.
 
     Find the download URL of a paper server using PaperMCs Version API.
 
     Arguments:
-        version_tag {str} -- The Tag of the server without the type (vanilla/paper/spigot).
-        base_url {str} --  The API URL for spigot. (default: {downloadUrls['spigot']})
+        version_tag (str): The Tag of the server without the type (vanilla/paper/spigot).
+        base_url (str):  The API URL for spigot. (default: {downloadUrls['spigot']})
 
     Returns:
-        tuple -- A tuple with the download URL and the complete, resolved Tag
+        tuple: A tuple with the download URL and the complete, resolved Tag
     """
     if version_tag == "latest":
         versions = scrape_get(
@@ -126,16 +124,16 @@ SOURCES = {
 
 
 def get_download_url(server_tag: str) -> tuple:
-    """Get the download URL of any minecraft server
+    """Get the download URL of any minecraft server.
 
     Arguments:
-        server_tag {str} -- The Tag of the server (e.g. vanilla:latest).
+        server_tag (str): The Tag of the server (e.g. vanilla:latest).
 
     Raises:
         Exception: If an unsupported Server type is used, an Exception is raised.
 
     Returns:
-        tuple -- A tuple with the download URL and the complete, resolved Tag
+        tuple: A tuple with the download URL and the complete, resolved Tag
     """
     assert ":" in server_tag, f"Invalid Server Tag '{server_tag}'"
     type_tag, version_tag = server_tag.split(":", 1)
@@ -154,31 +152,29 @@ def rest_get(url: str) -> dict:
     A HTTP GET request is sent to the specified URL. The response is parsed into a dict.
 
     Arguments:
-        url {str} -- The target to query
+        url (str): The target to query.
 
     Returns:
-        dict -- Deserialized JSON Data
+        dict: Deserialized JSON Data.
     """
-
     header = {'User-Agent': 'curl/7.4'}
     response = req.get(url, headers=header, timeout=5)
     response.raise_for_status()
     return response.json()
 
 
-def scrape_get(url: str, expr: str) -> dict:
+def scrape_get(url: str, expr: str) -> list:
     """Send a get request and filter response with regex.
 
     A HTTP GET request is sent to the specified URL. The regex matches are returned.
 
     Arguments:
-        url {str} -- The target to query
-        expr {str} -- A regular expression to scrape the page
+        url (str): The target to query.
+        expr (str): A regular expression to scrape the page.
 
     Returns:
-        list -- List of matches
+        list: List of matches
     """
-
     header = {'User-Agent': 'curl/7.4'}
     response = req.get(url, headers=header, timeout=5)
     response.raise_for_status()
@@ -191,13 +187,9 @@ def download(url: str, dest: Path):
     A file is downloaded from a webserver, progress is shown via the reporthook-Parameter.
 
     Arguments:
-        url {str} -- The target to query
-        dest {Path} -- The path where to save the recieved file to
-
-    Returns:
-        tuple -- data about the downloaded file, from urllib.urlretrieve()
+        url (str): The target to query.
+        dest (Path): The path where to save the recieved file to.
     """
-
     response = req.get(url, stream=True)
     with open(dest, "wb") as dest_hnd:
         total_length = int(response.headers.get('content-length', 0))
@@ -216,17 +208,16 @@ def download(url: str, dest: Path):
         print()
 
 
-def progress(current: int, elapsed: int, total: int):
-    """Print Progress
+def progress(current: int, elapsed: float, total: int):
+    """Print Progress.
 
     Output the progress of the download given blockcount, blocksize and total bytes.
 
     Arguments:
-        downloaded {int} -- The number of bits recieved.
-        elapsed {int} -- Elapsed time in seconds.
-        total {int} -- The size of the complete File.
+        downloaded (int): The number of bits recieved.
+        elapsed (int): Elapsed time in seconds.
+        total (int): The size of the complete File.
     """
-
     spinner = visuals.SPINNERS[1]
     chars = spinner.get('chars')
     char_idx = int((elapsed * spinner.get('fps')) % len(chars))
@@ -240,31 +231,30 @@ def join_url(base: str, *parts: str) -> str:
     """Join an URL and its segments.
 
     Arguments:
-        base {str} -- The base of the url, containing the protocol and hostname.
-        *parts {str} -- The path parts of the URL.
+        base (str): The base of the url, containing the protocol and hostname.
+        *parts (str): The path parts of the URL.
 
     Returns:
-        str -- The complete, joined URL
+        str: The complete, joined URL
     """
     path = "/".join([x.strip("/") for x in parts])
     return f"{base.rstrip('/')}/{path}"
 
 
-def pull(source: str, literal_url: bool = False) -> Path:
-    """Download a minecraft server jar by type tag
+def pull(source: str, literal_url: bool = False) -> tuple:
+    """Download a minecraft server jar by type tag.
 
     A .jar-file is determined by the type tag and saved to disk.
 
     Arguments:
-        source {str} -- The type tag of a server or a URL.
+        source (str): The type tag of a server or a URL.
 
     Keyword Arguments:
-        literal_url {bool} -- Specifies if the source variable contains an URL or a type tag. (default: {False})
+        literal_url (bool): Specifies if the source variable contains an URL or a type tag. (default: {False})
 
     Returns:
-        Path -- The path of the saved .jar-file.
+        Path: The path of the saved .jar-file.
     """
-
     if literal_url:
         url = source
         # Generate artificial Version Tag

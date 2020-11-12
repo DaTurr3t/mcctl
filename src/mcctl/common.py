@@ -24,19 +24,18 @@ from mcctl import web, storage, service, config, proc
 
 
 def create(instance: str, source: str, memory: str, properties: list, literal_url: bool = False, start: bool = False):
-    """Creates a new Minecraft Server Instance.
+    """Create a new Minecraft Server Instance.
 
     Downloads the correct jar-file, configures the server and asks the user to accept the EULA.
 
     Arguments:
-        instance {str} -- The Instance ID.
-        source {str} -- The Type ID of the Minecraft Server Binary.
-        memory {str} -- The Memory-String. Can be appended by K, M or G, to signal Kilo- Mega- or Gigabytes.
-        properties {list} -- A list with Strings in the format of "KEY=VALUE".
-        literal_url {bool} -- Determines if the TypeID is a literal URL. Default: False
-        start {bool} -- Starts the Server directly if set to True. Default: False
+        instance (str): The Instance ID.
+        source (str): The Type ID of the Minecraft Server Binary.
+        memory (str): The Memory-String. Can be appended by K, M or G, to signal Kilo- Mega- or Gigabytes.
+        properties (list): A list with Strings in the format of "KEY=VALUE".
+        literal_url (bool): Determines if the TypeID is a literal URL. Default: False
+        start (bool): Starts the Server directly if set to True. Default: False
     """
-
     instance_path = storage.get_instance_path(instance)
     if instance_path.exists():
         raise FileExistsError("Instance already exists")
@@ -67,14 +66,13 @@ def create(instance: str, source: str, memory: str, properties: list, literal_ur
 
 
 def get_instance_list(filter_str: str = ''):
-    """Print a list of all instances
+    """Print a list of all instances.
 
     Output a table of all instances with their respective Name, Server Version String, Status and persistence.
 
     Keyword Arguments:
-        filter_str {str} -- Filter the list by instance name. (default: {''})
+        filter_str (str): Filter the list by instance name. (default: {''})
     """
-
     base_path = storage.get_instance_path(bare=True)
     server_paths = base_path.iterdir()
     servers = [x.name for x in server_paths]
@@ -105,8 +103,9 @@ def get_instance_list(filter_str: str = ''):
                 run_status, service.is_enabled(name))
             print(contents)
 
+
 def mc_ls(what: str, filter_str: str = ''):
-    """Lists things such as jars or instances
+    """List things such as jars or instances.
 
     A Function to bundle all Listing Functions, invokes selected Function.
 
@@ -126,15 +125,14 @@ def mc_ls(what: str, filter_str: str = ''):
 
 
 def rename(instance: str, new_name: str):
-    """Renames a server instance
+    """Rename a server instance.
 
     A server instance is renamed. The server has to be stopped and disabled, so no invalid service links can occur.
 
     Arguments:
-        instance {str} -- Current name
-        new_name {str} -- New name of the instance
+        instance (str): Current name of the Instance.
+        new_name (str): New name of the Instance.
     """
-
     if (service.is_enabled(instance) or service.is_active(instance)):
         raise OSError("The server is still persistent and/or running")
     server_path = storage.get_instance_path(instance)
@@ -142,17 +140,16 @@ def rename(instance: str, new_name: str):
 
 
 def update(instance: str, source: str, literal_url: bool = False, restart: bool = False):
-    """Change the Jar File of a server
+    """Change the Jar File of a server.
 
     Stops the Server if necessary, deletes the old Jar File and copies the new one, starts the Server again.
 
     Arguments:
-        instance {str} -- The Instance ID.
-        source {str} -- The Type ID or URL of the new minecraft server Jar.
-        literal_url {bool} -- Determines if the TypeID is a literal URL. Default: False
-        allow_restart {bool} -- Allows a Server restart if the Server is running. Default: False
+        instance (str): The Instance ID.
+        source (str): The Type ID or URL of the new minecraft server Jar.
+        literal_url (bool): Determines if the TypeID is a literal URL. Default: False
+        allow_restart (bool): Allows a Server restart if the Server is running. Default: False
     """
-
     jar_src, version = web.pull(source, literal_url)
     jar_dest = storage.get_instance_path(instance) / "server.jar"
     storage.copy(jar_src, jar_dest)
@@ -167,8 +164,7 @@ def update(instance: str, source: str, literal_url: bool = False, restart: bool 
 
 
 def configure(instance: str, edit_paths: list, properties: list, editor: str, restart: bool = False):
-    """Edits configurations, restarts the server if forced,
-    and swaps in the new configurations.
+    """Edits configurations, restarts the server if forced, and swaps in the new configurations.
 
     Args:
         instance (str): The Instance ID.
@@ -178,7 +174,6 @@ def configure(instance: str, edit_paths: list, properties: list, editor: str, re
         force (bool, optional): Stops the server, applies changes and starts it again when set to true.
         Defaults to False.
     """
-
     instance_path = storage.get_instance_path(instance)
     paths = {}
 
@@ -205,7 +200,8 @@ def configure(instance: str, edit_paths: list, properties: list, editor: str, re
 
     do_restart = service.is_active(instance) and restart and len(paths) > 0
     if do_restart:
-        service.notified_set_status(instance, "stop", "Reconfiguring and restarting Server")
+        service.notified_set_status(
+            instance, "stop", "Reconfiguring and restarting Server.")
 
     for pair in list(paths.items()):
         storage.move(*pair[::-1])

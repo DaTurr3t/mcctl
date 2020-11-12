@@ -27,6 +27,7 @@ import random
 import string
 import hashlib
 import zipfile as zf
+from typing import List
 from pathlib import Path
 from datetime import datetime
 from grp import getgrgid
@@ -37,70 +38,66 @@ SERVER_USER = CFGVARS.get('settings', 'server_user')
 
 
 def get_home_path(user_name: str = SERVER_USER) -> Path:
-    """Wrapper to return the home Directory of a user
+    """Return the home directory of a user.
 
     Arguments:
-        user_name {str} -- The username of which the home directory should be determined.
+        user_name (str): The username of which the home directory should be determined.
 
     Returns:
-        Path -- The home directory of the user.
+        Path: The home directory of the user.
     """
-
     user_data = getpwnam(user_name)
     return Path(user_data.pw_dir)
 
 
 def get_instance_path(instance: str = '', bare: bool = False) -> Path:
-    """Return the assembled absolute Instance Path
+    """Return the assembled absolute Instance Path.
 
     Keyword Arguments:
-        instance {str} -- The name of the Instance.
-        bare {bool} -- Allow returning the bare Instance Folder.
+        instance (str): The name of the Instance.
+        bare (bool): Allow returning the bare Instance Folder.
 
     Returns:
         Path: The absolute Path to the Instance
     """
-
     assert instance or bare, "No valid Instance supplied"
     return get_home_path() / "instances" / instance
 
 
-def get_jar_path(type_id: str = '', bare: bool = False):
-    """Returns the assembled asolute Path of a cached .jar-File
+def get_jar_path(type_id: str = '', bare: bool = False) -> Path:
+    """Return the assembled asolute Path of a cached .jar-File.
 
     Args:
         type_id (str, optional): The type_id of the .jar-File. Defaults to ''.
-        bare (bool, optional): bare {bool} -- Allow returning the bare Jar Cache Folder. Defaults to False.
+        bare (bool, optional): Allow returning the bare Jar Cache Folder. Defaults to False.
 
     Returns:
-        [type]: [description]
+        Path: The Path to the .jar-File supplied.
     """
     assert (type_id or bare) and ':' in type_id, "No valid Type-ID supplied"
     return get_home_path() / "jars" / f"{type_id.replace(':', '/')}.jar"
 
 
 def get_child_paths(path: Path) -> list:
-    """Wrapper to get all subdirectories and files.
+    """Get all subdirectories and files of a Path.
 
     Arguments:
-        path {Path} -- Path to walk
+        path (Path): Path to walk.
 
     Returns:
-        list -- A list of all paths found.
+        list: A list of all paths found.
     """
-
     return sorted(path.rglob("*"))
 
 
 def get_jar_list(filter_str: str = ''):
-    """Get List of all cached .jar-files
+    """Get a List of all cached .jar-files.
 
     Lists all cached .jar-Files in the Type-Tag format.
 
     Keyword Arguments:
-        filter_str {str} -- Filter for version, type or version. (default: {''})
+        filter_str (str): Filter for version, type or version. (default: {''})
     """
-
     jars = get_relative_paths(get_home_path() / "jars", ".jar", -1)
     for jar in jars:
         if filter_str in str(jar):
@@ -114,13 +111,12 @@ def chown(path: Path, user: str, group=None):
     The gid of the default group of the user is used if [group] is omitted.
 
     Arguments:
-        path {Path} -- The path of which owners should be recursively changed.
-        user {str} -- User that should own the path.
+        path (Path): The path of which owners should be recursively changed.
+        user (str): User that should own the path.
 
     Keyword Arguments:
-        group {str} -- Group that should own the path. (default: {None})
+        group (str): Group that should own the path. (default: {None})
     """
-
     if not group:
         gid = getpwnam(user).pw_gid
         group = getgrgid(gid).gr_name
@@ -142,16 +138,15 @@ def get_relative_paths(path: Path, filter_str: str = '', filter_idx: int = 0) ->
     0 -  the first directory of the path is tested. -1 - the last directory is tested, etc.
 
     Arguments:
-        path {Path} -- The path of which the subdirecories should be returned.
+        path (Path): The path of which the subdirecories should be returned.
 
     Keyword Arguments:
-        filter_str {str} -- A string that is checked against a specified directory. (default: {''})
-        filter_idx {int} -- The index of the directory to test against. (default: {0})
+        filter_str (str): A string that is checked against a specified directory. (default: {''})
+        filter_idx (int): The index of the directory to test against. (default: {0})
 
     Returns:
-        list -- A list of all relative Paths found.
+        list: A list of all relative Paths found.
     """
-
     path_list = []
     length = len(path.parts)
     for file_path in get_child_paths(path):
@@ -162,44 +157,41 @@ def get_relative_paths(path: Path, filter_str: str = '', filter_idx: int = 0) ->
 
 
 def create_dirs(path: Path):
-    """Wrapper to create Paths recursively, with mode rwxr-x---.
+    """Create Paths recursively, with mode rwxr-x---.
 
     Arguments:
-        path {Path} -- Path to create, if nonexistent.
+        path (Path): Path to create, if nonexistent.
     """
-
     Path.mkdir(path, mode=0o0750, parents=True, exist_ok=True)
 
 
-def copy(source: Path, dest: Path):
-    """Wrapper to copy a file or directory
+def copy(source: Path, dest: Path) -> Path:
+    """Copy a file or directory.
 
     If [dest] is a directory and [source] is a file, the filename of [source] is retained.
 
     Arguments:
-        source {Path} -- Source file
-        dest {Path} -- Destionation file or directory
+        source (Path): Source file or directory.
+        dest (Path): Destionation file or directory.
 
     Returns:
-        Path -- The Destination Path of the copied file.
+        Path: The Destination Path of the copied file.
     """
-
     return shutil.copy(source, dest)
 
 
-def move(source: Path, dest: Path):
-    """Wrapper to move a file or directory
+def move(source: Path, dest: Path) -> Path:
+    """Move a file or directory.
 
     If [dest] is a directory and [source] is a file, the filename of [source] is retained.
 
     Arguments:
-        source {Path} -- Source file
-        dest {Path} -- Destionation file or directory
+        source (Path): Source file or directory.
+        dest (Path): Destionation file or directory.
 
     Returns:
-        Path -- The Destination Path of the copied file.
+        Path: The Destination Path of the copied file.
     """
-
     return shutil.move(source, dest)
 
 
@@ -210,17 +202,16 @@ def export(instance: str, zip_path=None, compress: bool = False, world_only: boo
     Optionally, the File can also be compressed and all config Files can be excluded.
 
     Arguments:
-        instance {str} -- The name of the Instance to be exported.
+        instance (str): The name of the Instance to be exported.
 
     Keyword Arguments:
-        zip_path {Path} -- The path of the Zip-File that is generated. (default: {None})
-        compress {bool} -- True: Compress the Zip-File using ZIP_DEFLATE. False: Use ZIP_STORE (default: {False})
-        world_only {bool} -- Only export the World data without configuration files. (default: {False})
+        zip_path (Path): The path of the Zip-File that is generated. (default: {None})
+        compress (bool): True: Compress the Zip-File using ZIP_DEFLATE. False: Use ZIP_STORE (default: {False})
+        world_only (bool): Only export the World data without configuration files. (default: {False})
 
     Returns:
-        Path -- The Path where the Zip-File was saved to.
+        Path: The Path where the Zip-File was saved to.
     """
-
     if not zip_path:
         zip_path = Path(
             f"{instance}_{datetime.now().strftime('%y-%m-%d-%H.%M.%S')}.zip")
@@ -252,10 +243,10 @@ def remove(instance: str, confirm: bool = True):
     """Remove an instance from disk.
 
     Arguments:
-        instance {str} -- The name of the Instance to be deleted.
+        instance (str): The name of the Instance to be deleted.
 
     Keyword Arguments:
-        confirm {bool} -- Ask the user if they are sure to delete the instance. (default: {True})
+        confirm (bool): Ask the user if they are sure to delete the instance. (default: {True})
     """
     del_path = get_instance_path(instance)
     if not del_path.exists():
@@ -277,9 +268,8 @@ def remove_jar(type_id: str):
     """Remove an .jar-File from disk.
 
     Arguments:
-        type_id {str} -- The type_id of the .jar-File to be deleted.
+        type_id (str): The type_id of the .jar-File to be deleted.
     """
-
     del_all = type_id == "all"
     if not del_all:
         del_path = get_jar_path(type_id)
@@ -304,18 +294,17 @@ def inspect(instance: str, limit: int = 0):
     """Get the last lines of the Log.
 
     Arguments:
-        instance {str} -- The name of the instance to be inspected.
+        instance (str): The name of the instance to be inspected.
 
     Keyword Arguments:
-        limit {int} -- The amount of lines to output. 0 returns all lines. (default: {0})
+        limit (int): The amount of lines to output. 0 returns all lines. (default: {0})
     """
-
     if limit < 0:
         raise OverflowError("Line Limit is lower than minimum of 0")
     log_path = get_instance_path(instance) / "logs"
     logs = get_child_paths(log_path)
 
-    lines = []
+    lines: List[str] = []
     for log in reversed(logs):
         opener = gzip.open if log.name.endswith(".gz") else open
         with opener(log, "rt") as log_file:
@@ -328,7 +317,7 @@ def inspect(instance: str, limit: int = 0):
 
 
 def tmpcopy(file_path: Path) -> Path:
-    """[summary]
+    """Create a temporary copy of a file.
 
     Args:
         file_path (Path): The file which will be copied to a temporary location.
