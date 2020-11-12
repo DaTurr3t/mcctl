@@ -63,7 +63,7 @@ def shell(instance_subfolder: str, shell_path: Path):
     else:
         sh_cwd = storage.get_home_path()
 
-    cmd = shlex.split(shell_path)
+    cmd = shlex.split(str(shell_path))
     proc = sproc.Popen(cmd, cwd=sh_cwd)
     proc.wait()
 
@@ -124,7 +124,7 @@ def get_ids(user: str) -> tuple:
         tuple -- A Tuple containing th UID and GID of the user.
     """
     user_data = getpwnam(user)
-    return (user_data.pw_uid, user_data.pw_gid)
+    return user_data.pw_uid, user_data.pw_gid
 
 
 def run_as(uid: int, gid: int) -> tuple:

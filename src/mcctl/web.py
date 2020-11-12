@@ -41,11 +41,11 @@ def get_vanilla_download_url(version_tag: str, manifest_url: str) -> tuple:
 
     version_manifest = rest_get(manifest_url)
     if version_tag == "latest":
-        version_tag = version_manifest.get("latest").get("release")
+        version_tag = version_manifest.get("latest", {}).get("release")
     elif version_tag == "latest-snap":
-        version_tag = version_manifest.get("latest").get("snapshot")
+        version_tag = version_manifest.get("latest", {}).get("snapshot")
 
-    for version in version_manifest.get("versions"):
+    for version in version_manifest.get("versions", []):
         if version.get("id") == version_tag:
             download_url = version.get("url")
             break
@@ -70,7 +70,7 @@ def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
 
     if version_tag == "latest":
         versions = rest_get(base_url)
-        major = versions.get("versions")[0]
+        major = versions.get("versions", [])[0]
         minor = version_tag
     else:
         major, minor = version_tag.split(":", 1)
@@ -79,8 +79,8 @@ def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
         resolved_data = rest_get(test_url)
         resolved_tag = ":".join(list(resolved_data.values()))
     except Exception as ex:
-        raise ValueError(
-            "Server version not found for type 'paper'", version_tag, str(ex))
+        raise ValueError("Server version not found for type 'paper'",
+                         version_tag, str(ex)) from None
     return join_url(test_url, "download"), resolved_tag
 
 
@@ -140,7 +140,8 @@ def get_download_url(server_tag: str) -> tuple:
     assert ":" in server_tag, f"Invalid Server Tag '{server_tag}'"
     type_tag, version_tag = server_tag.split(":", 1)
     try:
-        url, resolved_tag = SOURCES.get(type_tag).get('func')(version_tag, SOURCES.get(type_tag).get('url'))
+        url, resolved_tag = SOURCES.get(type_tag, {}).get(
+            'func')(version_tag, SOURCES.get(type_tag).get('url'))
     except AttributeError:
         raise ValueError(f"Unsupported server type: '{type_tag}'") from None
 
@@ -199,7 +200,7 @@ def download(url: str, dest: Path):
 
     response = req.get(url, stream=True)
     with open(dest, "wb") as dest_hnd:
-        total_length = response.headers.get('content-length')
+        total_length = int(response.headers.get('content-length', 0))
 
         if not total_length:
             dest_hnd.write(response.content)
@@ -207,7 +208,6 @@ def download(url: str, dest: Path):
             chunk_size = 4096
             loaded = 0
             inital = time.time()
-            total_length = int(total_length)
             for data in response.iter_content(chunk_size):
                 loaded += len(data)
                 dest_hnd.write(data)

@@ -233,7 +233,7 @@ def export(instance: str, zip_path=None, compress: bool = False, world_only: boo
         world = server_cfg.get("level-name")
 
     file_list = get_relative_paths(server_path, world)
-    total_size = sum([(server_path / x).stat().st_size for x in file_list])
+    total_size = sum((server_path / x).stat().st_size for x in file_list)
     compress_mode = zf.ZIP_DEFLATED if compress else zf.ZIP_STORED
     with zf.ZipFile(zip_path, "w", compression=compress_mode, allowZip64=True) as zip_file:
         written = 0

@@ -26,11 +26,7 @@ from mcctl.__config__ import write_cfg
 from mcctl import proc, storage, service, web, common, CFGVARS
 
 
-def coming_soon():
-    """Returns an info to the user that command X is not correctly implemented yet.
-    """
 
-    print("Not yet implemented!")
 
 
 def get_permlevel(args: str):
