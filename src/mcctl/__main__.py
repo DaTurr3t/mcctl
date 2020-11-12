@@ -153,7 +153,7 @@ def get_parser():
 
     message_parser = ap.ArgumentParser(add_help=False)
     message_parser.add_argument(
-        "-m", "--message", dest="reason", help="Reason for the restart/stop. Informs the Players on the Server.")
+        "-m", "--message", help="Reason for the restart/stop. Informs the Players on the Server.")
 
     restart_parser = ap.ArgumentParser(add_help=False)
     restart_parser.add_argument(

@@ -93,7 +93,7 @@ def set_status(instance: str, action: str):
                 action, instance))
 
 
-def notified_set_status(instance: str, action: str, reason: str = '', persistent: bool = False):
+def notified_set_status(instance: str, action: str, message: str = '', persistent: bool = False):
     """Notifies the Players on the Server if applicable and sets the Service Status.
 
     Arguments:
@@ -101,7 +101,7 @@ def notified_set_status(instance: str, action: str, reason: str = '', persistent
         action {str} -- The systemd action to apply to the service. Can be "start", "restart", "stop".
 
     Keyword Arguments:
-        reason {str} -- The Reason the Server is shutting down.
+        message {str} -- A message relayed to Server Chat, e.g. reason the Server is shutting down.
         persistent {bool} -- If True, the Server will not start after a Machine reboot (default: {False})
         restart {bool} -- If True, persistent wil be ignored and the server wil be restarted (default: {False})
     """
@@ -115,8 +115,7 @@ def notified_set_status(instance: str, action: str, reason: str = '', persistent
 
     if action in ("stop", "restart"):
         msgcol = "6" if action == "restart" else "4"
-        msg = "say §{0}Server {1} pending.".format(msgcol, action)
-        if reason:
-            msg += " Reason: {0}".format(reason)
-            proc.mc_exec(instance, msg.sproc.it())
+        msg = "say §{0}Server {1} pending".format(msgcol, action)
+        msg += ": {0}".format(message) if message else "."
+        proc.mc_exec(instance, shlex.split(msg))
     set_status(instance, action)
