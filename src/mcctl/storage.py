@@ -270,8 +270,7 @@ def remove_jar(type_id: str):
 
     if not del_all:
         del_path = base_path / "{}.jar".format(type_id.replace(":", "/"))
-        msg = "Are you absolutely sure you want to remove the Server Jar '{}'? [y/n]: ".format(
-            type_id)
+        msg = "Are you absolutely sure you want to remove the Server Jar '{}'? [y/n]: ".format(type_id)
     else:
         del_path = base_path
         msg = "Are you sure you want to remove ALL cached Server Jars? [y/n]: "
@@ -279,8 +278,8 @@ def remove_jar(type_id: str):
     if not del_path.exists():
         raise FileNotFoundError(
             "Type-ID not found in cache: {}".format(del_path))
-    ans = input(msg)
-    while ans.lower() not in ("y", "n"):
+    ans = input(msg).lower()
+    while ans not in ("y", "n"):
         ans = input("Please answer [y]es or [n]o: ")
     if ans == "y":
         if not del_all:
