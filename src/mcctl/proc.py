@@ -40,7 +40,7 @@ def attach(instance: str):
 
     if not service.is_active(instance):
         raise OSError("The Server is not running")
-    cmd = shlex.split('screen -r mc-{}'.format(instance))
+    cmd = shlex.split(f"screen -r mc-{instance}")
     proc = sproc.Popen(cmd)
     proc.wait()
 
@@ -58,7 +58,8 @@ def shell(instance_subfolder: str, shell_path: Path):
     if instance_subfolder:
         sh_cwd = storage.get_instance_path(instance_subfolder)
         if not sh_cwd.exists():
-            raise FileNotFoundError("Instance or subfolder not found: {}".format(sh_cwd))
+            raise FileNotFoundError(
+                f"Instance or subfolder not found: {sh_cwd}")
     else:
         sh_cwd = storage.get_home_path()
 
@@ -97,7 +98,7 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
         jar_cmd = " ".join(command)
         # Use ^U^Y to cut and paste Text already in the Session
         cmd = shlex.split(
-            'screen -p 0 -S mc-{0} -X stuff "^U{1}^M^Y"'.format(instance, jar_cmd))
+            f"screen -p 0 -S mc-{instance} -X stuff '^U{jar_cmd}^M^Y'")
         proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
         proc.wait()
 
@@ -183,17 +184,16 @@ def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
     Returns:
         bool -- True: The server stopped as expected. False: The server had to be killed.
     """
-
-    cmd = shlex.split('/bin/java -jar {}'.format(jar_path))
+    cmd = shlex.split(f"/bin/java -jar {jar_path}")
     proc = sproc.Popen(cmd, cwd=jar_path.parent, stdout=sproc.PIPE,  # nopep8 pylint: disable=subprocess-popen-preexec-fn
                        stderr=sproc.PIPE, preexec_fn=demote())
 
     fps = 4
     signaled = False
     success = False
-    for i in range(kill_sec*fps+1):
-        print("\r{} Setting up config files...".format(compute(2)), end="")
-        time.sleep(1/fps)
+    for i in range(kill_sec * fps + 1):
+        print(f"\r{compute(2)} Setting up config files...", end="")
+        time.sleep(1 / fps)
         if not signaled and watch_file is not None and watch_file.exists():
             proc.terminate()
             signaled = True
@@ -214,9 +214,8 @@ def edit(file_path: Path, editor: str):
     Arguments:
         file_path {Path} -- The file to be edited in the Editor.
     """
-
-    cmd = shlex.split("{0} '{1}'".format(editor, file_path))
-    proc = sproc.Popen(cmd, preexec_fn=demote()) # nopep8 pylint: disable=subprocess-popen-preexec-fn
+    cmd = shlex.split(f"{editor} '{file_path}'")
+    proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
     proc.wait()
 
 

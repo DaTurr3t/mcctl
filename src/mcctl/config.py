@@ -43,9 +43,8 @@ def properties_to_dict(property_list: list) -> dict:
             try:
                 key, value = line.split("=", 1)
                 property_dict[key] = value
-            except:
-                raise ValueError(
-                    "Unable to set Property '{}'".format(line))
+            except KeyError:
+                raise ValueError(f"Unable to set Property '{line}'") from None
     return property_dict
 
 
@@ -84,7 +83,7 @@ def set_properties(file_path: Path, properties: dict):
 
     new_config = []
     for key, value in old_config.items():
-        new_config.append("{0}={1}".format(key, value))
+        new_config.append(f"{key}={value}")
 
     with open(file_path, "w") as config_file:
         config_file.write('\n'.join(new_config) + '\n')

@@ -59,7 +59,7 @@ def create(instance: str, source: str, memory: str, properties: list, literal_ur
             service.set_status(instance, "start")
 
         started = "and started " if start else ""
-        print("Configured {0}with Version '{1}'.".format(started, version))
+        print(f"Configured {started}with Version '{version}'.")
 
     else:
         print("How can you not agree that tacos are tasty?!?")
@@ -100,8 +100,8 @@ def get_instance_list(filter_str: str = ''):
 
             run_status = "Active" if service.is_active(name) else "Inactive"
             contents = template % (
-                name, version, "{0}/{1}".format(online,
-                                                cfg.get("max-players")),
+                name, version,
+                f"{online}/{cfg.get('max-players')}",
                 run_status, service.is_enabled(name))
             print(contents)
 
@@ -122,7 +122,7 @@ def mc_ls(what: str, filter_str: str = ''):
     elif what == 'instances':
         get_instance_list(filter_str)
     else:
-        raise ValueError("Cannot List '{}'".format(what))
+        raise ValueError(f"Cannot List '{what}'")
 
 
 def rename(instance: str, new_name: str):
@@ -160,10 +160,10 @@ def update(instance: str, source: str, literal_url: bool = False, restart: bool 
     additions = ''
     if service.is_active(instance) and restart:
         service.notified_set_status(
-            instance, "restart", "Updating to Version {}".format(version))
+            instance, "restart", f"Updating to Version {version}")
     else:
         additions = " Manual restart required."
-    print("Update successful.{0}".format(additions))
+    print(f"Update successful.{additions}")
 
 
 def configure(instance: str, edit_paths: list, properties: list, editor: str, restart: bool = False):

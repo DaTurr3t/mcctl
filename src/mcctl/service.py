@@ -38,9 +38,8 @@ def is_active(instance: str) -> bool:
     Returns:
         bool -- true: Server running, false: Server inactive/dead
     """
-
     service_instance = "@".join((UNIT_NAME, instance))
-    test_cmd = shlex.split("systemctl is-active {0}".format(service_instance))
+    test_cmd = shlex.split(f"systemctl is-active {service_instance}")
     test_out = sproc.run(test_cmd, stdout=sproc.PIPE,
                          stderr=sproc.PIPE, check=False)
     return test_out.returncode == 0
@@ -59,7 +58,7 @@ def is_enabled(instance: str) -> bool:
     """
 
     service_instance = "@".join((UNIT_NAME, instance))
-    test_cmd = shlex.split("systemctl is-enabled {0}".format(service_instance))
+    test_cmd = shlex.split(f"systemctl is-enabled {service_instance}")
     test_out = sproc.run(test_cmd, stdout=sproc.PIPE,
                          stderr=sproc.PIPE, check=False)
     return test_out.returncode == 0
@@ -76,12 +75,11 @@ def set_status(instance: str, action: str):
         action {str} -- The systemd action to apply to the service.
             Can be "start", "restart", "stop", "enable", "disable".
     """
-
     allowed = ("start", "restart", "stop", "enable", "disable")
-    assert action in allowed, "Invalid action '{}'".format(action)
+    assert action in allowed, f"Invalid action '{action}'"
 
     service_instance = "@".join((UNIT_NAME, instance))
-    cmd = shlex.split("systemctl {0} {1}".format(action, service_instance))
+    cmd = shlex.split(f"systemctl {action} {service_instance}")
     reset = proc.run_as(0, 0)
     sproc.run(cmd, check=True)
     proc.run_as(*reset)
@@ -89,8 +87,7 @@ def set_status(instance: str, action: str):
     if action in ("start", "restart", "stop"):
         time.sleep(1)
         if is_active(instance) != (action == "stop"):
-            raise OSError("Command Failed! (Service Action '{0}' on '{1}' failed)".format(
-                action, instance))
+            raise OSError(f"Command Failed! ({action} of '{instance}' failed)")
 
 
 def notified_set_status(instance: str, action: str, message: str = '', persistent: bool = False):
@@ -107,7 +104,7 @@ def notified_set_status(instance: str, action: str, message: str = '', persisten
     """
 
     allowed = ("start", "restart", "stop")
-    assert action in allowed, "Invalid action '{}'".format(action)
+    assert action in allowed, f"Invalid action '{action}'"
 
     if persistent and action != "restart":
         persistent_action = {"start": "enable", "stop": "disable"}
@@ -115,7 +112,7 @@ def notified_set_status(instance: str, action: str, message: str = '', persisten
 
     if action in ("stop", "restart"):
         msgcol = "6" if action == "restart" else "4"
-        msg = "say §{0}Server {1} pending".format(msgcol, action)
-        msg += ": {0}".format(message) if message else "."
+        msg = f"say §{msgcol}Server {action} pending"
+        msg += f": {message}" if message else "."
         proc.mc_exec(instance, shlex.split(msg))
     set_status(instance, action)

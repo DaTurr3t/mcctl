@@ -50,8 +50,9 @@ def get_vanilla_download_url(version_tag: str, manifest_url: str) -> tuple:
             download_url = version.get("url")
             break
     version_data = rest_get(download_url)
-    resolved_tag = "vanilla:{}".format(version_tag)
-    return version_data.get("downloads").get("server").get("url"), resolved_tag
+    resolved_tag = f"vanilla:{version_tag}"
+    url = version_data.get("downloads", {}).get("server", {}).get("url")
+    return url, resolved_tag
 
 
 def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
@@ -102,8 +103,9 @@ def get_spigot_download_url(version_tag: str, base_url: str) -> tuple:
     else:
         resolved_version = version_tag
 
-    resolved_tag = "spigot:{}".format(resolved_version)
-    return "{0}{1}.jar".format(SOURCES.get('spigot').get('download_url'), resolved_version), resolved_tag
+    resolved_tag = f"spigot:{resolved_version}"
+    url = SOURCES.get('spigot', {}).get('download_url')
+    return f"{url}{resolved_version}.jar", resolved_tag
 
 
 SOURCES = {
@@ -135,13 +137,12 @@ def get_download_url(server_tag: str) -> tuple:
     Returns:
         tuple -- A tuple with the download URL and the complete, resolved Tag
     """
-
-    assert ":" in server_tag, "Invalid Server Tag '{}'".format(server_tag)
+    assert ":" in server_tag, f"Invalid Server Tag '{server_tag}'"
     type_tag, version_tag = server_tag.split(":", 1)
     try:
         url, resolved_tag = SOURCES.get(type_tag).get('func')(version_tag, SOURCES.get(type_tag).get('url'))
     except AttributeError:
-        raise ValueError("Unsupported server type: '{}'".format(type_tag))
+        raise ValueError(f"Unsupported server type: '{type_tag}'") from None
 
     return url, resolved_tag
 
@@ -231,8 +232,7 @@ def progress(current: int, elapsed: int, total: int):
     char_idx = int((elapsed * spinner.get('fps')) % len(chars))
 
     percent = current * 100 / total
-    out = "\r%s %3.0f%% %*dkB / %dkB" % (
-        chars[char_idx], percent, len(str(total//1024)), current/1024, total/1024)
+    out = f"\r{chars.get(char_idx)} {percent:3.0f}% {current / 1024 :>{len(str(total // 1024))}.0f}kB / {(total/1024):.0f}kB"
     print(out, end="")
 
 
@@ -246,9 +246,8 @@ def join_url(base: str, *parts: str) -> str:
     Returns:
         str -- The complete, joined URL
     """
-
-    path = "/".join(list([x.strip("/") for x in parts]))
-    return "{}/{}".format(base.rstrip("/"), path)
+    path = "/".join([x.strip("/") for x in parts])
+    return f"{base.rstrip('/')}/{path}"
 
 
 def pull(source: str, literal_url: bool = False) -> Path:
@@ -270,11 +269,11 @@ def pull(source: str, literal_url: bool = False) -> Path:
         url = source
         # Generate artificial Version Tag
         url_hash = hashlib.sha1(url.encode()).hexdigest()
-        tag = "other/{}".format(url_hash[:12])
+        tag = f"other/{url_hash[:12]}"
     else:
         url, tag = get_download_url(source)
 
-    print("Pulling version '{}'".format(tag))
+    print(f"Pulling version '{tag}'")
     dest = storage.get_jar_path(tag)
 
     if not dest.is_file():

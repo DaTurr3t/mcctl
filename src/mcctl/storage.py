@@ -76,7 +76,7 @@ def get_jar_path(type_id: str = '', bare: bool = False):
         [type]: [description]
     """
     assert (type_id or bare) and ':' in type_id, "No valid Type-ID supplied"
-    return get_home_path() / "jars" / "{}.jar".format(type_id.replace(":", "/"))
+    return get_home_path() / "jars" / f"{type_id.replace(':', '/')}.jar"
 
 
 def get_child_paths(path: Path) -> list:
@@ -222,8 +222,8 @@ def export(instance: str, zip_path=None, compress: bool = False, world_only: boo
     """
 
     if not zip_path:
-        zip_path = Path("{0}_{1}.zip".format(
-            instance, datetime.now().strftime("%y-%m-%d-%H.%M.%S")))
+        zip_path = Path(
+            f"{instance}_{datetime.now().strftime('%y-%m-%d-%H.%M.%S')}.zip")
 
     server_path = get_instance_path(instance)
 
@@ -240,12 +240,11 @@ def export(instance: str, zip_path=None, compress: bool = False, world_only: boo
         for file_path in file_list:
             full_path = server_path / file_path
             written += full_path.stat().st_size
-            sys.stdout.write("\r[%3.0d%%] Writing: %s...\033[K" % (
-                written * 100 / total_size, file_path))
+            sys.stdout.write(f"\r[{(written * 100 / total_size):3.0f}%] Writing: {file_path}...\033[K")
             zip_file.write(full_path, file_path)
     print()
     chown(zip_path, os.getlogin())
-    print("Archive saved in '{}'".format(zip_path))
+    print(f"Archive saved in '{zip_path}'")
     return zip_path
 
 
@@ -258,15 +257,14 @@ def remove(instance: str, confirm: bool = True):
     Keyword Arguments:
         confirm {bool} -- Ask the user if they are sure to delete the instance. (default: {True})
     """
-
     del_path = get_instance_path(instance)
     if not del_path.exists():
-        raise FileNotFoundError("Instance Path not found: {}".format(del_path))
+        raise FileNotFoundError(f"Instance Path not found: {del_path}")
     if (service.is_enabled(instance) or service.is_active(instance)):
         raise OSError("The server is still running and/or persistent")
     if confirm:
         ans = input(
-            "Are you absolutely sure you want to remove the Instance '{}'? [y/n]: ".format(instance))
+            f"Are you absolutely sure you want to remove the Instance '{instance}'? [y/n]: ")
         while ans.lower() not in ("y", "n"):
             ans = input("Please answer [y]es or [n]o: ")
     else:
@@ -285,15 +283,13 @@ def remove_jar(type_id: str):
     del_all = type_id == "all"
     if not del_all:
         del_path = get_jar_path(type_id)
-        msg = "Are you absolutely sure you want to remove the Server Jar '{}'? [y/n]: ".format(
-            type_id)
+        msg = f"Are you absolutely sure you want to remove the Server Jar '{type_id}'? [y/n]: "
     else:
         del_path = get_jar_path(bare=True)
         msg = "Are you sure you want to remove ALL cached Server Jars? [y/n]: "
 
     if not del_path.exists():
-        raise FileNotFoundError(
-            "Type-ID not found in cache: {}".format(del_path))
+        raise FileNotFoundError(f"Type-ID not found in cache: {del_path}")
     ans = input(msg).lower()
     while ans not in ("y", "n"):
         ans = input("Please answer [y]es or [n]o: ")
@@ -341,7 +337,7 @@ def tmpcopy(file_path: Path) -> Path:
         Path: The Path where the temporary file is saved.
     """
     tmpid = ''.join(random.choice(string.ascii_letters) for _ in range(16))
-    tmp_path = file_path.parent / Path("{0}.{1}".format(file_path.name, tmpid))
+    tmp_path = file_path.parent / Path(f"{file_path.name}.{tmpid}")
     shutil.copy(file_path, tmp_path)
     return tmp_path
 

@@ -289,7 +289,7 @@ def main():
     except (KeyError, OSError) as ex:
         if args.verbose:
             raise
-        print("Process Elevation failed: {}".format(ex))
+        print(f"Process Elevation failed: {ex}")
         sys.exit(1)
 
     if plvl.get('needs_demote'):
@@ -298,7 +298,7 @@ def main():
         try:
             user_ids = proc.get_ids(user)
         except KeyError as ex:
-            print("User '{0}' not found: {1}".format(user, ex))
+            print(f"User '{user}' not found: {ex}")
             sys.exit(1)
         proc.run_as(*user_ids)
 
@@ -312,8 +312,7 @@ def main():
     except Exception as ex:  # pylint: disable=broad-except
         if args.verbose:
             raise
-        print("Unable to {0}: {1}".format(
-            args.err_template.format(args=args), ex))
+        print(f"Unable to {args.err_template.format(args=args)}: {ex}")
         sys.exit(1)
     except KeyboardInterrupt:
         print("Interrupted by User")

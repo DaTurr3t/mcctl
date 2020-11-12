@@ -49,4 +49,4 @@ def write_cfg():
             with open(GLOBALCFG, 'w') as configfile:
                 cfg.write(configfile)
         except OSError as ex:
-            print("WARN: Unable to write Config: {}".format(ex))
+            print(f"WARN: Unable to write Config: {ex}")
