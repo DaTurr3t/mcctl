@@ -18,9 +18,10 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http:// www.gnu.org/licenses/>.
 
-import gzip
-import sys
+
 import os
+import sys
+import gzip
 import shutil
 import random
 import string
@@ -28,6 +29,7 @@ import hashlib
 import zipfile as zf
 from pathlib import Path
 from datetime import datetime
+from grp import getgrgid
 from pwd import getpwnam
 from mcctl import service, config, CFGVARS
 
@@ -102,11 +104,12 @@ def chown(path: Path, user: str, group=None):
         user {str} -- User that should own the path.
 
     Keyword Arguments:
-        group {[type]} -- Group that should own the path. (default: {None})
+        group {str} -- Group that should own the path. (default: {None})
     """
 
     if not group:
-        group = getpwnam(user).pw_gid
+        gid = getpwnam(user).pw_gid
+        group = getgrgid(gid).gr_name
     if path.is_dir():
         file_list = get_child_paths(path)
     else:
@@ -305,14 +308,9 @@ def inspect(instance: str, limit: int = 0):
 
     lines = []
     for log in reversed(logs):
-        try:
-            if log.name.endswith(".gz"):
-                log_file = gzip.open(log, "rt")
-            else:
-                log_file = open(log)
+        opener = gzip.open if log.name.endswith(".gz") else open
+        with opener(log, "rt") as log_file:
             lines = log_file.readlines() + lines
-        finally:
-            log_file.close()
         if len(lines) >= limit and limit != 0:
             break
 

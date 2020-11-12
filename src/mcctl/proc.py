@@ -91,26 +91,26 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
 
     log_path = storage.get_instance_path(instance) / "logs/latest.log"
 
-    file_hnd = open(log_path)
-    old_count = sum(1 for line in file_hnd) - 1
+    with open(log_path) as log_file:
+        old_count = sum(1 for line in log_file) - 1
 
-    jar_cmd = " ".join(command)
-    cmd = shlex.split(
-        'screen -p 0 -S mc-{0} -X stuff "^U{1}^M"'.format(instance, jar_cmd))
-    proc = sproc.Popen(cmd, preexec_fn=demote()) # nopep8 pylint: disable=subprocess-popen-preexec-fn
-    proc.wait()
+        jar_cmd = " ".join(command)
+        # Use ^U^Y to cut and paste Text already in the Session
+        cmd = shlex.split(
+            'screen -p 0 -S mc-{0} -X stuff "^U{1}^M^Y"'.format(instance, jar_cmd))
+        proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
+        proc.wait()
 
-    i = 0
-    while i < max_retries:
-        i += 1
-        time.sleep(pollrate)
-        file_hnd.seek(0)
-        for j, line in enumerate(file_hnd):
-            if j > old_count:
-                i = max_retries - max_flush_retries
-                print(line.rstrip())
-                old_count += 1
-    file_hnd.close()
+        i = 0
+        while i < max_retries:
+            i += 1
+            time.sleep(pollrate)
+            log_file.seek(0)
+            for j, line in enumerate(log_file):
+                if j > old_count:
+                    i = max_retries - max_flush_retries
+                    print(line.rstrip())
+                    old_count += 1
 
 
 def get_ids(user: str) -> tuple:
