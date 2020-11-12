@@ -266,7 +266,6 @@ def pull(source: str, literal_url: bool = False) -> Path:
         Path -- The path of the saved .jar-file.
     """
 
-    base_dest = storage.get_home_path() / "jars"
     if literal_url:
         url = source
         # Generate artificial Version Tag
@@ -276,7 +275,7 @@ def pull(source: str, literal_url: bool = False) -> Path:
         url, tag = get_download_url(source)
 
     print("Pulling version '{}'".format(tag))
-    dest = base_dest / "{}.jar".format(tag.replace(":", "/"))
+    dest = storage.get_jar_path(tag)
 
     if not dest.is_file():
         storage.create_dirs(dest.parent)

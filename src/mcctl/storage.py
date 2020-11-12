@@ -65,6 +65,20 @@ def get_instance_path(instance: str = '', bare: bool = False) -> Path:
     return get_home_path() / "instances" / instance
 
 
+def get_jar_path(type_id: str = '', bare: bool = False):
+    """Returns the assembled asolute Path of a cached .jar-File
+
+    Args:
+        type_id (str, optional): The type_id of the .jar-File. Defaults to ''.
+        bare (bool, optional): bare {bool} -- Allow returning the bare Jar Cache Folder. Defaults to False.
+
+    Returns:
+        [type]: [description]
+    """
+    assert (type_id or bare) and ':' in type_id, "No valid Type-ID supplied"
+    return get_home_path() / "jars" / "{}.jar".format(type_id.replace(":", "/"))
+
+
 def get_child_paths(path: Path) -> list:
     """Wrapper to get all subdirectories and files.
 
@@ -268,14 +282,13 @@ def remove_jar(type_id: str):
         type_id {str} -- The type_id of the .jar-File to be deleted.
     """
 
-    base_path = get_home_path() / "jars"
     del_all = type_id == "all"
-
     if not del_all:
-        del_path = base_path / "{}.jar".format(type_id.replace(":", "/"))
-        msg = "Are you absolutely sure you want to remove the Server Jar '{}'? [y/n]: ".format(type_id)
+        del_path = get_jar_path(type_id)
+        msg = "Are you absolutely sure you want to remove the Server Jar '{}'? [y/n]: ".format(
+            type_id)
     else:
-        del_path = base_path
+        del_path = get_jar_path(bare=True)
         msg = "Are you sure you want to remove ALL cached Server Jars? [y/n]: "
 
     if not del_path.exists():
