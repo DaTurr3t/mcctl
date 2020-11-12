@@ -23,7 +23,7 @@ from mcstatus import MinecraftServer
 from mcctl import web, storage, service, config, proc
 
 
-def create(instance: str, source: str, memory: str, properties: list, start: bool):
+def create(instance: str, source: str, memory: str, properties: list, literal_url: bool = False, start: bool = False):
     """Creates a new Minecraft Server Instance.
 
     Downloads the correct jar-file, configures the server and asks the user to accept the EULA.
@@ -33,14 +33,17 @@ def create(instance: str, source: str, memory: str, properties: list, start: boo
         source {str} -- The Type ID of the Minecraft Server Binary.
         memory {str} -- The Memory-String. Can be appended by K, M or G, to signal Kilo- Mega- or Gigabytes.
         properties {list} -- A list with Strings in the format of "KEY=VALUE".
-        start {bool} -- Starts the Server directly if set to True.
+        literal_url {bool} -- Determines if the TypeID is a literal URL. Default: False
+        start {bool} -- Starts the Server directly if set to True. Default: False
     """
 
     instance_path = storage.get_instance_path(instance)
-    assert not instance_path.exists(), "Instance already exists"
+    if instance_path.exists():
+        raise FileExistsError("Instance already exists")
+
     storage.create_dirs(instance_path)
 
-    jar_path_src, version = web.pull(source)
+    jar_path_src, version = web.pull(source, literal_url)
     jar_path_dest = instance_path / "server.jar"
     storage.copy(jar_path_src, jar_path_dest)
     proc.pre_start(jar_path_dest)
@@ -132,8 +135,8 @@ def rename(instance: str, new_name: str):
         new_name {str} -- New name of the instance
     """
 
-    assert not (service.is_enabled(instance) or service.is_active(
-        instance)), "The server is still persistent and/or running"
+    if (service.is_enabled(instance) or service.is_active(instance)):
+        raise OSError("The server is still persistent and/or running")
     server_path = storage.get_instance_path(instance)
     server_path.rename(server_path.parent / new_name)
 
