@@ -103,7 +103,8 @@ def accept_eula(instance_path: Path) -> bool:
     """
 
     file_path = instance_path / "eula.txt"
-    assert file_path.exists(), "EULA not found"
+    if not file_path.exists():
+        raise FileNotFoundError("EULA File not found")
     with open(file_path, "r+") as eula:
         contents = []
         for line in eula:

@@ -38,7 +38,8 @@ def attach(instance: str):
         instance {str} -- The name of the instance.
     """
 
-    assert service.is_active(instance), "The Server is not running"
+    if not service.is_active(instance):
+        raise OSError("The Server is not running")
     cmd = shlex.split('screen -r mc-{}'.format(instance))
     proc = sproc.Popen(cmd)
     proc.wait()
@@ -56,7 +57,8 @@ def shell(instance_subfolder: str, shell_path: Path):
 
     if instance_subfolder:
         sh_cwd = storage.get_instance_path(instance_subfolder)
-        assert sh_cwd.exists(), "Instance or subfolder not found: {}".format(sh_cwd)
+        if not sh_cwd.exists():
+            raise FileNotFoundError("Instance or subfolder not found: {}".format(sh_cwd))
     else:
         sh_cwd = storage.get_home_path()
 
@@ -84,7 +86,8 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
         max_flush_retries {int} -- The amount of retries when some lines have been pushed to console. (default: {10})
     """
 
-    assert service.is_active(instance), "The Server is not running"
+    if not service.is_active(instance):
+        raise OSError("The Server is not running")
 
     log_path = storage.get_instance_path(instance) / "logs/latest.log"
 

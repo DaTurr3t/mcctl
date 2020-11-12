@@ -243,9 +243,10 @@ def remove(instance: str, confirm: bool = True):
     """
 
     del_path = get_instance_path(instance)
-    assert del_path.exists(), "Instance Path not found: {}".format(del_path)
-    assert not (service.is_enabled(instance) or service.is_active(
-        instance)), "The server is still running and/or persistent"
+    if not del_path.exists():
+        raise FileNotFoundError("Instance Path not found: {}".format(del_path))
+    if (service.is_enabled(instance) or service.is_active(instance)):
+        raise OSError("The server is still running and/or persistent")
     if confirm:
         ans = input(
             "Are you absolutely sure you want to remove the Instance '{}'? [y/n]: ".format(instance))
@@ -275,7 +276,9 @@ def remove_jar(type_id: str):
         del_path = base_path
         msg = "Are you sure you want to remove ALL cached Server Jars? [y/n]: "
 
-    assert del_path.exists(), "Type-ID not found in cache: {}".format(del_path)
+    if not del_path.exists():
+        raise FileNotFoundError(
+            "Type-ID not found in cache: {}".format(del_path))
     ans = input(msg)
     while ans.lower() not in ("y", "n"):
         ans = input("Please answer [y]es or [n]o: ")
@@ -296,7 +299,8 @@ def inspect(instance: str, limit: int = 0):
         limit {int} -- The amount of lines to output. 0 returns all lines. (default: {0})
     """
 
-    assert limit >= 0, "Invalid Line Limit: {}".format(limit)
+    if limit < 0:
+        raise OverflowError("Line Limit is lower than minimum of 0")
     log_path = get_instance_path(instance) / "logs"
     logs = get_child_paths(log_path)
 

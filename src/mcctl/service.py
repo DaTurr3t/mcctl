@@ -20,7 +20,7 @@
 
 import shlex
 import time
-import subprocess as sp
+import subprocess as sproc
 from mcctl import CFGVARS, proc
 
 
@@ -41,7 +41,8 @@ def is_active(instance: str) -> bool:
 
     service_instance = "@".join((UNIT_NAME, instance))
     test_cmd = shlex.split("systemctl is-active {0}".format(service_instance))
-    test_out = sp.run(test_cmd, stdout=sp.PIPE, stderr=sp.PIPE, check=False)
+    test_out = sproc.run(test_cmd, stdout=sproc.PIPE,
+                         stderr=sproc.PIPE, check=False)
     return test_out.returncode == 0
 
 
@@ -59,7 +60,8 @@ def is_enabled(instance: str) -> bool:
 
     service_instance = "@".join((UNIT_NAME, instance))
     test_cmd = shlex.split("systemctl is-enabled {0}".format(service_instance))
-    test_out = sp.run(test_cmd, stdout=sp.PIPE, stderr=sp.PIPE, check=False)
+    test_out = sproc.run(test_cmd, stdout=sproc.PIPE,
+                         stderr=sproc.PIPE, check=False)
     return test_out.returncode == 0
 
 
@@ -75,22 +77,20 @@ def set_status(instance: str, action: str):
             Can be "start", "restart", "stop", "enable", "disable".
     """
 
-    assert action in ("start", "restart", "stop", "enable",
-                      "disable"), "Invalid action '{}'".format(action)
+    allowed = ("start", "restart", "stop", "enable", "disable")
+    assert action in allowed, "Invalid action '{}'".format(action)
 
     service_instance = "@".join((UNIT_NAME, instance))
     cmd = shlex.split("systemctl {0} {1}".format(action, service_instance))
     reset = proc.run_as(0, 0)
-    out = sp.run(cmd, check=False)
+    sproc.run(cmd, check=True)
     proc.run_as(*reset)
 
-    assert out.returncode == 0, "Exit Code {0} for action '{1}'".format(
-        out.returncode, action)
     if action in ("start", "restart", "stop"):
         time.sleep(1)
-        assert is_active(instance) != (
-            action == "stop"), "Command Failed! (Service Action '{0}' on '{1}' failed)".format(
-                action, instance)
+        if is_active(instance) != (action == "stop"):
+            raise OSError("Command Failed! (Service Action '{0}' on '{1}' failed)".format(
+                action, instance))
 
 
 def notified_set_status(instance: str, action: str, reason: str = '', persistent: bool = False):
@@ -118,5 +118,5 @@ def notified_set_status(instance: str, action: str, reason: str = '', persistent
         msg = "say §{0}Server {1} pending.".format(msgcol, action)
         if reason:
             msg += " Reason: {0}".format(reason)
-            proc.mc_exec(instance, msg.split())
+            proc.mc_exec(instance, msg.sproc.it())
     set_status(instance, action)
