@@ -146,6 +146,21 @@ def run_as(uid: int, gid: int) -> tuple:
     return old_ids
 
 
+@contextmanager
+def managed_run_as(uid: int, gid: int):
+    """Manage the User Context and reset it after execution of the "with"-Block.
+
+    Args:
+        uid (int): The Effective User ID that is set during the "with"-Block.
+        gid (int): The Effective Group ID that is set during the "with"-Block.
+    """
+    old = run_as(uid, gid)
+    try:
+        yield
+    finally:
+        run_as(*old)
+
+
 def demote() -> Callable:
     """Demote a subprocess. for use in preexec_fn.
 

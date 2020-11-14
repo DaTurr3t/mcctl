@@ -79,10 +79,8 @@ def set_status(instance: str, action: str):
 
     service_instance = "@".join((UNIT_NAME, instance))
     cmd = shlex.split(f"systemctl {action} {service_instance}")
-    reset = proc.run_as(0, 0)
-    sproc.run(cmd, check=True)
-    proc.run_as(*reset)
-
+    with proc.managed_run_as(0, 0):
+        sproc.run(cmd, check=True)
     if action in ("start", "restart", "stop"):
         time.sleep(1)
         if is_active(instance) != (action == "stop"):
