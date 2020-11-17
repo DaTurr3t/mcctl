@@ -57,7 +57,7 @@ def shell(instance_subfolder: str, shell_path: Path):
     """
     if instance_subfolder:
         sh_cwd = storage.get_instance_path(instance_subfolder)
-        if not sh_cwd.exists():
+        if not sh_cwd.is_dir():
             raise FileNotFoundError(
                 f"Instance or subfolder not found: {sh_cwd}")
     else:
@@ -211,7 +211,7 @@ def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
     for i in range(kill_sec * fps + 1):
         print(f"\r{compute(2)} Setting up config files...", end="")
         time.sleep(1 / fps)
-        if not signaled and watch_file is not None and watch_file.exists():
+        if not signaled and watch_file is not None and watch_file.is_file():
             proc.terminate()
             signaled = True
         elif i == kill_sec * fps:
