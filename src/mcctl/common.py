@@ -104,6 +104,28 @@ def get_instance_list(filter_str: str = ''):
             print(contents)
 
 
+def is_ready(instance: str) -> bool:
+    """Check if the Server is ready to serve connections/is fully started.
+
+    Args:
+        instance (str): The Instance ID.
+
+    Returns:
+        bool: True if the Server is ready to serve connections.
+    """
+    cfg = config.get_properties(
+        storage.get_instance_path(instance) / "server.properties")
+    port = int(cfg.get("server-port"))
+    try:
+        server = MinecraftServer('localhost', port)
+        status = server.status()
+        proto = status.version.protocol
+    except (ConnectionError, sock_error):
+        return False
+
+    return proto > -1
+
+
 def mc_ls(what: str, filter_str: str = ''):
     """List things such as jars or instances.
 

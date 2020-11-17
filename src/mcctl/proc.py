@@ -27,7 +27,7 @@ from typing import Callable
 from contextlib import contextmanager
 from pathlib import Path
 from pwd import getpwnam
-from mcctl import CFGVARS, storage, service
+from mcctl import CFGVARS, storage, service, common
 from mcctl.visuals import compute
 
 
@@ -87,7 +87,9 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
         max_flush_retries (int): The amount of retries when some lines have been pushed to console. (default: {10})
     """
     if not service.is_active(instance):
-        raise OSError("The Server is not running")
+        raise OSError("The Server is not running.")
+    elif not common.is_ready(instance):
+        raise OSError("The Server is not ready yet.")
 
     log_path = storage.get_instance_path(instance) / "logs/latest.log"
 
