@@ -223,7 +223,7 @@ def progress(current: int, elapsed: float, total: int):
     char_idx = int((elapsed * spinner.get('fps')) % len(chars))
 
     percent = current * 100 / total
-    out = f"\r{chars.get(char_idx)} {percent:3.0f}% {current / 1024 :>{len(str(total // 1024))}.0f}kB / {(total/1024):.0f}kB"
+    out = f"\r{chars[char_idx]} {percent:3.0f}% {current / 1024 :>{len(str(total // 1024))}.0f}kB / {(total/1024):.0f}kB"
     print(out, end="")
 
 

@@ -83,7 +83,7 @@ def set_status(instance: str, action: str):
         sproc.run(cmd, check=True)
     if action in ("start", "restart", "stop"):
         time.sleep(1)
-        if is_active(instance) != (action == "stop"):
+        if is_active(instance) == (action == "stop"):
             raise OSError(f"Command Failed! ({action} of '{instance}' failed).")
 
 
@@ -110,5 +110,8 @@ def notified_set_status(instance: str, action: str, message: str = '', persisten
         msgcol = "6" if action == "restart" else "4"
         msg = f"say §{msgcol}Server {action} pending"
         msg += f": {message}" if message else "."
-        proc.mc_exec(instance, shlex.split(msg))
+        try:
+            proc.mc_exec(instance, shlex.split(msg))
+        except ConnectionError:
+            pass
     set_status(instance, action)

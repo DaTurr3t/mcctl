@@ -102,7 +102,7 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
     if not service.is_active(instance):
         raise OSError("The Server is not running.")
     elif not common.is_ready(instance):
-        raise OSError("The Server is not ready yet.")
+        raise ConnectionError("The Server is starting up.")
 
     log_path = storage.get_instance_path(instance) / "logs/latest.log"
 
@@ -187,7 +187,7 @@ def demote() -> Callable:
 
     def set_ids():
 
-        if (os.getuid, os.getgid) != (user.pw_uid, user.pw_gid):
+        if os.getgid() + os.getuid() == 0:
             # Set EGID and EUID so that GID and UID can be set correctly.
             os.setegid(0)
             os.seteuid(0)

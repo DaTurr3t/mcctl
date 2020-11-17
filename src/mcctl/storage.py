@@ -74,8 +74,9 @@ def get_jar_path(type_id: str = '', bare: bool = False) -> Path:
     Returns:
         Path: The Path to the .jar-File supplied.
     """
-    assert (type_id or bare) and ':' in type_id, "No valid Type-ID supplied"
-    return get_home_path() / "jars" / f"{type_id.replace(':', '/')}.jar"
+    assert type_id and ':' in type_id or bare, "No valid Type-ID supplied"
+    bare_path = get_home_path() / "jars"
+    return bare_path if bare else bare_path / f"{type_id.replace(':', '/')}.jar"
 
 
 def get_child_paths(path: Path) -> list:
@@ -269,20 +270,20 @@ def remove(instance: str, confirm: bool = True):
             ans = input("Please answer [y]es or [n]o: ")
     else:
         ans = "y"
-    if ans == "y":
+    if ans.lower() == "y":
         shutil.rmtree(del_path)
 
 
-def remove_jar(type_id: str):
+def remove_jar(source: str):
     """Remove an .jar-File from disk.
 
     Arguments:
         type_id (str): The type_id of the .jar-File to be deleted.
     """
-    del_all = type_id == "all"
+    del_all = source == "all"
     if not del_all:
-        del_path = get_jar_path(type_id)
-        msg = f"Are you absolutely sure you want to remove the Server Jar '{type_id}'? [y/n]: "
+        del_path = get_jar_path(source)
+        msg = f"Are you absolutely sure you want to remove the Server Jar '{source}'? [y/n]: "
     else:
         del_path = get_jar_path(bare=True)
         msg = "Are you sure you want to remove ALL cached Server Jars? [y/n]: "

@@ -190,7 +190,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_exec.add_argument("command", nargs="+",
                              help="Command to execute in the Server Console.")
     parser_exec.set_defaults(
-        func=proc.mc_exec, err_template=action_instance_template)
+        func=proc.mc_exec, err_template="execute command on {args.instance}")
 
     parser_export = subparsers.add_parser(
         "export", parents=[instance_name_parser], help="Export an Instance to a zip File.")
