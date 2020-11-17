@@ -81,9 +81,13 @@ def filter_args(unfiltered_kwargs: dict, func: Callable) -> dict:
     sig = inspect.signature(func)
     filter_keys = [param.name for param in sig.parameters.values()
                    if param.kind == param.POSITIONAL_OR_KEYWORD]
-    filtered_dict = {filter_key: unfiltered_kwargs.get(filter_key)
-                     for filter_key in filter_keys
-                     if unfiltered_kwargs.get(filter_key) is not None}
+
+    filtered_dict = {}
+    for filter_key in filter_keys:
+        try:
+            filtered_dict[filter_key] = unfiltered_kwargs[filter_key]
+        except KeyError:
+            pass
 
     return filtered_dict
 
