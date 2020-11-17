@@ -40,7 +40,7 @@ def attach(instance: str):
         instance (str): The name of the instance.
     """
     if not service.is_active(instance):
-        raise OSError("The Server is not running")
+        raise OSError("The Server is not running.")
     cmd = shlex.split(f"screen -r mc-{instance}")
     proc = sproc.Popen(cmd)
     proc.wait()

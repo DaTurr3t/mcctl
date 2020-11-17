@@ -38,7 +38,7 @@ def create(instance: str, source: str, memory: str, properties: list, literal_ur
     """
     instance_path = storage.get_instance_path(instance)
     if instance_path.exists():
-        raise FileExistsError("Instance already exists")
+        raise FileExistsError("Instance already exists.")
 
     storage.create_dirs(instance_path)
 
@@ -143,7 +143,7 @@ def mc_ls(what: str, filter_str: str = ''):
     elif what == 'instances':
         get_instance_list(filter_str)
     else:
-        raise ValueError(f"Cannot List '{what}'")
+        raise ValueError(f"Cannot List '{what}'.")
 
 
 def rename(instance: str, new_name: str):
@@ -156,7 +156,7 @@ def rename(instance: str, new_name: str):
         new_name (str): New name of the Instance.
     """
     if (service.is_enabled(instance) or service.is_active(instance)):
-        raise OSError("The server is still persistent and/or running")
+        raise OSError("The server is still persistent and/or running.")
     server_path = storage.get_instance_path(instance)
     server_path.rename(server_path.parent / new_name)
 

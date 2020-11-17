@@ -84,7 +84,7 @@ def set_status(instance: str, action: str):
     if action in ("start", "restart", "stop"):
         time.sleep(1)
         if is_active(instance) != (action == "stop"):
-            raise OSError(f"Command Failed! ({action} of '{instance}' failed)")
+            raise OSError(f"Command Failed! ({action} of '{instance}' failed).")
 
 
 def notified_set_status(instance: str, action: str, message: str = '', persistent: bool = False):
