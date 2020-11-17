@@ -283,21 +283,15 @@ def main():
 
     try:
         proc.elevate(plvl.get('user'))
+        if plvl.get('needs_demote'):
+            user = CFGVARS.get('settings', 'server_user')
+            user_ids = proc.get_ids(user)
+            proc.run_as(*user_ids)
     except (KeyError, OSError) as ex:
         if args.verbose:
             raise
         print(f"Process Elevation failed: {ex}")
         sys.exit(1)
-
-    if plvl.get('needs_demote'):
-        # Starts Program as server_user even if Logged in as root.
-        user = CFGVARS.get('settings', 'server_user')
-        try:
-            user_ids = proc.get_ids(user)
-        except KeyError as ex:
-            print(f"User '{user}' not found: {ex}")
-            sys.exit(1)
-        proc.run_as(*user_ids)
 
     # Write Config if the Package is not imported.
     write_cfg()
@@ -309,7 +303,8 @@ def main():
     except Exception as ex:  # pylint: disable=broad-except
         if args.verbose:
             raise
-        print(f"Unable to {args.err_template.format(args=args)}: {ex}")
+        err_msg = args.err_template.format(args=args)
+        print(f"Unable to {err_msg}: {ex}")
         sys.exit(1)
     except KeyboardInterrupt:
         print("Interrupted by User")
