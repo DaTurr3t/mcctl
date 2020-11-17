@@ -48,7 +48,7 @@ def get_permlevel(args: ap.Namespace) -> dict:
     }
 
     perms = {
-        'user': CFGVARS.get('settings', 'server_user'),
+        'user': CFGVARS.get('system', 'server_user'),
         'needs_demote': False
     }
 
@@ -167,7 +167,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_config.add_argument(
         "-p", "--properties", nargs="+", help="Change server.properties options, e.g. server-port=25567 'motd=My new and cool Server'.")
     parser_config.set_defaults(
-        func=common.configure, err_template="configure '{args.instance}'", editor=CFGVARS.get('settings', 'default_editor'))
+        func=common.configure, err_template="configure '{args.instance}'", editor=CFGVARS.get('user', 'editor'))
 
     parser_create = subparsers.add_parser(
         "create", parents=[instance_name_parser, type_id_parser], help="Create a new Server Instance.", formatter_class=ap.RawTextHelpFormatter)
@@ -266,7 +266,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_shell = subparsers.add_parser(
         "shell", parents=[instance_subfolder_parser], help="Use a Shell to interactively edit a Server Instance.")
     parser_shell.set_defaults(func=proc.shell, err_template="invoke a Shell",
-                              shell_path=CFGVARS.get('settings', 'default_shell'))
+                              shell_path=CFGVARS.get('user', 'shell'))
 
     return parser
 
@@ -284,7 +284,7 @@ def main():
     try:
         proc.elevate(plvl.get('user'))
         if plvl.get('needs_demote'):
-            user = CFGVARS.get('settings', 'server_user')
+            user = CFGVARS.get('system', 'server_user')
             user_ids = proc.get_ids(user)
             proc.run_as(*user_ids)
     except (KeyError, OSError) as ex:

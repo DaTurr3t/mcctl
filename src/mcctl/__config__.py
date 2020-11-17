@@ -18,34 +18,60 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
-from configparser import ConfigParser
+from shutil import copy
 from pathlib import Path
+from os import getlogin, chmod
+from configparser import ConfigParser
 
 CFGVARS = ConfigParser()
 
-GLOBALCFG = Path("/etc/mcctl.conf")
-LOCALCFG = Path("~/.local/mcctl.conf")
+try:
+    _LOGIN_USER = getlogin()
+except FileNotFoundError:
+    _LOGIN_USER = "nobody"
 
-DEFAULTS = {
-    'systemd_service': 'mcserver@',
+_GLOBALCFG = Path("/etc/mcctl.conf")
+_USERCFG = Path("~/.local/mcctl.conf").expanduser()
+_TMPCFG = Path(f"/tmp/mcctl.{_LOGIN_USER}.conf")
+
+
+_SYSTEM_DEFAULTS = {
+    'systemd_service': 'mcserver',
     'server_user': 'mcserver',
-    'default_editor': '/usr/bin/vim',
-    'default_shell': '/usr/bin/bash'
 }
-CFGVARS['settings'] = DEFAULTS
+_USER_DEFAULTS = {
+    'editor': '/usr/bin/vim',
+    'shell': '/usr/bin/bash'
+}
+
+# Load User Vars and set Defaults.
+CFGVARS['system'] = _SYSTEM_DEFAULTS
+CFGVARS['user'] = _USER_DEFAULTS
+try:
+    _USERCFG_EXISTS = _USERCFG.is_file()
+except PermissionError:
+    _USERCFG_EXISTS = False
+
+if _USERCFG_EXISTS:
+    try:
+        copy(_USERCFG, _TMPCFG)
+        chmod(_TMPCFG, 0o0664)
+    except OSError as ex:
+        print(f"WARN: Unable to copy User Config: {ex}")
 
 # Overwrite default Values
-LOADED = bool(CFGVARS.read(GLOBALCFG))
-CFGVARS.read(LOCALCFG)
+_LOADED_FROM_DISK = bool(CFGVARS.read(_GLOBALCFG))
+CFGVARS.read(_TMPCFG)
 
 
 def write_cfg():
     """Write the Config File to prevent writing when running as module."""
-    if not LOADED:
+    if not _LOADED_FROM_DISK:
         cfg = ConfigParser()
-        cfg['settings'] = DEFAULTS
+        cfg['system'] = _SYSTEM_DEFAULTS
+        cfg['user'] = _USER_DEFAULTS
         try:
-            with open(GLOBALCFG, 'w') as configfile:
+            with open(_GLOBALCFG, 'w') as configfile:
                 cfg.write(configfile)
         except OSError as ex:
             print(f"WARN: Unable to write Config: {ex}")

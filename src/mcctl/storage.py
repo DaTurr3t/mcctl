@@ -34,7 +34,7 @@ from grp import getgrgid
 from pwd import getpwnam
 from mcctl import service, config, CFGVARS
 
-SERVER_USER = CFGVARS.get('settings', 'server_user')
+SERVER_USER = CFGVARS.get('system', 'server_user')
 
 
 def get_home_path(user_name: str = SERVER_USER) -> Path:

@@ -24,7 +24,7 @@ import subprocess as sproc
 from mcctl import CFGVARS, proc
 
 
-UNIT_NAME = CFGVARS.get('settings', 'systemd_service')
+UNIT_NAME = CFGVARS.get('system', 'systemd_service')
 
 
 def is_active(instance: str) -> bool:

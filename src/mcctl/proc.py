@@ -169,7 +169,7 @@ def demote() -> Callable:
     Returns:
         Callable: Returns a function executed by Popen() before running the external command.
     """
-    user_name = CFGVARS.get('settings', 'server_user')
+    user_name = CFGVARS.get('system', 'server_user')
     user = getpwnam(user_name)
 
     def set_ids():
