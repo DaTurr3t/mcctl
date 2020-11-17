@@ -91,12 +91,21 @@ def get_instance_list(filter_str: str = ''):
                 server = MinecraftServer('localhost', port)
                 status = server.status()
                 online = status.players.online
+                proto = status.version.protocol
                 version = status.version.name
             except (ConnectionError, sock_error):
                 online = 0
+                proto = -1
                 version = "n/a"
 
-            run_status = "Active" if service.is_active(name) else "Inactive"
+            if service.is_active(name):
+                if proto > -1:
+                    run_status = "Active"
+                else:
+                    run_status = "Starting"
+            else:
+                run_status = "Inactive"
+
             contents = template % (
                 name, version,
                 f"{online}/{cfg.get('max-players')}",
