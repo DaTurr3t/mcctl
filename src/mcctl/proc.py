@@ -59,12 +59,25 @@ def shell(instance_subfolder: str, shell_path: Path):
         sh_cwd = storage.get_instance_path(instance_subfolder)
         if not sh_cwd.is_dir():
             raise FileNotFoundError(
-                f"Instance or subfolder not found: {sh_cwd}")
+                f"Instance or subfolder not found: {sh_cwd}.")
     else:
         sh_cwd = storage.get_home_path()
 
     cmd = shlex.split(str(shell_path))
     proc = sproc.Popen(cmd, cwd=sh_cwd)
+    proc.wait()
+
+
+def edit(file_path: Path, editor: str):
+    """Attach to the console of a server.
+
+    Launches screen to reattach to the screen session of the server.
+
+    Arguments:
+        file_path (Path): The file to be edited in the Editor.
+    """
+    cmd = shlex.split(f"{editor} '{file_path}'")
+    proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
     proc.wait()
 
 
@@ -221,19 +234,6 @@ def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
             break
     print()
     return success
-
-
-def edit(file_path: Path, editor: str):
-    """Attach to the console of a server.
-
-    Launches screen to reattach to the screen session of the server.
-
-    Arguments:
-        file_path (Path): The file to be edited in the Editor.
-    """
-    cmd = shlex.split(f"{editor} '{file_path}'")
-    proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
-    proc.wait()
 
 
 def elevate(user: str = "root"):

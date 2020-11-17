@@ -231,10 +231,19 @@ def export(instance: str, zip_path=None, compress: bool = False, world_only: boo
         for file_path in file_list:
             full_path = server_path / file_path
             written += full_path.stat().st_size
-            sys.stdout.write(f"\r[{(written * 100 / total_size):3.0f}%] Writing: {file_path}...\033[K")
+            sys.stdout.write(
+                f"\r[{(written * 100 / total_size):3.0f}%] Writing: {file_path}...\033[K")
             zip_file.write(full_path, file_path)
     print()
-    chown(zip_path, os.getlogin())
+
+    try:
+        login_name = os.getlogin()
+    except FileNotFoundError:
+        login_name = None
+        print("WARN: Unable to retrieve Login Name.")
+    if login_name:
+        chown(zip_path, login_name)
+
     print(f"Archive saved in '{zip_path}'")
     return zip_path
 

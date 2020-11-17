@@ -209,7 +209,7 @@ def configure(instance: str, edit_paths: list, properties: list, editor: str, re
     if edit_paths:
         for file_path in edit_paths:
             # Check if a Temporary File of the Config already exists
-            if file_path not in list(paths.keys()):
+            if file_path not in paths.keys():
                 abspath = instance_path / file_path
                 tmp_path = storage.tmpcopy(abspath)
                 proc.edit(tmp_path, editor)

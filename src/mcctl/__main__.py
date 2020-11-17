@@ -163,7 +163,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_config = subparsers.add_parser(
         "config", parents=[instance_name_parser, restart_parser], help="Configure Files of a Minecraft Server Instance.")
     parser_config.add_argument(
-        "-e", "--edit", dest="edit_paths", metavar="FILE", help="Edit a File in the Instance Folder interactively.")
+        "-e", "--edit", nargs="+", dest="edit_paths", metavar="FILE", help="Edit a File in the Instance Folder interactively.")
     parser_config.add_argument(
         "-p", "--properties", nargs="+", help="Change server.properties options, e.g. server-port=25567 'motd=My new and cool Server'.")
     parser_config.set_defaults(
