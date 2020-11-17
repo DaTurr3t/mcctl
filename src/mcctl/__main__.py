@@ -23,7 +23,7 @@ import sys
 import inspect
 import argparse as ap
 from typing import Callable
-from mcctl.__config__ import write_cfg
+from mcctl.__config__ import read_cfg, write_cfg
 from mcctl import proc, storage, service, web, common, CFGVARS
 
 
@@ -44,7 +44,8 @@ def get_permlevel(args: ap.Namespace) -> dict:
         'export': None,
         'restart': None,
         'start': None,
-        'stop': None
+        'stop': None,
+        'write-cfg': None,
     }
 
     perms = {
@@ -268,6 +269,11 @@ def get_parser() -> ap.ArgumentParser:
     parser_shell.set_defaults(func=proc.shell, err_template="invoke a Shell",
                               shell_path=CFGVARS.get('user', 'shell'))
 
+    parser_wcfg = subparsers.add_parser(
+        "write-cfg", help="Write mcctl configuration and exit.")
+    parser_wcfg.set_defaults(
+        func=write_cfg, err_template="write Configuration File")
+
     return parser
 
 
@@ -277,6 +283,8 @@ def main():
     This function handles all arguments, elevation and parameters for functions.
     The logic is moved into the other files as much as possible.
     """
+    read_cfg()
+
     # Determine needed Permission Level and restart with sudo.
     args = get_parser().parse_args()
     plvl = get_permlevel(args)
@@ -292,9 +300,6 @@ def main():
             raise
         print(f"Process Elevation failed: {ex}")
         sys.exit(1)
-
-    # Write Config if the Package is not imported.
-    write_cfg()
 
     safe_kwargs = filter_args(vars(args), args.func)
 

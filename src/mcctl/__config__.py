@@ -18,21 +18,23 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
+import os
 from shutil import copy
 from pathlib import Path
-from os import getlogin, chmod
+from pwd import getpwnam
 from configparser import ConfigParser
 
 CFGVARS = ConfigParser()
 
 try:
-    _LOGIN_USER = getlogin()
+    LOGIN_USER = os.getlogin()
 except FileNotFoundError:
-    _LOGIN_USER = "nobody"
+    LOGIN_USER = "nobody"
+_USERDATA = getpwnam(LOGIN_USER)
 
 _GLOBALCFG = Path("/etc/mcctl.conf")
-_USERCFG = Path("~/.local/mcctl.conf").expanduser()
-_TMPCFG = Path(f"/tmp/mcctl.{_LOGIN_USER}.conf")
+_USERCFG = Path(f"{_USERDATA.pw_dir}/.local/mcctl.conf")
+_TMPCFG = Path(f"/tmp/mcctl.{LOGIN_USER}.conf")
 
 
 _SYSTEM_DEFAULTS = {
@@ -40,38 +42,42 @@ _SYSTEM_DEFAULTS = {
     'server_user': 'mcserver',
 }
 _USER_DEFAULTS = {
-    'editor': '/usr/bin/vim',
-    'shell': '/usr/bin/bash'
+    'editor': 'vim',
+    'shell': '/bin/bash'
 }
 
 # Load User Vars and set Defaults.
 CFGVARS['system'] = _SYSTEM_DEFAULTS
 CFGVARS['user'] = _USER_DEFAULTS
-try:
-    _USERCFG_EXISTS = _USERCFG.is_file()
-except PermissionError:
-    _USERCFG_EXISTS = False
-
-if _USERCFG_EXISTS:
-    try:
-        copy(_USERCFG, _TMPCFG)
-        chmod(_TMPCFG, 0o0664)
-    except OSError as ex:
-        print(f"WARN: Unable to copy User Config: {ex}")
-
-# Overwrite default Values
-_LOADED_FROM_DISK = bool(CFGVARS.read(_GLOBALCFG))
-CFGVARS.read(_TMPCFG)
 
 
-def write_cfg():
-    """Write the Config File to prevent writing when running as module."""
-    if not _LOADED_FROM_DISK:
-        cfg = ConfigParser()
-        cfg['system'] = _SYSTEM_DEFAULTS
-        cfg['user'] = _USER_DEFAULTS
+def read_cfg():
+    """Read Configuration Files."""
+    if os.getuid() == _USERDATA.pw_uid and _USERCFG.is_file():
         try:
-            with open(_GLOBALCFG, 'w') as configfile:
-                cfg.write(configfile)
+            copy(_USERCFG, _TMPCFG)
+            os.chmod(_TMPCFG, 0o0664)
         except OSError as ex:
-            print(f"WARN: Unable to write Config: {ex}")
+            print(f"WARN: Unable to copy User Config: {ex}")
+
+    # Overwrite default Values
+    CFGVARS.read(_GLOBALCFG)
+    CFGVARS.read(_TMPCFG)
+
+
+def write_cfg(user: bool = False):
+    """Write the Config File to prevent writing when running as module."""
+    cfg_path = _USERCFG if user else _GLOBALCFG
+    if not cfg_path.is_file():
+        cfg = ConfigParser()
+        if not user:
+            cfg['system'] = _SYSTEM_DEFAULTS
+        cfg['user'] = _USER_DEFAULTS
+
+        with open(cfg_path, 'w') as configfile:
+            cfg.write(configfile)
+        if user:
+            os.chown(cfg_path, _USERDATA.pw_uid, _USERDATA.pw_gid)
+        print(f"Config File written to '{str(cfg_path)}'.")
+    else:
+        print(f"WARN: Not written as '{str(cfg_path)}' already exists.")
