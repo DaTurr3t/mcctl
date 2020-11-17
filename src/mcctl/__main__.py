@@ -96,7 +96,7 @@ def get_parser() -> ap.ArgumentParser:
     Raises:
         argparse.ArgumentTypeError: Raised when the parameters given cannot be parsed correctly.
     """
-    def type_id(value: str) -> str:
+    def check_type_id(value: str) -> str:
         test_type_id = re.compile(
             r'(.+:)+.+|https?: \/\/(-\.)?([ ^\s /?\.#-]+\.?)+(/[^\s]*)?$')
         if not test_type_id.search(value):
@@ -104,14 +104,14 @@ def get_parser() -> ap.ArgumentParser:
                 "must be in the form '<TYPE>:<VERSION>:<BUILD>' or URL")
         return value
 
-    def strict_type_id(value: str) -> str:
+    def check_strict_type_id(value: str) -> str:
         test_type_id = re.compile(r'(.+:)+.+|all')
         if not test_type_id.search(value):
             raise ap.ArgumentTypeError(
                 "must be in the form '<TYPE>:<VERSION>:<BUILD>' or 'all'")
         return value
 
-    def mem(value: str) -> str:
+    def check_mem(value: str) -> str:
         test_mem = re.compile(r'^[0-9]+[KMG]$')
         if not test_mem.search(value):
             raise ap.ArgumentTypeError("Must be in Format <NUMBER>{K,M,G}")
@@ -132,7 +132,7 @@ def get_parser() -> ap.ArgumentParser:
     type_id_parser.add_argument(
         "-u", "--url", dest="literal_url", action='store_true', help="Treat the TypeID Value as a URL.")
     type_id_parser.add_argument(
-        "source", metavar="TYPEID_OR_URL", type=type_id,
+        "source", metavar="TYPEID_OR_URL", type=check_type_id,
         help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
               "'<TYPE>:latest' or '<TYPE>:latest-snap' are also allowed.\n"
               "Types: 'paper', 'spigot', 'vanilla'\n"
@@ -174,7 +174,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_create.add_argument(
         "-s", "--start", action='store_true', help="Start the Server after creation, persistent enabled")
     parser_create.add_argument(
-        "-m", "--memory", type=mem, help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M")
+        "-m", "--memory", type=check_mem, help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M.")
     parser_create.add_argument(
         "-p", "--properties", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format")
     parser_create.set_defaults(
@@ -237,7 +237,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_remove_jar = subparsers.add_parser(
         "rmj", help="Remove a cached Server Binary.")
     parser_remove_jar.add_argument(
-        "source", metavar="TYPEID", type=strict_type_id,
+        "source", metavar="TYPEID", type=check_strict_type_id,
         help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
               "'<TYPE>:latest' or '<TYPE>:latest-snap' are NOT allowed.\n"
               "'all' removes all cached Files.\n"))
