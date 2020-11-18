@@ -37,32 +37,20 @@ def get_permlevel(args: ap.Namespace) -> dict:
         dict: The Name of the User with sufficient permissions for the Action,
               and if no further demotion is needed.
     """
-    root_cmds = {
-        'create': ('start',),
-        'config': ('restart',),
-        'update': ('restart',),
-        'export': None,
-        'restart': None,
-        'start': None,
-        'stop': None,
-        'write-cfg': None,
-    }
-
     perms = {
         'user': CFGVARS.get('system', 'server_user'),
         'needs_demote': False
     }
 
-    if args.action in root_cmds.keys():
-        triggerargs = root_cmds.get(args.action)
-        dictargs = vars(args)
-        if triggerargs is None:
+    if hasattr(args, "needs_root"):
+        if len(args.needs_root) == 0:
             perms['user'] = 'root'
         else:
-            for arg in triggerargs:
+            dictargs = vars(args)
+            for arg in args.needs_root:
                 if dictargs.get(arg):
-                    perms['needs_demote'] = True
                     perms['user'] = 'root'
+                    perms['needs_demote'] = True
                     break
 
     return perms
@@ -172,7 +160,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_config.add_argument(
         "-p", "--properties", nargs="+", help="Change server.properties options, e.g. server-port=25567 'motd=My new and cool Server'.")
     parser_config.set_defaults(
-        func=common.configure, err_template="configure '{args.instance}'", editor=CFGVARS.get('user', 'editor'))
+        func=common.configure, needs_root=('restart',), err_template="configure '{args.instance}'", editor=CFGVARS.get('user', 'editor'))
 
     parser_create = subparsers.add_parser(
         "create", parents=[instance_name_parser, type_id_parser], help="Create a new Server Instance.", formatter_class=ap.RawTextHelpFormatter)
@@ -183,7 +171,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_create.add_argument(
         "-p", "--properties", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format.")
     parser_create.set_defaults(
-        func=common.create, err_template=action_instance_template)
+        func=common.create, needs_root=('start',), err_template=action_instance_template)
 
     parser_exec = subparsers.add_parser(
         "exec", parents=[instance_name_parser], help="Execute a command in the Console of the Instance.")
@@ -199,7 +187,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_export.add_argument(
         "-w", "--world-only", action='store_true', help="Only export World Data.")
     parser_export.set_defaults(
-        func=storage.export, err_template=action_instance_template)
+        func=storage.export, needs_root=(), err_template=action_instance_template)
 
     parser_inspect = subparsers.add_parser(
         "inspect", parents=[instance_name_parser], help="Inspect the Log of a Server.")
@@ -232,7 +220,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_restart = subparsers.add_parser(
         "restart", parents=[instance_name_parser, message_parser], help="Restart a Server Instance.")
     parser_restart.set_defaults(
-        func=service.notified_set_status, err_template=action_instance_template)
+        func=service.notified_set_status, needs_root=(), err_template=action_instance_template)
 
     parser_remove = subparsers.add_parser(
         "rm", parents=[instance_name_parser], help="Remove a Server Instance.")
@@ -254,19 +242,19 @@ def get_parser() -> ap.ArgumentParser:
     parser_start.add_argument("-p", "--persistent", action='store_true',
                               help="Start even after Reboot.")
     parser_start.set_defaults(
-        func=service.notified_set_status, err_template=action_instance_template)
+        func=service.notified_set_status, needs_root=(), err_template=action_instance_template)
 
     parser_stop = subparsers.add_parser(
         "stop", parents=[instance_name_parser, message_parser], help="Stop a Server Instance.")
     parser_stop.add_argument("-p", "--persistent", action='store_true',
                              help="Do not start again after Reboot.")
     parser_stop.set_defaults(
-        func=service.notified_set_status, err_template=action_instance_template)
+        func=service.notified_set_status, needs_root=(), err_template=action_instance_template)
 
     parser_update = subparsers.add_parser(
         "update", parents=[instance_name_parser, type_id_parser, restart_parser], help="Update a Server Instance.")
     parser_update.set_defaults(
-        func=common.update, err_template=action_instance_template)
+        func=common.update, needs_root=('restart',), err_template=action_instance_template)
 
     parser_shell = subparsers.add_parser(
         "shell", parents=[instance_subfolder_parser], help="Use a Shell to interactively edit a Server Instance.")
@@ -275,8 +263,10 @@ def get_parser() -> ap.ArgumentParser:
 
     parser_wcfg = subparsers.add_parser(
         "write-cfg", help="Write mcctl configuration and exit.")
+    parser_wcfg.add_argument("-u", "--user", action="store_true",
+                             help="Write the Configuration in the Home of the user logged in instead of /etc.")
     parser_wcfg.set_defaults(
-        func=write_cfg, err_template="write Configuration File")
+        func=write_cfg, needs_root=(), err_template="write Configuration File")
 
     return parser
 
