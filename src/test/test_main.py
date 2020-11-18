@@ -128,7 +128,7 @@ class TestParserMappings(unittest.TestCase):
 
     def test_start(self):
         args = self.parser.parse_args("start testserver".split())
-        kwargs_ok = ['reason']
+        kwargs_ok = ['message']
         params_ok = []
         params_ok.extend(self.param_base)
         kwargs, params = get_missing(vars(args), args.func)
