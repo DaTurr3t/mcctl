@@ -81,7 +81,7 @@ def edit(file_path: Path, editor: str):
     proc.wait()
 
 
-def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: int = 25, max_flush_retries: int = 10):
+def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: int = 24, max_flush_retries: int = 4):
     """Execute a command on the console of a server.
 
     Uses the 'stuff' command of screen to pass the minecraft command to the server.

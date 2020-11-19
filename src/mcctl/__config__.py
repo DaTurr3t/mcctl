@@ -61,8 +61,7 @@ def read_cfg():
             print(f"WARN: Unable to copy User Config: {ex}")
 
     # Overwrite default Values
-    CFGVARS.read(_GLOBALCFG)
-    CFGVARS.read(_TMPCFG)
+    CFGVARS.read((_GLOBALCFG, _TMPCFG))
 
 
 def write_cfg(user: bool = False):

@@ -34,8 +34,8 @@ def get_permlevel(args: ap.Namespace, elevation: dict) -> dict:
         args (Namespace): Parsed Parameters.
         elevation (dict): a dict containing the following keys:
             - default (required): The default user for which the app runs (can be "login_user", "server_user", or "root").
-            - change_to: Which User to change to (can be "login_user", "server_user", or "root")
-            - on_cond: a dict containing "name of a parameter: desired value". At least one must apply to trigger a user change.
+            - change_to: Which User to change to (can be "login_user", "server_user", or "root"). Applied if on_cond is omitted or a Condition of it was met.
+            - on_cond: a dict containing "name of a parameter: desired value". At least one must apply to trigger a change_to user change.
             - change_fully: Determines if the Process is demoted internally, only applies if change_to is "root".
 
     Returns:
@@ -48,18 +48,21 @@ def get_permlevel(args: ap.Namespace, elevation: dict) -> dict:
         "root": "root"
     }
 
-    perms = {}
+    perms = {"usr": users.get(elevation.get("default"))}
     conditions = elevation.get("on_cond")
+    cond_match = not bool(conditions)
     if conditions:
         kwargs = vars(args)
         for key, val in conditions.items():
             if kwargs[key] == val:
-                perms["usr"] = users.get(elevation.get("change_to"))
-                if not elevation.get("change_fully", False):
-                    perms["eusr"] = users.get(elevation.get("default"))
-    else:
-        perms = {"usr": users.get(elevation.get("default"))}
+                cond_match = True
+                break
 
+    change_to = elevation.get("change_to")
+    if cond_match and change_to:
+        perms["usr"] = users.get(change_to)
+        if not elevation.get("change_fully", False):
+            perms["eusr"] = users.get(elevation.get("default"))
     return perms
 
 
@@ -134,7 +137,7 @@ def get_parser() -> ap.ArgumentParser:
 
     default_err_template = "{args.action} instance '{args.instance}'"
     default_elev = {"default": "server_user"}
-    default_root_elev = {"default": "root"}
+    default_semi_elev = {"default": "server_user", "change_to": "root"}
 
     parser = ap.ArgumentParser("mcctl", description="Manage, configure, create multiple Minecraft servers in a docker-like fashion.",
                                formatter_class=ap.ArgumentDefaultsHelpFormatter)
@@ -223,7 +226,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_export.add_argument(
         "-w", "--world-only", action='store_true', help="Only export World Data.")
     parser_export.set_defaults(
-        func=storage.export, elevation=default_root_elev)
+        func=storage.export, elevation=default_semi_elev)
 
     parser_inspect = subparsers.add_parser(
         "inspect", parents=[instance_name_parser], help="Inspect the Log of a Server.")
@@ -256,7 +259,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_restart = subparsers.add_parser(
         "restart", parents=[instance_name_parser, message_parser], help="Restart a Server Instance.")
     parser_restart.set_defaults(
-        func=service.notified_set_status, elevation=default_root_elev)
+        func=service.notified_set_status, elevation=default_semi_elev)
 
     parser_remove = subparsers.add_parser(
         "rm", parents=[instance_name_parser], help="Remove a Server Instance.")
@@ -278,14 +281,14 @@ def get_parser() -> ap.ArgumentParser:
     parser_start.add_argument("-p", "--persistent", action='store_true',
                               help="Start even after Reboot.")
     parser_start.set_defaults(
-        func=service.notified_set_status, elevation=default_root_elev)
+        func=service.notified_set_status, elevation=default_semi_elev)
 
     parser_stop = subparsers.add_parser(
         "stop", parents=[instance_name_parser, message_parser], help="Stop a Server Instance.")
     parser_stop.add_argument("-p", "--persistent", action='store_true',
                              help="Do not start again after Reboot.")
     parser_stop.set_defaults(
-        func=service.notified_set_status, elevation=default_root_elev)
+        func=service.notified_set_status, elevation=default_semi_elev)
 
     parser_update = subparsers.add_parser(
         "update", parents=[instance_name_parser, type_id_parser, restart_parser], help="Update a Server Instance.")
