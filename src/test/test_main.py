@@ -21,7 +21,7 @@ def get_missing(unfiltered_kwargs, func):
 
 
 class TestParserMappings(unittest.TestCase):
-    param_base = ['verbose', 'func', 'err_template']
+    param_base = ['verbose', 'func', 'err_template', 'elevation']
     parser = get_parser()
 
     def test_attach(self):
