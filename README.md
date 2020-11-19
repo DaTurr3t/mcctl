@@ -25,7 +25,7 @@ In some cases, the `secure_path` of `sudo` must be changed. If `sudo mcctl` retu
 As soon as mcctl is installed, you can create a new server:
 
 ```sh
-sudo mcctl create myserver vanilla:latest -m 3G -p server-port=25566 "motd=My new and fancy Minecraft Server!"
+sudo mcctl create myserver vanilla:latest -m 3G -p server-port=25566 "motd=My new fancy Minecraft Server!"
 ```
 
 - create: Sets up a new server and configures it accordingly.
@@ -55,12 +55,17 @@ myserver       1.15.2              Active      True
 
 ## Configuration
 
-In case you need to change the Unit Name or the Server User, it can be changed in `/etc/mcctl.conf`. The Config is generated at runtime, so mcctl needs to be started at least once.
+In case you need to change the Unit Name or the Server User, it can be changed in `/etc/mcctl.conf`. The Config File can be created with the `write-cfg`-Subcommand.
 
-- `systemd_service`: The Service Prefix before the Instance Name. Default: 'mcserver@'.
+### [system]
+
+- `systemd_service`: The Service Prefix before "@INSTANCE_NAME". Default: 'mcserver'.
 - `server_user`: The User under which Servers can be managed and are run. Default: 'mcserver'.
-- `default_editor` The default Editor for interactive config editing. Default: 'vim'.
-- `default_shell` The default Shell for fully interactive configuration. Default: '/bin/bash'
+
+### [user]
+
+- `editor` The default Editor for interactive config editing. Default: 'vim'.
+- `shell` The default Shell for fully interactive configuration. Default: '/bin/bash'
 
 ## Documentation
 
@@ -70,9 +75,15 @@ mcctl is not well documented (yet). However, you should be able to answer a lot 
 mcctl -h
 ```
 
+Or for each Subcommand (e.g. create):
+
+```sh
+mcctl create -h
+```
+
 ## Suggestions/Issues
 
-If you have suggestions, questions or issues, feel free to report it as an Issue [here](https://github.com/DaTurret/mcctl/issues). Insights and Ideas of others are always welcome.
+If you have suggestions, questions or issues, feel free to report them as an Issue [here](https://github.com/DaTurret/mcctl/issues). Insights and Ideas of others are always welcome.
 
 ## License
 
