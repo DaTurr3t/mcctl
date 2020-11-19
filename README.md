@@ -32,7 +32,7 @@ sudo mcctl create myserver vanilla:latest -m 3G -p server-port=25566 "motd=My ne
 - Instance ID: gives the server a specific name (ID) which can be used in other commands.
 - Type ID: Specifies the Minecraft server type. Automatically downloads the "jar"-File if not cached.
 - Memory (`-m`): The amount of memory a server gets. Defaults are set via the systemd unit explained in [Prerequisites](#prerequisites).
-- Properties (`-p`): Options for the `server.pproperties`-File. Values with spaces can be quoted as shown above.
+- Properties (`-p`): Options for the `server.properties`-File. Values with spaces can be quoted as shown above.
 
 The server is now created, but not running. For that, you can use the `start` command:
 
