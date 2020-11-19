@@ -23,37 +23,59 @@ import sys
 import inspect
 import argparse as ap
 from typing import Callable
-from mcctl.__config__ import read_cfg, write_cfg
+from mcctl.__config__ import LOGIN_USER, read_cfg, write_cfg
 from mcctl import proc, storage, service, web, common, CFGVARS
 
 
-def get_permlevel(args: ap.Namespace) -> dict:
+def get_permlevel(args: ap.Namespace, elevation: dict) -> dict:
     """Determine the Permission Level by arguments. Returns the User with sufficient Permissions.
 
     Args:
         args (Namespace): Parsed Parameters.
+        elevation (dict): a dict containing the following keys:
+            - default (required): The default user for which the app runs (can be "login_user", "server_user", or "root").
+            - change_to: Which User to change to (can be "login_user", "server_user", or "root")
+            - on_cond: a dict containing "name of a parameter: desired value". At least one must apply to trigger a user change.
+            - change_fully: Determines if the Process is demoted internally, only applies if change_to is "root".
 
     Returns:
         dict: The Name of the User with sufficient permissions for the Action,
               and if no further demotion is needed.
     """
-    perms = {
-        'user': CFGVARS.get('system', 'server_user'),
-        'needs_demote': False
+    users = {
+        "login_user": LOGIN_USER,
+        "server_user": CFGVARS.get('system', 'server_user'),
+        "root": "root"
     }
 
-    if hasattr(args, "needs_root"):
-        if len(args.needs_root) == 0:
-            perms['user'] = 'root'
-        else:
-            dictargs = vars(args)
-            for arg in args.needs_root:
-                if dictargs.get(arg):
-                    perms['user'] = 'root'
-                    perms['needs_demote'] = True
-                    break
+    perms = {}
+    conditions = elevation.get("on_cond")
+    if conditions:
+        kwargs = vars(args)
+        for key, val in conditions.items():
+            if kwargs[key] == val:
+                perms["usr"] = users.get(elevation.get("change_to"))
+                if not elevation.get("change_fully", False):
+                    perms["eusr"] = users.get(elevation.get("default"))
+    else:
+        perms = {"usr": users.get(elevation.get("default"))}
 
     return perms
+
+
+def apply_permlevel(permlevel: dict):
+    """Apply Permlevel to the process, and restart the application if needed.
+
+    Args:
+        permlevel (dict): A dict containing
+            - "usr": The user to elevate to via sudo.
+            - "eusr" (optional): The user of which the EIDs are set.
+    """
+    proc.elevate(permlevel.get('usr'))
+    demote_user = permlevel.get('eusr')
+    if demote_user:
+        user_ids = proc.get_ids(demote_user)
+        proc.run_as(*user_ids)
 
 
 def filter_args(unfiltered_kwargs: dict, func: Callable) -> dict:
@@ -110,12 +132,16 @@ def get_parser() -> ap.ArgumentParser:
             raise ap.ArgumentTypeError("Must be in Format <NUMBER>{K,M,G}.")
         return value
 
-    action_instance_template = "{args.action} instance '{args.instance}'"
+    default_err_template = "{args.action} instance '{args.instance}'"
+    default_elev = {"default": "server_user"}
+    default_root_elev = {"default": "root"}
 
     parser = ap.ArgumentParser("mcctl", description="Manage, configure, create multiple Minecraft servers in a docker-like fashion.",
                                formatter_class=ap.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-v", "--verbose", action='store_true',
                         help="Enable verbose/debugging output.")
+    parser.set_defaults(err_template=default_err_template,
+                        elevation=default_elev)
 
     subparsers = parser.add_subparsers(title="actions", dest="action")
     subparsers.required = True
@@ -160,7 +186,12 @@ def get_parser() -> ap.ArgumentParser:
     parser_config.add_argument(
         "-p", "--properties", nargs="+", help="Change server.properties options, e.g. server-port=25567 'motd=My new and cool Server'.")
     parser_config.set_defaults(
-        func=common.configure, needs_root=('restart',), err_template="configure '{args.instance}'", editor=CFGVARS.get('user', 'editor'))
+        func=common.configure, err_template="configure '{args.instance}'", editor=CFGVARS.get('user', 'editor'),
+        elevation={
+            "default": "server_user",
+            "change_to": "root",
+            "on_cond": {'restart': True}
+        })
 
     parser_create = subparsers.add_parser(
         "create", parents=[instance_name_parser, type_id_parser], help="Create a new Server Instance.", formatter_class=ap.RawTextHelpFormatter)
@@ -171,7 +202,12 @@ def get_parser() -> ap.ArgumentParser:
     parser_create.add_argument(
         "-p", "--properties", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format.")
     parser_create.set_defaults(
-        func=common.create, needs_root=('start',), err_template=action_instance_template)
+        func=common.create,
+        elevation={
+            "default": "server_user",
+            "change_to": "root",
+            "on_cond": {'start': True}
+        })
 
     parser_exec = subparsers.add_parser(
         "exec", parents=[instance_name_parser], help="Execute a command in the Console of the Instance.")
@@ -187,7 +223,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_export.add_argument(
         "-w", "--world-only", action='store_true', help="Only export World Data.")
     parser_export.set_defaults(
-        func=storage.export, needs_root=(), err_template=action_instance_template)
+        func=storage.export, elevation=default_root_elev)
 
     parser_inspect = subparsers.add_parser(
         "inspect", parents=[instance_name_parser], help="Inspect the Log of a Server.")
@@ -215,12 +251,12 @@ def get_parser() -> ap.ArgumentParser:
     parser_rename.add_argument(
         "new_name", metavar="NEW_NAME", help="The new Name of the Server Instance.")
     parser_rename.set_defaults(
-        func=common.rename, err_template=action_instance_template)
+        func=common.rename)
 
     parser_restart = subparsers.add_parser(
         "restart", parents=[instance_name_parser, message_parser], help="Restart a Server Instance.")
     parser_restart.set_defaults(
-        func=service.notified_set_status, needs_root=(), err_template=action_instance_template)
+        func=service.notified_set_status, elevation=default_root_elev)
 
     parser_remove = subparsers.add_parser(
         "rm", parents=[instance_name_parser], help="Remove a Server Instance.")
@@ -242,19 +278,24 @@ def get_parser() -> ap.ArgumentParser:
     parser_start.add_argument("-p", "--persistent", action='store_true',
                               help="Start even after Reboot.")
     parser_start.set_defaults(
-        func=service.notified_set_status, needs_root=(), err_template=action_instance_template)
+        func=service.notified_set_status, elevation=default_root_elev)
 
     parser_stop = subparsers.add_parser(
         "stop", parents=[instance_name_parser, message_parser], help="Stop a Server Instance.")
     parser_stop.add_argument("-p", "--persistent", action='store_true',
                              help="Do not start again after Reboot.")
     parser_stop.set_defaults(
-        func=service.notified_set_status, needs_root=(), err_template=action_instance_template)
+        func=service.notified_set_status, elevation=default_root_elev)
 
     parser_update = subparsers.add_parser(
         "update", parents=[instance_name_parser, type_id_parser, restart_parser], help="Update a Server Instance.")
     parser_update.set_defaults(
-        func=common.update, needs_root=('restart',), err_template=action_instance_template)
+        func=common.update,
+        elevation={
+            "default": "server_user",
+            "change_to": "root",
+            "on_cond": {'restart': True}
+        })
 
     parser_shell = subparsers.add_parser(
         "shell", parents=[instance_subfolder_parser], help="Use a Shell to interactively edit a Server Instance.")
@@ -266,7 +307,13 @@ def get_parser() -> ap.ArgumentParser:
     parser_wcfg.add_argument("-u", "--user", action="store_true",
                              help="Write the Configuration in the Home of the user logged in instead of /etc.")
     parser_wcfg.set_defaults(
-        func=write_cfg, needs_root=(), err_template="write Configuration File")
+        func=write_cfg, err_template="write Configuration File",
+        elevation={
+            "default": "login_user",
+            "change_to": "root",
+            "change_fully": True,
+            "on_cond": {'user': False}
+        })
 
     return parser
 
@@ -278,17 +325,11 @@ def main():
     The logic is moved into the other files as much as possible.
     """
     read_cfg()
-
     # Determine needed Permission Level and restart with sudo.
     args = get_parser().parse_args()
-    plvl = get_permlevel(args)
-
+    plvl = get_permlevel(args, args.elevation)
     try:
-        proc.elevate(plvl.get('user'))
-        if plvl.get('needs_demote'):
-            user = CFGVARS.get('system', 'server_user')
-            user_ids = proc.get_ids(user)
-            proc.run_as(*user_ids)
+        apply_permlevel(plvl)
     except (KeyError, OSError) as ex:
         if args.verbose:
             raise
@@ -296,7 +337,6 @@ def main():
         sys.exit(1)
 
     safe_kwargs = filter_args(vars(args), args.func)
-
     try:
         args.func(**safe_kwargs)
     except Exception as ex:  # pylint: disable=broad-except
