@@ -24,7 +24,7 @@ import inspect
 import argparse as ap
 from typing import Callable
 from mcctl.__config__ import LOGIN_USER, read_cfg, write_cfg
-from mcctl import proc, storage, service, web, common, CFGVARS
+from mcctl import proc, storage, service, web, common, CFGVARS, __version__
 
 
 def get_permlevel(args: ap.Namespace, elevation: dict) -> dict:
@@ -139,7 +139,8 @@ def get_parser() -> ap.ArgumentParser:
     default_elev = {"default": "server_user"}
     default_semi_elev = {"default": "server_user", "change_to": "root"}
 
-    parser = ap.ArgumentParser("mcctl", description="Manage, configure, create multiple Minecraft servers in a docker-like fashion.",
+    parser = ap.ArgumentParser("mcctl", description="Manage, configure, create multiple Minecraft servers in a docker-like fashion.\n"
+                               f"Version: {__version__}",
                                formatter_class=ap.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-v", "--verbose", action='store_true',
                         help="Enable verbose/debugging output.")
