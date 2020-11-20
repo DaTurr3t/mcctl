@@ -19,7 +19,7 @@
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 from mcctl.__config__ import CFGVARS  # noqa: F401
 from mcctl import common, config, proc, service, storage, visuals, web  # noqa: F401
