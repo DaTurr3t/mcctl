@@ -194,15 +194,16 @@ def update(instance: str, source: str, literal_url: bool = False, restart: bool 
     print(f"Update successful.{additions}")
 
 
-def configure(instance: str, edit_paths: list, properties: list, editor: str, restart: bool = False):
+def configure(instance: str, editor: str, properties: list = None, edit_paths: list = None, memory: str = None, restart: bool = False):
     """Edits configurations, restarts the server if forced, and swaps in the new configurations.
 
     Args:
         instance (str): The Instance ID.
-        edit_paths (list): The Paths to be edited interactively with the specified Editor.
-        properties (list): The Properties to be changed in the server.properties File.
         editor (str): A Path to an Editor Binary.
-        force (bool, optional): Stops the server, applies changes and starts it again when set to true.
+        properties (list): The Properties to be changed in the server.properties File.
+        edit_paths (list): The Paths to be edited interactively with the specified Editor.
+        memory (str): Update the Memory Allocation. Can be appended by K, M or G, to signal Kilo- Mega- or Gigabytes.
+        restart (bool, optional): Stops the server, applies changes and starts it again when set to true.
         Defaults to False.
     """
     instance_path = storage.get_instance_path(instance)
@@ -234,8 +235,10 @@ def configure(instance: str, edit_paths: list, properties: list, editor: str, re
         service.notified_set_status(
             instance, "stop", "Reconfiguring and restarting Server.")
 
-    for pair in list(paths.items()):
-        storage.move(*pair[::-1])
+    if memory:
+        config.set_properties(instance_path / "jvm-env", {"MEM": memory})
+    for dst, src in paths.items():
+        storage.move(src, dst)
 
     if restart:
         service.set_status(instance, "start")

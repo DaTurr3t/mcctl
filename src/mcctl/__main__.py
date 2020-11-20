@@ -178,13 +178,17 @@ def get_parser() -> ap.ArgumentParser:
     restart_parser.add_argument(
         "-r", "--restart", action='store_true', help="Stop the Server, apply config changes, and start it again.")
 
+    memory_parser = ap.ArgumentParser(add_help=False)
+    memory_parser.add_argument(
+        "-m", "--memory", type=check_mem, help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M.")
+
     parser_attach = subparsers.add_parser(
         "attach", parents=[instance_name_parser], help="Attach to the Console of the Minecraft Instance.")
     parser_attach.set_defaults(
         func=proc.attach, err_template="attach to '{args.instance}'")
 
     parser_config = subparsers.add_parser(
-        "config", parents=[instance_name_parser, restart_parser], help="Configure Files of a Minecraft Server Instance.")
+        "config", parents=[instance_name_parser, restart_parser, memory_parser], help="Configure/Change Files of a Minecraft Server Instance.")
     parser_config.add_argument(
         "-e", "--edit", nargs="+", dest="edit_paths", metavar="FILE", help="Edit a File in the Instance Folder interactively.")
     parser_config.add_argument(
@@ -198,11 +202,9 @@ def get_parser() -> ap.ArgumentParser:
         })
 
     parser_create = subparsers.add_parser(
-        "create", parents=[instance_name_parser, type_id_parser], help="Create a new Server Instance.", formatter_class=ap.RawTextHelpFormatter)
+        "create", parents=[instance_name_parser, type_id_parser, memory_parser], help="Create a new Server Instance.", formatter_class=ap.RawTextHelpFormatter)
     parser_create.add_argument(
         "-s", "--start", action='store_true', help="Start the Server after creation, persistent enabled.")
-    parser_create.add_argument(
-        "-m", "--memory", type=check_mem, help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M.")
     parser_create.add_argument(
         "-p", "--properties", nargs="+", help="server.properties options in 'KEY1=VALUE1 KEY2=VALUE2' Format.")
     parser_create.set_defaults(

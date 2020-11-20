@@ -80,10 +80,10 @@ def set_properties(file_path: Path, properties: dict):
 
     new_config = []
     for key, value in old_config.items():
-        new_config.append(f"{key}={value}")
+        new_config.append(f"{key}={value}\n")
 
     with open(file_path, "w") as config_file:
-        config_file.write('\n'.join(new_config) + '\n')
+        config_file.writelines(new_config)
 
 
 def accept_eula(instance_path: Path) -> bool:
