@@ -250,14 +250,13 @@ def get_parser() -> ap.ArgumentParser:
     parser_pull = subparsers.add_parser(
         "pull", parents=[type_id_parser], help="Pull a Server .jar-File from the Internet.")
     parser_pull.set_defaults(
-        func=web.pull, err_template="{args.action} {args.source}")
+        func=web.pull, err_template="{args.action} Server Type '{args.source}'")
 
     parser_rename = subparsers.add_parser(
         "rename", parents=[instance_name_parser], help="Rename a Server Instance.")
     parser_rename.add_argument(
         "new_name", metavar="NEW_NAME", help="The new Name of the Server Instance.")
-    parser_rename.set_defaults(
-        func=common.rename)
+    parser_rename.set_defaults(func=common.rename)
 
     parser_restart = subparsers.add_parser(
         "restart", parents=[instance_name_parser, message_parser], help="Restart a Server Instance.")
