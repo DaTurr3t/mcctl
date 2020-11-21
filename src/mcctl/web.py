@@ -181,7 +181,7 @@ def scrape_get(url: str, expr: str) -> list:
     return re.findall(expr, response.text)
 
 
-def download(url: str, dest: Path):
+def download(url: str, dest: Path) -> None:
     """Download a file with progress report.
 
     A file is downloaded from a webserver, progress is shown via the reporthook-Parameter.
@@ -208,7 +208,7 @@ def download(url: str, dest: Path):
         print()
 
 
-def progress(current: int, elapsed: float, total: int):
+def progress(current: int, elapsed: float, total: int) -> None:
     """Print Progress.
 
     Output the progress of the download given blockcount, blocksize and total bytes.

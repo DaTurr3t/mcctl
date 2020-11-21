@@ -63,7 +63,7 @@ def is_enabled(instance: str) -> bool:
     return test_out.returncode == 0
 
 
-def set_status(instance: str, action: str):
+def set_status(instance: str, action: str) -> None:
     """Apply a systemd action to a minecraft server service.
 
     systemd is called to start, stop, restart, enable or disable a service
@@ -87,7 +87,7 @@ def set_status(instance: str, action: str):
             raise OSError(f"Command Failed! ({action} of '{instance}' failed).")
 
 
-def notified_set_status(instance: str, action: str, message: str = '', persistent: bool = False):
+def notified_set_status(instance: str, action: str, message: str = '', persistent: bool = False) -> None:
     """Notifies the Players on the Server if applicable and sets the Service Status.
 
     Arguments:

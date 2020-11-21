@@ -63,7 +63,7 @@ def get_properties(file_path: Path) -> dict:
     return config
 
 
-def set_properties(file_path: Path, properties: dict):
+def set_properties(file_path: Path, properties: dict) -> None:
     """Write a server.properties file from dict.
 
     The properties are written into the specified file in "KEY=VALUE" form.

@@ -66,7 +66,7 @@ def get_permlevel(args: ap.Namespace, elevation: dict) -> dict:
     return perms
 
 
-def apply_permlevel(permlevel: dict):
+def apply_permlevel(permlevel: dict) -> None:
     """Apply Permlevel to the process, and restart the application if needed.
 
     Args:
@@ -324,7 +324,7 @@ def get_parser() -> ap.ArgumentParser:
     return parser
 
 
-def main():
+def main() -> None:
     """Start mcctl.
 
     This function handles all arguments, elevation and parameters for functions.

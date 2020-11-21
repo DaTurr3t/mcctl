@@ -31,7 +31,7 @@ from mcctl import CFGVARS, storage, service, common
 from mcctl.visuals import compute
 
 
-def attach(instance: str):
+def attach(instance: str) -> None:
     """Attach to the console of a server.
 
     Launches screen to reattach to the screen session of the server.
@@ -46,7 +46,7 @@ def attach(instance: str):
     proc.wait()
 
 
-def shell(instance_subfolder: str, shell_path: Path):
+def shell(instance_subfolder: str, shell_path: Path) -> None:
     """Create a shell process in the server directory.
 
     Launches a shell from the config file.
@@ -68,7 +68,7 @@ def shell(instance_subfolder: str, shell_path: Path):
     proc.wait()
 
 
-def edit(file_path: Path, editor: str):
+def edit(file_path: Path, editor: str) -> None:
     """Attach to the console of a server.
 
     Launches screen to reattach to the screen session of the server.
@@ -81,7 +81,7 @@ def edit(file_path: Path, editor: str):
     proc.wait()
 
 
-def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: int = 24, max_flush_retries: int = 4):
+def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: int = 24, max_flush_retries: int = 4) -> None:
     """Execute a command on the console of a server.
 
     Uses the 'stuff' command of screen to pass the minecraft command to the server.
@@ -162,7 +162,7 @@ def run_as(uid: int, gid: int) -> tuple:
 
 
 @contextmanager
-def managed_run_as(uid: int, gid: int):
+def managed_run_as(uid: int, gid: int) -> None:
     """Manage the User Context and reset it after execution of the "with"-Block.
 
     Args:
@@ -185,8 +185,7 @@ def demote() -> Callable:
     user_name = CFGVARS.get('system', 'server_user')
     user = getpwnam(user_name)
 
-    def set_ids():
-
+    def set_ids() -> None:
         if os.getgid() + os.getuid() == 0:
             # Set EGID and EUID so that GID and UID can be set correctly.
             os.setegid(0)
@@ -198,7 +197,7 @@ def demote() -> Callable:
     return set_ids
 
 
-def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
+def pre_start(jar_path: Path, watch_file: Path = None, kill_sec: int = 80) -> bool:
     """Prepare the server and lets it create configuration files and such.
 
     Starts the server and waits for it to exit or for {watch_file} to be created.
@@ -236,7 +235,7 @@ def pre_start(jar_path: Path, watch_file=None, kill_sec: int = 80) -> bool:
     return success
 
 
-def elevate(user: str = "root"):
+def elevate(user: str = "root") -> None:
     """Replace the current Process with a new one as a different User. Requires sudo.
 
     Args:

@@ -91,7 +91,7 @@ def get_child_paths(path: Path) -> list:
     return sorted(path.rglob("*"))
 
 
-def get_jar_list(filter_str: str = ''):
+def get_jar_list(filter_str: str = '') -> None:
     """Get a List of all cached .jar-files.
 
     Lists all cached .jar-Files in the Type-Tag format.
@@ -105,7 +105,7 @@ def get_jar_list(filter_str: str = ''):
             print(str(jar).replace("/", ":").replace(".jar", ''))
 
 
-def chown(path: Path, user: str, group=None):
+def chown(path: Path, user: str, group: str = None) -> None:
     """Change owner of file or of a path recursively.
 
     Changes the owner of a file or of a path and its subdirectories.
@@ -157,7 +157,7 @@ def get_relative_paths(path: Path, filter_str: str = '', filter_idx: int = 0) ->
     return path_list
 
 
-def create_dirs(path: Path):
+def create_dirs(path: Path) -> None:
     """Create Paths recursively, with mode rwxr-x---.
 
     Arguments:
@@ -196,7 +196,7 @@ def move(source: Path, dest: Path) -> Path:
     return shutil.move(source, dest)
 
 
-def export(instance: str, zip_path=None, compress: bool = False, world_only: bool = False) -> Path:
+def export(instance: str, zip_path: Path = None, compress: bool = False, world_only: bool = False) -> Path:
     """Export a minecraft server instance to a Zip-File.
 
     Export a minecraft server instance to a Zip-File for archiving or similar.
@@ -249,7 +249,7 @@ def export(instance: str, zip_path=None, compress: bool = False, world_only: boo
     return zip_path
 
 
-def remove(instance: str, confirm: bool = True):
+def remove(instance: str, confirm: bool = True) -> None:
     """Remove an instance from disk.
 
     Arguments:
@@ -274,7 +274,7 @@ def remove(instance: str, confirm: bool = True):
         shutil.rmtree(del_path)
 
 
-def remove_jar(source: str):
+def remove_jar(source: str) -> None:
     """Remove an .jar-File from disk.
 
     Arguments:
@@ -300,7 +300,7 @@ def remove_jar(source: str):
             shutil.rmtree(del_path)
 
 
-def inspect(instance: str, limit: int = 0):
+def inspect(instance: str, limit: int = 0) -> None:
     """Get the last lines of the Log.
 
     Arguments:

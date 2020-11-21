@@ -51,7 +51,7 @@ CFGVARS['system'] = _SYSTEM_DEFAULTS
 CFGVARS['user'] = _USER_DEFAULTS
 
 
-def read_cfg():
+def read_cfg() -> None:
     """Read Configuration Files."""
     if os.getuid() == _USERDATA.pw_uid and _USERCFG.is_file():
         try:
@@ -64,7 +64,7 @@ def read_cfg():
     CFGVARS.read((_GLOBALCFG, _TMPCFG))
 
 
-def write_cfg(user: bool = False):
+def write_cfg(user: bool = False) -> None:
     """Write the Config File to prevent writing when running as module."""
     cfg_path = _USERCFG if user else _GLOBALCFG
     if not cfg_path.is_file():

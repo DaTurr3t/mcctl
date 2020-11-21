@@ -23,7 +23,7 @@ from mcstatus import MinecraftServer
 from mcctl import web, storage, service, config, proc
 
 
-def create(instance: str, source: str, memory: str, properties: list, literal_url: bool = False, start: bool = False):
+def create(instance: str, source: str, memory: str, properties: list, literal_url: bool = False, start: bool = False) -> None:
     """Create a new Minecraft Server Instance.
 
     Downloads the correct jar-file, configures the server and asks the user to accept the EULA.
@@ -65,7 +65,7 @@ def create(instance: str, source: str, memory: str, properties: list, literal_ur
         storage.remove(instance, confirm=False)
 
 
-def get_instance_list(filter_str: str = ''):
+def get_instance_list(filter_str: str = '') -> None:
     """Print a list of all instances.
 
     Output a table of all instances with their respective Name, Server Version String, Status and persistence.
@@ -135,7 +135,7 @@ def is_ready(instance: str) -> bool:
     return proto > -1
 
 
-def mc_ls(what: str, filter_str: str = ''):
+def mc_ls(what: str, filter_str: str = '') -> None:
     """List things such as jars or instances.
 
     A Function to bundle all Listing Functions, invokes selected Function.
@@ -155,7 +155,7 @@ def mc_ls(what: str, filter_str: str = ''):
         raise ValueError(f"Cannot List '{what}'.")
 
 
-def rename(instance: str, new_name: str):
+def rename(instance: str, new_name: str) -> None:
     """Rename a server instance.
 
     A server instance is renamed. The server has to be stopped and disabled, so no invalid service links can occur.
@@ -170,7 +170,7 @@ def rename(instance: str, new_name: str):
     server_path.rename(server_path.parent / new_name)
 
 
-def update(instance: str, source: str, literal_url: bool = False, restart: bool = False):
+def update(instance: str, source: str, literal_url: bool = False, restart: bool = False) -> None:
     """Change the Jar File of a server.
 
     Stops the Server if necessary, deletes the old Jar File and copies the new one, starts the Server again.
@@ -194,7 +194,7 @@ def update(instance: str, source: str, literal_url: bool = False, restart: bool 
     print(f"Update successful.{additions}")
 
 
-def configure(instance: str, editor: str, properties: list = None, edit_paths: list = None, memory: str = None, restart: bool = False):
+def configure(instance: str, editor: str, properties: list = None, edit_paths: list = None, memory: str = None, restart: bool = False) -> None:
     """Edits configurations, restarts the server if forced, and swaps in the new configurations.
 
     Args:
