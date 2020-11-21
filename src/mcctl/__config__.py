@@ -79,4 +79,4 @@ def write_cfg(user: bool = False) -> None:
             os.chown(cfg_path, _USERDATA.pw_uid, _USERDATA.pw_gid)
         print(f"Config File written to '{str(cfg_path)}'.")
     else:
-        print(f"WARN: Not written as '{str(cfg_path)}' already exists.")
+        raise FileExistsError(f"'{str(cfg_path)}' already exists.")
