@@ -32,8 +32,11 @@ def get_vanilla_download_url(version_tag: str, manifest_url: str) -> tuple:
     Find the download URL of a vanilla server using Mojangs Launcher-Meta API.
 
     Keyword Arguments:
-        manifest_url (str): The URL of version_manifest.json (default: {downloadUrls['vanilla']})
         version_tag (str): The Tag of the server without the type (vanilla/paper).
+        manifest_url (str): The URL of version_manifest.json
+
+    Raises:
+        LookupError: If the Download URL of the specified Version was not found.
 
     Returns:
         tuple: A tuple with the download URL and the complete, resolved Tag
@@ -44,12 +47,15 @@ def get_vanilla_download_url(version_tag: str, manifest_url: str) -> tuple:
     elif version_tag == "latest-snap":
         version_tag = version_manifest.get("latest", {}).get("snapshot")
 
+    resolved_tag = f"vanilla:{version_tag}"
+    download_url = None
     for version in version_manifest.get("versions", []):
         if version.get("id") == version_tag:
             download_url = version.get("url")
             break
+    if download_url is None:
+        raise LookupError("Server Version not found")
     version_data = rest_get(download_url)
-    resolved_tag = f"vanilla:{version_tag}"
     url = version_data.get("downloads", {}).get("server", {}).get("url")
     return url, resolved_tag
 
@@ -61,7 +67,7 @@ def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
 
     Arguments:
         version_tag (str): The Tag of the server without the type (vanilla/paper).
-        base_url (str):  The API URL for paper. (default: {downloadUrls['vanilla']})
+        base_url (str): The API URL for Paper.
 
     Returns:
         tuple: A tuple with the download URL and the complete, resolved Tag
@@ -75,10 +81,9 @@ def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
     test_url = join_url(base_url, major, minor)
     try:
         resolved_data = rest_get(test_url)
-        resolved_tag = ":".join(list(resolved_data.values()))
+        resolved_tag = ":".join(resolved_data.values())
     except Exception as ex:
-        raise ValueError("Server version not found for type 'paper'",
-                         version_tag, str(ex)) from None
+        raise LookupError("Server Version not found") from ex
     return join_url(test_url, "download"), resolved_tag
 
 
@@ -89,17 +94,19 @@ def get_spigot_download_url(version_tag: str, base_url: str) -> tuple:
 
     Arguments:
         version_tag (str): The Tag of the server without the type (vanilla/paper/spigot).
-        base_url (str):  The API URL for spigot. (default: {downloadUrls['spigot']})
+        base_url (str):  The API URL for spigot.
 
     Returns:
         tuple: A tuple with the download URL and the complete, resolved Tag
     """
+    expr = re.compile(r"<.*>Version</.*>\n?<.*>(.*)</.*>")
+    versions = scrape_get(base_url, expr)
     if version_tag == "latest":
-        versions = scrape_get(
-            base_url, expr=r"<.*>Version</.*>\n?<.*>(.*)</.*>")
         resolved_version = versions[0]
-    else:
+    elif version_tag in versions:
         resolved_version = version_tag
+    else:
+        raise LookupError("Server Version not found")
 
     resolved_tag = f"spigot:{resolved_version}"
     url = SOURCES.get('spigot', {}).get('download_url')
@@ -138,10 +145,10 @@ def get_download_url(server_tag: str) -> tuple:
     assert ":" in server_tag, f"Invalid Server Tag '{server_tag}'"
     type_tag, version_tag = server_tag.split(":", 1)
     try:
-        url, resolved_tag = SOURCES.get(type_tag, {}).get(
-            'func')(version_tag, SOURCES.get(type_tag).get('url'))
+        func = SOURCES.get(type_tag, {}).get('func')
+        url, resolved_tag = func(version_tag, SOURCES.get(type_tag).get('url'))
     except AttributeError:
-        raise ValueError(f"Unsupported server type: '{type_tag}'") from None
+        raise ValueError("Unsupported server type") from None
 
     return url, resolved_tag
 
