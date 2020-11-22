@@ -78,9 +78,9 @@ def get_instance_list(filter_str: str = '') -> None:
     server_paths = base_path.iterdir()
     servers = [x.name for x in server_paths]
 
-    template = "%-12s %-20s %-16s %-10s %-10s"
-    title = template % (
-        "Name", "Server Version", "Player Count", "Status", "Persistent")
+    template = "{:16} {:20} {:16} {:10} {:10}"
+    title = template.format("Name", "Server Version",
+                            "Player Count", "Status", "Persistent")
 
     print(title)
     for name in servers:
@@ -107,7 +107,7 @@ def get_instance_list(filter_str: str = '') -> None:
             else:
                 run_status = "Inactive"
 
-            contents = template % (
+            contents = template.format(
                 name, version,
                 f"{online}/{cfg.get('max-players')}",
                 run_status, service.is_enabled(name))
