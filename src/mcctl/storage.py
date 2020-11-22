@@ -327,7 +327,7 @@ def inspect(instance: str, limit: int = 0) -> None:
 
 
 def tmpcopy(file_path: Path) -> Path:
-    """Create a temporary copy of a file.
+    """Create a temporary copy of a file. Create original File if it does not exist.
 
     Args:
         file_path (Path): The file which will be copied to a temporary location.
@@ -337,6 +337,8 @@ def tmpcopy(file_path: Path) -> Path:
     """
     tmpid = ''.join(random.choice(string.ascii_letters) for _ in range(16))
     tmp_path = file_path.parent / Path(f"{file_path.name}.{tmpid}")
+    if not file_path.exists():
+        file_path.touch()
     shutil.copy(file_path, tmp_path)
     return tmp_path
 

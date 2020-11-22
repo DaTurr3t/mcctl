@@ -217,6 +217,12 @@ def configure(instance: str, editor: str, properties: list = None, edit_paths: l
         config.set_properties(tmp_path, properties_dict)
         paths.update({properties_path: tmp_path})
 
+    if memory:
+        env_path = instance_path / CFGVARS.get('system', 'env_file')
+        tmp_path = storage.tmpcopy(env_path)
+        config.set_properties(tmp_path, {"MEM": memory})
+        paths.update({env_path: tmp_path})
+
     if edit_paths:
         for file_path in edit_paths:
             # Check if a Temporary File of the Config already exists
@@ -231,15 +237,13 @@ def configure(instance: str, editor: str, properties: list = None, edit_paths: l
             else:
                 proc.edit(paths[file_path], editor)
 
-    do_restart = service.is_active(instance) and restart and len(paths) > 0
+    do_restart = service.is_active(instance) and len(paths) > 0 and restart
     if do_restart:
         service.notified_set_status(
             instance, "stop", "Reconfiguring and restarting Server.")
 
-    if memory:
-        config.set_properties(instance_path / "jvm-env", {"MEM": memory})
     for dst, src in paths.items():
         storage.move(src, dst)
 
-    if restart:
+    if do_restart:
         service.set_status(instance, "start")
