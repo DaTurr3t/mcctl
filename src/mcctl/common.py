@@ -108,9 +108,8 @@ def get_instance_list(filter_str: str = '') -> None:
                 run_status = "Inactive"
 
             contents = template.format(
-                name, version,
-                f"{online}/{cfg.get('max-players')}",
-                run_status, service.is_enabled(name))
+                name, version, f"{online}/{cfg.get('max-players')}",
+                run_status, str(service.is_enabled(name)))
             print(contents)
 
 
