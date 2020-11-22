@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.3.1 - 22.11.2020
+
+### Changed
+
+#### Features
+
+- Added memory setting `-m` to `config`.
+- Added `env_file` to Settings.
+
+#### Under the hood
+
+- Various Bug Fixes.
+- Removed Tests as module from Package.
+- Fixed encoding of special characters in server.properties.
+- Fixed silently not deleting Instance.
+- Fixed Errors when inputting invalid Server Version.
+
 ## 0.3.0 - 19.11.2020
 
 ### Added
@@ -10,10 +27,9 @@
 
 ### Changed
 
-- Changed Reason/Message in restart/stop to optional.
-
 #### Features
 
+- Changed Message in restart/stop to optional.
 - Update now has a parameter `--restart` that allows to restart the server directly after Update.
 - Update now has a parameter `--url` that allows to pull the Jar File directly from the Internet.
 - Spigot is now supported as a Type-ID.

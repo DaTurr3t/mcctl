@@ -47,7 +47,7 @@ sudo mcctl start myserver -p
 We can check if the server runs using the Command `ls`:
 
 ```sh
-sudo mcctl ls
+sudo mcctl ls -f myserver
 
 Name           Server Version      Status      Persistent  
 myserver       1.15.2              Active      True
@@ -61,6 +61,7 @@ In case you need to change the Unit Name or the Server User, it can be changed i
 
 - `systemd_service`: The Service Prefix before "@INSTANCE_NAME". Default: 'mcserver'.
 - `server_user`: The User under which Servers can be managed and are run. Default: 'mcserver'.
+- `env_file`: The File in which Systemd Starting Options are specified. Default: 'jvm-env'.
 
 ### [user]
 
