@@ -40,6 +40,7 @@ _TMPCFG = Path(f"/tmp/mcctl.{LOGIN_USER}.conf")
 _SYSTEM_DEFAULTS = {
     'systemd_service': 'mcserver',
     'server_user': 'mcserver',
+    'env_file': 'jvm-env',
 }
 _USER_DEFAULTS = {
     'editor': 'vim',

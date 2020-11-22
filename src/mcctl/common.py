@@ -20,7 +20,7 @@
 
 from socket import error as sock_error
 from mcstatus import MinecraftServer
-from mcctl import web, storage, service, config, proc
+from mcctl import web, storage, service, config, proc, CFGVARS
 
 
 def create(instance: str, source: str, memory: str, properties: list, literal_url: bool = False, start: bool = False) -> None:
@@ -52,7 +52,8 @@ def create(instance: str, source: str, memory: str, properties: list, literal_ur
             config.set_properties(
                 instance_path / "server.properties", properties_dict)
         if memory:
-            config.set_properties(instance_path / "jvm-env", {"MEM": memory})
+            env_path = instance_path / CFGVARS.get('system', 'env_file')
+            config.set_properties(env_path, {"MEM": memory})
         if start:
             service.set_status(instance, "enable")
             service.set_status(instance, "start")
