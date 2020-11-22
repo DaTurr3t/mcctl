@@ -58,7 +58,7 @@ def get_properties(file_path: Path) -> dict:
     Returns:
         dict: A dict with all properties from the specified file.
     """
-    with open(file_path, "r") as config_file:
+    with open(file_path, "r", encoding="iso8859_1") as config_file:
         config = properties_to_dict(config_file.read().splitlines())
     return config
 
@@ -82,7 +82,7 @@ def set_properties(file_path: Path, properties: dict) -> None:
     for key, value in old_config.items():
         new_config.append(f"{key}={value}\n")
 
-    with open(file_path, "w") as config_file:
+    with open(file_path, "w", encoding="iso8859_1") as config_file:
         config_file.writelines(new_config)
 
 
