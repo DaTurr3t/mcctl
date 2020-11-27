@@ -142,7 +142,8 @@ def get_download_url(server_tag: str) -> tuple:
     Returns:
         tuple: A tuple with the download URL and the complete, resolved Tag
     """
-    assert ":" in server_tag, f"Invalid Server Tag '{server_tag}'"
+    if ":" not in server_tag:
+        raise ValueError(f"Invalid Server Tag '{server_tag}'")
     type_tag, version_tag = server_tag.split(":", 1)
     try:
         func = SOURCES.get(type_tag, {}).get('func')

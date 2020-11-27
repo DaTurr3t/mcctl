@@ -60,7 +60,8 @@ def get_instance_path(instance: str = '', bare: bool = False) -> Path:
     Returns:
         Path: The absolute Path to the Instance
     """
-    assert instance or bare, "No valid Instance supplied"
+    if not instance and not bare:
+        raise ValueError("No valid Instance supplied")
     return get_home_path() / "instances" / instance
 
 
@@ -74,7 +75,8 @@ def get_jar_path(type_id: str = '', bare: bool = False) -> Path:
     Returns:
         Path: The Path to the .jar-File supplied.
     """
-    assert type_id and ':' in type_id or bare, "No valid Type-ID supplied"
+    if ':' not in type_id and not bare:
+        raise ValueError("No valid Type-ID supplied")
     bare_path = get_home_path() / "jars"
     return bare_path if bare else bare_path / f"{type_id.replace(':', '/')}.jar"
 

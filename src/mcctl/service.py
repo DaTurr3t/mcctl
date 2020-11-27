@@ -74,11 +74,9 @@ def set_status(instance: str, action: str) -> None:
         action (str): The systemd action to apply to the service.
             Can be "start", "restart", "stop", "enable", "disable".
     """
-    allowed = ("start", "restart", "stop", "enable", "disable")
-    assert action in allowed, f"Invalid action '{action}'"
+    if action not in ("start", "restart", "stop"):
+        raise ValueError(f"Invalid action '{action}'")
 
-    service_instance = "@".join((UNIT_NAME, instance))
-    cmd = shlex.split(f"systemctl {action} {service_instance}")
     with proc.managed_run_as(0, 0):
         sproc.run(cmd, check=True)
     if action in ("start", "restart", "stop"):
@@ -99,8 +97,8 @@ def notified_set_status(instance: str, action: str, message: str = '', persisten
         persistent (bool): If True, the Server will not start after a Machine reboot (default: {False})
         restart (bool): If True, persistent wil be ignored and the server wil be restarted (default: {False})
     """
-    allowed = ("start", "restart", "stop")
-    assert action in allowed, f"Invalid action '{action}'"
+    if action not in ("start", "restart", "stop"):
+        raise ValueError(f"Invalid action '{action}'")
 
     if persistent and action != "restart":
         persistent_action = {"start": "enable", "stop": "disable"}
