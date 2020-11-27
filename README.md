@@ -10,6 +10,8 @@ A Minecraft Server Management Utility written in Python.
 
 To use mcctl, your server setup should look something like [this](https://gist.github.com/DaTurret/edc02105a0d85d603d322bf529057216).
 
+Starting from Version 0.4.0, a compiler (e.g. `gcc`), the Python3 Headers (`python-dev` or `python3-devel`) and systemd Headers (`libsystemd-dev` or `systemd-devel`) must be installed on your System before attempting Installation via pip.
+
 ## Installation
 
 The easiest way to install mcctl is via pip:

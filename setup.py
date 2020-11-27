@@ -15,7 +15,7 @@ README = (REPO_ROOT / "README.md").read_text()
 setup(
     name="mcctl",
     packages=find_packages(where="src", exclude=["test*"]),
-    version="0.3.1",
+    version="0.4.0",
     description="Manage, configure, create multiple Minecraft servers in a docker-like fashion.",
     long_description=README,
     long_description_content_type="text/markdown",
