@@ -263,7 +263,7 @@ def remove(instance: str, confirm: bool = True) -> None:
     del_path = get_instance_path(instance)
     if not del_path.exists():
         raise FileNotFoundError(f"Instance Path not found: {del_path}.")
-    if (service.is_enabled(instance) or service.is_active(instance)):
+    if (service.is_enabled(instance) or service.is_active(service.get_unit(instance))):
         raise OSError("The server is still running and/or persistent.")
     if confirm:
         ans = input(

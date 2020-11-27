@@ -18,71 +18,98 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http:// www.gnu.org/licenses/>.
 
-import shlex
 import time
-import subprocess as sproc
+import shlex
+from pystemd.systemd1 import Unit, Manager
 from mcctl import CFGVARS, proc
 
 
 UNIT_NAME = CFGVARS.get('system', 'systemd_service')
 
 
-def is_active(instance: str) -> bool:
+def get_unit(instance: str) -> str:
+    """Return the systemd Unit name of the Instance.
+
+    Args:
+        instance (str): The name of the instance.
+
+    Returns:
+        str: The systemd service Unit.
+    """
+    unit = Unit(f"{UNIT_NAME}@{instance}.service")
+    unit.load()
+    return unit
+
+
+def is_active(unit: Unit) -> bool:
     """Test if an instance is running.
 
     systemd is queried to determine if the service of the server is running.
 
     Arguments:
-        instance (str): The name of the instance.
+        unit (Unit): A systemd Unit object, already loaded.
 
     Returns:
         bool: true: Server running, false: Server inactive/dead
     """
-    service_instance = "@".join((UNIT_NAME, instance))
-    test_cmd = shlex.split(f"systemctl is-active {service_instance}")
-    test_out = sproc.run(test_cmd, stdout=sproc.PIPE,
-                         stderr=sproc.PIPE, check=False)
-    return test_out.returncode == 0
+    return unit.Unit.ActiveState.decode() == 'active'
 
 
-def is_enabled(instance: str) -> bool:
+def is_enabled(unit: Unit) -> bool:
     """Test if an instance is enabled.
 
     systemd is queried to determine if the service of the server is flagged to start on system boot.
 
     Arguments:
-        instance (str): The name of the instance.
+        unit (Unit): A systemd Unit object, already loaded.
 
     Returns:
         bool: true: Server starts on system boot, false: Server stays inactive/dead
     """
-    service_instance = "@".join((UNIT_NAME, instance))
-    test_cmd = shlex.split(f"systemctl is-enabled {service_instance}")
-    test_out = sproc.run(test_cmd, stdout=sproc.PIPE,
-                         stderr=sproc.PIPE, check=False)
-    return test_out.returncode == 0
+    return unit.Unit.UnitFileState.decode() == 'enabled'
 
 
-def set_status(instance: str, action: str) -> None:
+def set_status(unit: Unit, action: str) -> None:
     """Apply a systemd action to a minecraft server service.
 
     systemd is called to start, stop, restart, enable or disable a service
     of the Unit mcserver@.service.
 
     Arguments:
-        instance (str): The name of the instance.
+        unit (Unit): A systemd Unit object, already loaded.
         action (str): The systemd action to apply to the service.
-            Can be "start", "restart", "stop", "enable", "disable".
+            Can be "start", "restart", "stop".
     """
     if action not in ("start", "restart", "stop"):
         raise ValueError(f"Invalid action '{action}'")
 
     with proc.managed_run_as(0, 0):
-        sproc.run(cmd, check=True)
+        action_func = getattr(unit.Unit, action.capitalize())
+        action_func("replace")
     if action in ("start", "restart", "stop"):
         time.sleep(1)
-        if is_active(instance) == (action == "stop"):
-            raise OSError(f"Command Failed! ({action} of '{instance}' failed).")
+        should_be_dead = (action == "stop")
+        if is_active(unit) == should_be_dead:
+            state = unit.Unit.ActiveState.decode()
+            raise OSError(f"{action.capitalize()} failed! (Unit is {state}).")
+
+
+def set_persistence(unit: Unit, enable: bool = True) -> None:
+    """Set the Persistence of a systemd Unit.
+
+    Args:
+        unit (Unit): A systemd Unit object, already loaded.
+        enable (bool, optional): Wether to enable or disable the Unit. Defaults to True.
+    """
+    with Manager() as mgr:
+        if enable:
+            link = mgr.Manager.EnableUnitFiles([unit.Unit.Id], False, True)[1]
+            if link[0]:
+                print(f"Linked Unit: '{link[0][1].decode()}'")
+        else:
+            link = mgr.Manager.DisableUnitFiles([unit.Unit.Id], False)
+            if link[0]:
+                print(f"Unlinked Unit: '{link[0][1].decode()}'")
 
 
 def notified_set_status(instance: str, action: str, message: str = '', persistent: bool = False) -> None:
@@ -100,9 +127,10 @@ def notified_set_status(instance: str, action: str, message: str = '', persisten
     if action not in ("start", "restart", "stop"):
         raise ValueError(f"Invalid action '{action}'")
 
+    unit = get_unit(instance)
     if persistent and action != "restart":
-        persistent_action = {"start": "enable", "stop": "disable"}
-        set_status(instance, persistent_action.get(action))
+        enable = (action == "start")
+        set_persistence(unit, enable)
 
     if action in ("stop", "restart"):
         msgcol = "6" if action == "restart" else "4"
@@ -112,4 +140,4 @@ def notified_set_status(instance: str, action: str, message: str = '', persisten
             proc.mc_exec(instance, shlex.split(msg))
         except ConnectionError:
             pass
-    set_status(instance, action)
+    set_status(unit, action)

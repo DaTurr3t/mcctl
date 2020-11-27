@@ -39,7 +39,8 @@ def attach(instance: str) -> None:
     Arguments:
         instance (str): The name of the instance.
     """
-    if not service.is_active(instance):
+    unit = service.get_unit(instance)
+    if not service.is_active(unit):
         raise OSError("The Server is not running.")
     cmd = shlex.split(f"screen -r mc-{instance}")
     proc = sproc.Popen(cmd)
@@ -99,7 +100,8 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
         max_retries (int): The amount of retries when no lines have been pushed to console. (default: {25})
         max_flush_retries (int): The amount of retries when some lines have been pushed to console. (default: {10})
     """
-    if not service.is_active(instance):
+    unit = service.get_unit(instance)
+    if not service.is_active(unit):
         raise OSError("The Server is not running.")
     elif not common.is_ready(instance):
         raise ConnectionError("The Server is starting up.")
