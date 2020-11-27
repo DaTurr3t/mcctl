@@ -55,8 +55,7 @@ def create(instance: str, source: str, memory: str, properties: list, literal_ur
             env_path = instance_path / CFGVARS.get('system', 'env_file')
             config.set_properties(env_path, {"MEM": memory})
         if start:
-            service.set_status(instance, "enable")
-            service.set_status(instance, "start")
+            service.notified_set_status(instance, "start", persistent=True)
 
         started = "and started " if start else ""
         print(f"Configured {started}with Version '{version}'.")
@@ -99,13 +98,12 @@ def get_instance_list(filter_str: str = '') -> None:
                 proto = -1
                 version = "n/a"
 
-            if service.is_active(name):
-                if proto > -1:
-                    run_status = "Active"
-                else:
-                    run_status = "Starting"
+            unit = service.get_unit(name)
+            service_state = unit.Unit.ActiveState.decode()
+            if proto > -1 and service_state == "active":
+                run_status = "Starting"
             else:
-                run_status = "Inactive"
+                run_status = service_state.capitalize()
 
             contents = template.format(
                 name, version, f"{online}/{cfg.get('max-players')}",
@@ -164,7 +162,8 @@ def rename(instance: str, new_name: str) -> None:
         instance (str): Current name of the Instance.
         new_name (str): New name of the Instance.
     """
-    if (service.is_enabled(instance) or service.is_active(instance)):
+    unit = service.get_unit(instance)
+    if (service.is_enabled(unit) or service.is_active(unit)):
         raise OSError("The server is still persistent and/or running.")
     server_path = storage.get_instance_path(instance)
     server_path.rename(server_path.parent / new_name)
@@ -186,7 +185,8 @@ def update(instance: str, source: str, literal_url: bool = False, restart: bool 
     storage.copy(jar_src, jar_dest)
 
     additions = ''
-    if service.is_active(instance) and restart:
+    unit = service.get_unit(instance)
+    if service.is_active(unit) and restart:
         service.notified_set_status(
             instance, "restart", f"Updating to Version {version}")
     else:
@@ -236,7 +236,8 @@ def configure(instance: str, editor: str, properties: list = None, edit_paths: l
             else:
                 proc.edit(paths[file_path], editor)
 
-    do_restart = service.is_active(instance) and len(paths) > 0 and restart
+    unit = service.get_unit(instance)
+    do_restart = service.is_active(unit) and len(paths) > 0 and restart
     if do_restart:
         service.notified_set_status(
             instance, "stop", "Reconfiguring and restarting Server.")
