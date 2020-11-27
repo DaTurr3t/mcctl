@@ -57,3 +57,22 @@ def compute(length: int = 1) -> str:
     for _ in range(length):
         out += chr(random.randint(c_min, c_max))
     return out
+
+
+def get_fmtbytes(num: int) -> str:
+    """Return a string with a Unit (KB up to EB).
+
+    Args:
+        num (int): A huge Number.
+
+    Returns:
+        str: A human-readable huge Number (e.g. "3.5G").
+    """
+    units = ['K', 'M', 'G', 'T', 'P', 'E']
+    out = ''
+    for unit in units:
+        num /= 1024
+        out = unit
+        if abs(num) < 1024:
+            break
+    return f"{round(num, 2)}{out}"

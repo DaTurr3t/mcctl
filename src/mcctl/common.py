@@ -18,9 +18,10 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
+import codecs
 from socket import error as sock_error
 from mcstatus import MinecraftServer
-from mcctl import web, storage, service, config, proc, CFGVARS
+from mcctl import web, storage, service, config, proc, visuals, CFGVARS
 
 
 def create(instance: str, source: str, memory: str, properties: list, literal_url: bool = False, start: bool = False) -> None:
@@ -65,7 +66,7 @@ def create(instance: str, source: str, memory: str, properties: list, literal_ur
         storage.remove(instance, confirm=False)
 
 
-def get_instance_list(filter_str: str = '') -> None:
+def list_instances(filter_str: str = '') -> None:
     """Print a list of all instances.
 
     Output a table of all instances with their respective Name, Server Version String, Status and persistence.
@@ -89,10 +90,10 @@ def get_instance_list(filter_str: str = '') -> None:
 
             try:
                 server = MinecraftServer('localhost', port)
-                status = server.status()
-                online = status.players.online
-                proto = status.version.protocol
-                version = status.version.name
+                mc_status = server.status()
+                online = mc_status.players.online
+                proto = mc_status.version.protocol
+                version = mc_status.version.name
             except (ConnectionError, sock_error):
                 online = 0
                 proto = -1
@@ -125,8 +126,8 @@ def is_ready(instance: str) -> bool:
     port = int(cfg.get("server-port"))
     try:
         server = MinecraftServer('localhost', port)
-        status = server.status()
-        proto = status.version.protocol
+        mc_status = server.status()
+        proto = mc_status.version.protocol
     except (ConnectionError, sock_error):
         return False
 
@@ -148,7 +149,7 @@ def mc_ls(what: str, filter_str: str = '') -> None:
     if what == 'jars':
         storage.get_jar_list(filter_str)
     elif what == 'instances':
-        get_instance_list(filter_str)
+        list_instances(filter_str)
     else:
         raise ValueError(f"Cannot List '{what}'.")
 
@@ -246,4 +247,57 @@ def configure(instance: str, editor: str, properties: list = None, edit_paths: l
         storage.move(src, dst)
 
     if do_restart:
-        service.set_status(instance, "start")
+        service.notified_set_status(instance, "start")
+
+
+def status(instance: str) -> None:
+    """Show Status Information about a Service.
+
+    Args:
+        instance (str): The name of the instance.
+    """
+    instance_path = storage.get_instance_path(instance)
+    if not instance_path.exists():
+        raise FileNotFoundError("Instance Path not found.")
+
+    properties = config.get_properties(
+        instance_path / "server.properties")
+    try:
+        envinfo = config.get_properties(
+            instance_path / CFGVARS.get('system', 'env_file'))
+    except FileNotFoundError:
+        envinfo = {}
+
+    port = properties.get("server-port")
+    server = MinecraftServer('localhost', int(port))
+    mc_status = server.status()
+
+    unit = service.get_unit(instance)
+    state = unit.ActiveState.decode().capitalize()
+    files = storage.get_child_paths(instance_path)
+    total_size = sum(x.stat().st_size for x in files)
+
+    cmdvars = {k: v for k, v in (x.decode().split("=")
+                                 for x in unit.Service.Environment)}
+    if envinfo.get('MEM'):
+        cmdvars['MEM'] = envinfo.get('MEM')
+    cmd = " ".join(x.decode() for x in unit.Service.ExecStart[0][1])
+    resolved_cmd = cmd.replace("${", "{").format(**cmdvars)
+
+    info = {
+        "MOTD": codecs.decode(properties.get("motd", "?"), "unicode-escape").replace("\\", ""),
+        "Player Count": f"{mc_status.players.online}/{properties.get('max-players', '?')}",
+        "Version": f"{mc_status.version.name} (protocol {mc_status.version.protocol})",
+        "Server Port": port,
+        "Size on Disk": visuals.get_fmtbytes(total_size),
+        "Persistent": str(unit.UnitFileState.decode() == "enabled"),
+        "Status": f"{state} ({unit.SubState.decode()})",
+        "Process": f"({unit.Service.MainPID}) {resolved_cmd}",
+        "Memory Usage": f"{visuals.get_fmtbytes(unit.Service.MemoryCurrent)} ({cmdvars.get('MEM')} for JVM)",
+    }
+
+    maxlen = len(max(info, key=len))
+    print(f"--- [{state}] {unit.Unit.Description.decode()} ---")
+    for key, val in info.items():
+        print(f"{key:>{maxlen}}: {val}")
+    print()

@@ -286,6 +286,11 @@ def get_parser() -> ap.ArgumentParser:
         func=service.notified_set_status, elevation=default_semi_elev)
 
     parser_stop = subparsers.add_parser(
+        "status", parents=[instance_name_parser], help="Get extensive Information about the Server Instance.")
+    parser_stop.set_defaults(
+        func=common.status, err_template="retrieve {args.action} of '{args.instance}'", elevation=default_semi_elev)
+
+    parser_stop = subparsers.add_parser(
         "stop", parents=[instance_name_parser, message_parser], help="Stop a Server Instance.")
     parser_stop.add_argument("-p", "--persistent", action='store_true',
                              help="Do not start again after Reboot.")
