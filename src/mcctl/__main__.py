@@ -241,7 +241,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_list = subparsers.add_parser(
         "ls", help="List Instances, installed Versions, etc.")
     parser_list.add_argument("what", metavar="WHAT", nargs="?", choices=[
-        "instances", "jars"], default="instances", help="What Type (instnaces/jars) return.")
+        "instances", "jars"], default="instances", help="What Type (instnaces/jars) to return.")
     parser_list.add_argument("-f", "--filter", dest="filter_str",
                              default='', help="Filter by Version or Instance Name, etc.")
     parser_list.set_defaults(

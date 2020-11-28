@@ -279,8 +279,7 @@ def status(instance: str) -> None:
 
     cmdvars = {k: v for k, v in (x.decode().split("=")
                                  for x in unit.Service.Environment)}
-    if envinfo.get('MEM'):
-        cmdvars['MEM'] = envinfo.get('MEM')
+    cmdvars.update(envinfo)
     cmd = " ".join(x.decode() for x in unit.Service.ExecStart[0][1])
     resolved_cmd = cmd.replace("${", "{").format(**cmdvars)
 

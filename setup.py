@@ -35,7 +35,7 @@ setup(
     ],
     include_package_data=True,
     package_dir={'': 'src'},
-    install_requires=['mcstatus', 'requests'],
+    install_requires=['mcstatus', 'requests', 'pystemd'],
     setup_requires=['wheel'],
     entry_points={
         "console_scripts": [
