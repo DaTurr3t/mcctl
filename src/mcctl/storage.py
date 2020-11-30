@@ -251,36 +251,36 @@ def export(instance: str, zip_path: Path = None, compress: bool = False, world_o
     return zip_path
 
 
-def remove(instance: str, confirm: bool = True) -> None:
+def remove(instance: str, force: bool = False) -> None:
     """Remove an instance from disk.
 
     Arguments:
         instance (str): The name of the Instance to be deleted.
 
     Keyword Arguments:
-        confirm (bool): Ask the user if they are sure to delete the instance. (default: {True})
+        force (bool): Delete the Instance without a prompt. (default: {False})
     """
     del_path = get_instance_path(instance)
     if not del_path.exists():
         raise FileNotFoundError(f"Instance Path not found: {del_path}.")
     if (service.is_enabled(instance) or service.is_active(service.get_unit(instance))):
         raise OSError("The server is still running and/or persistent.")
-    if confirm:
-        ans = input(
-            f"Are you absolutely sure you want to remove the Instance '{instance}'? [y/n]: ")
-        while ans.lower() not in ("y", "n"):
-            ans = input("Please answer [y]es or [n]o: ")
-    else:
-        ans = "y"
-    if ans.lower() == "y":
+
+    msg = f"Are you absolutely sure you want to remove the Instance '{instance}'? [y/n]: "
+    ans = "y" if force else input(msg).lower()
+    while ans not in ("y", "n"):
+        ans = input("Please answer [y]es or [n]o: ")
+    if ans == "y":
         shutil.rmtree(del_path)
 
 
-def remove_jar(source: str) -> None:
+def remove_jar(source: str, force: bool = False) -> None:
     """Remove an .jar-File from disk.
 
     Arguments:
         type_id (str): The type_id of the .jar-File to be deleted.
+    Keyword Arguments:
+        force (bool): Delete the Jar File without a prompt. (default: {False})
     """
     del_all = source == "all"
     if not del_all:
@@ -292,7 +292,7 @@ def remove_jar(source: str) -> None:
 
     if not del_path.exists():
         raise FileNotFoundError(f"Type-ID not found in cache: {del_path}.")
-    ans = input(msg).lower()
+    ans = "y" if force else input(msg).lower()
     while ans not in ("y", "n"):
         ans = input("Please answer [y]es or [n]o: ")
     if ans == "y":

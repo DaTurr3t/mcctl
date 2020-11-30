@@ -111,12 +111,11 @@ class TestParserMappings(unittest.TestCase):
 
     def test_rm(self):
         args = self.parser.parse_args("rm testserver".split())
-        kwargs_ok = ['confirm']
         params_ok = ["action"]
         params_ok.extend(self.param_base)
         kwargs, params = get_missing(vars(args), args.func)
         self.assertListEqual(sorted(kwargs), sorted(params_ok))
-        self.assertListEqual(params, kwargs_ok)
+        self.assertListEqual(params, [])
 
     def test_rmj(self):
         args = self.parser.parse_args("create mcserver vanilla:1.16.2".split())

@@ -150,6 +150,9 @@ def get_parser() -> ap.ArgumentParser:
     subparsers = parser.add_subparsers(title="actions", dest="action")
     subparsers.required = True
 
+    force_parser = ap.ArgumentParser(add_help=False)
+    force_parser.add_argument("-f" "--force", action="store_true", help="Skip Prompts and force deletion.")
+
     type_id_parser = ap.ArgumentParser(
         add_help=False, formatter_class=ap.RawTextHelpFormatter)
     type_id_parser.add_argument(
@@ -264,12 +267,12 @@ def get_parser() -> ap.ArgumentParser:
         func=service.notified_set_status, elevation=default_semi_elev)
 
     parser_remove = subparsers.add_parser(
-        "rm", parents=[instance_name_parser], help="Remove a Server Instance.")
+        "rm", parents=[instance_name_parser, force_parser], help="Remove a Server Instance.")
     parser_remove.set_defaults(
         func=storage.remove, err_template="remove '{args.instance}'")
 
     parser_remove_jar = subparsers.add_parser(
-        "rmj", help="Remove a cached Server Binary.")
+        "rmj", parents=[force_parser], help="Remove a cached Server Binary.")
     parser_remove_jar.add_argument(
         "source", metavar="TYPEID", type=check_strict_type_id,
         help=("Type ID in '<TYPE>:<VERSION>:<BUILD>' format.\n"
