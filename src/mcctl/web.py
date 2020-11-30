@@ -78,13 +78,14 @@ def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
         minor = version_tag
     else:
         major, minor = version_tag.split(":", 1)
-    test_url = join_url(base_url, major, minor)
+    version_url = join_url(base_url, major, minor)
     try:
-        resolved_data = rest_get(test_url)
-        resolved_tag = ":".join(resolved_data.values())
+        resolved_data = rest_get(version_url)
+        # Make sure revision is str and not int
+        resolved_tag = ":".join(str(x) for x in resolved_data.values())
     except Exception as ex:
         raise LookupError("Server Version not found") from ex
-    return join_url(test_url, "download"), resolved_tag
+    return join_url(version_url, "download"), resolved_tag
 
 
 def get_spigot_download_url(version_tag: str, base_url: str) -> tuple:
