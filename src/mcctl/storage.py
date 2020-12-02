@@ -168,6 +168,15 @@ def create_dirs(path: Path) -> None:
     Path.mkdir(path, mode=0o0750, parents=True, exist_ok=True)
 
 
+def remove_dirs(path: Path) -> None:
+    """Remove a path, even if it is full.
+
+    Arguments:
+        path (Path): Path to delete.
+    """
+    shutil.rmtree(path)
+
+
 def copy(source: Path, dest: Path) -> Path:
     """Copy a file or directory.
 
@@ -271,7 +280,7 @@ def remove(instance: str, force: bool = False) -> None:
     while ans not in ("y", "n"):
         ans = input("Please answer [y]es or [n]o: ")
     if ans == "y":
-        shutil.rmtree(del_path)
+        remove_dirs(del_path)
 
 
 def remove_jar(source: str, force: bool = False) -> None:
@@ -299,7 +308,7 @@ def remove_jar(source: str, force: bool = False) -> None:
         if not del_all:
             del_path.unlink()
         else:
-            shutil.rmtree(del_path)
+            remove_dirs(del_path)
 
 
 def inspect(instance: str, limit: int = 0) -> None:
