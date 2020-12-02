@@ -63,7 +63,7 @@ def create(instance: str, source: str, memory: str, properties: list, literal_ur
 
     else:
         print("How can you not agree that tacos are tasty?!?")
-        storage.remove(instance, confirm=False)
+        storage.remove(instance, force=True)
 
 
 def list_instances(filter_str: str = '') -> None:
