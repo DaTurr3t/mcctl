@@ -32,7 +32,7 @@ from pathlib import Path
 from datetime import datetime
 from grp import getgrgid
 from pwd import getpwnam
-from mcctl import service, config, CFGVARS
+from mcctl import service, config, visuals, CFGVARS
 
 SERVER_USER = CFGVARS.get('system', 'server_user')
 
@@ -368,3 +368,57 @@ def get_file_hash(file_path: Path) -> str:
         for chunk in iter(lambda: fhnd.read(4096), b""):
             hash_sha1.update(chunk)
     return hash_sha1.hexdigest()
+
+
+def install_bare_plugin(plugin_path: Path, plugin_dest: Path) -> str:
+    """Install a .jar file as a Plugin on a Server.
+
+    Args:
+        plugin_path (Path): The source path of the plugin.
+        plugin_dest (Path): The destination path of the plugin.
+
+    Returns:
+        str: The file name of the installed plugin
+    """
+    dst_file = plugin_dest / plugin_path.name
+    copy(plugin_path, dst_file)
+    dst_file.chmod(0o750)
+    return plugin_path.name
+
+
+def install_compressed_plugin(plugin_path: Path, plugin_dest: Path) -> list:
+    """Install a user selection of .jar files from a compresed file as a Plugin on a Server.
+
+    Args:
+        plugin_path (Path): The source path of the archive containing plugin(s).
+        plugin_dest (Path): The destination path of the plugin(s).
+
+    Raises:
+        FileNotFoundError: If no Plugins are found in the Archive.
+
+    Returns:
+        list: File names of installed plugins.
+    """
+    installed = []
+    with zf.ZipFile(plugin_path) as zip_file:
+        selection = []
+        for zinfo in zip_file.infolist():
+            if not zinfo.is_dir() and zinfo.endswith(".zip"):
+                selection.append(zinfo)
+        if len(selection) < 1:
+            raise FileNotFoundError("No Plugin(s) found in Archive.")
+        else:
+            if len(selection) > 1:
+                print(f"Multiple Plugins found in '{plugin_path}':")
+                final_selection = visuals.list_selector(
+                    selection, display=lambda x: Path(x.filename).name)
+            else:
+                final_selection = selection
+            for zinfo in final_selection:
+                jar_name = Path(zinfo.filename).name
+                dst = plugin_dest / jar_name
+                with zip_file.open(zinfo) as zjar, open(dst, 'wb') as dst_file:
+                    shutil.copyfileobj(zjar, dst_file)
+                dst.chmod(0o750)
+                installed.append(jar_name)
+    return installed

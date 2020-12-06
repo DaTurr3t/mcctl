@@ -296,7 +296,55 @@ def status(instance: str) -> None:
     }
 
     maxlen = len(max(info, key=len))
-    print(f"--- [{state}] {unit.Unit.Description.decode()} ---")
+    print(f"--- [{state.upper()}] {unit.Unit.Description.decode()} ---")
     for key, val in info.items():
         print(f"{key:>{maxlen}}: {val}")
     print()
+
+
+def install(instance: str, sources: list, restart: bool = False) -> None:
+    """Install a list of archived or bare plugins on a server.
+
+    Args:
+        instance (str): The name of the instance.
+        sources (list): A list of zip and jar Files/URLs which contain or are Plugins.
+        restart (bool, optional): Restart the Server after Installation. Defaults to False.
+
+    Raises:
+        FileNotFoundError: If a Plugin File or Archive is not found.
+        ValueError: Unsupported File Format.
+    """
+    instance_path = storage.get_instance_path(instance)
+    plugin_dest = instance_path / "plugins"
+    cache_path = storage.get_home_path() / ".plugin_cache"
+
+    if not instance_path.is_dir():
+        raise FileNotFoundError("Instance not found.")
+    if not plugin_dest.is_dir():
+        raise FileNotFoundError("No Plugin Folder found.")
+
+    unique_files = set(sources)
+    storage.create_dirs(cache_path)
+    for potential_url in unique_files:
+        if web.is_url(potential_url):
+            downloaded = web.download(potential_url, cache_path)
+            unique_files.add(downloaded)
+            unique_files.discard(potential_url)
+
+    installed = []
+    plugin_sources = (storage.Path(x) for x in unique_files)
+    for plugin_source in plugin_sources:
+        if plugin_source.suffix == ".zip":
+            installed.extend(storage.install_compressed_plugin(
+                plugin_source, plugin_dest))
+        elif plugin_source.suffix == ".jar":
+            installed.append(storage.install_bare_plugin(
+                plugin_source, plugin_dest))
+        else:
+            raise ValueError(f"'{plugin_source}' is not '.zip' or '.jar'.")
+    add = ". Manual restart/reload required."
+    storage.remove_dirs(cache_path)
+    if restart:
+        add = "and restarted Server."
+        service.notified_set_status(instance, "restart", "Installing Plugins.")
+    print(f"Installed {', '.join(installed)}{add}")

@@ -241,6 +241,15 @@ def get_parser() -> ap.ArgumentParser:
     parser_inspect.set_defaults(
         func=storage.inspect, err_template="{args.action} logs of '{args.instance}'")
 
+    parser_install = subparsers.add_parser(
+        "install", parents=[instance_name_parser], formatter_class=ap.RawTextHelpFormatter,
+        help="Install a server Plugin from a local Path or from URL.\n"
+             "No Version or Compatibility Checks are done against the Server,\n"
+             "only if the plugin Folder does not exist, the command fails."
+    )
+    parser_install.add_argument("sources", metavar="PATH_OR_URL", nargs="+", type=check_type_id,
+                                help="Paths or URLs which point to Plugins or zip Files.")
+                            
     parser_list = subparsers.add_parser(
         "ls", help="List Instances, installed Versions, etc.")
     parser_list.add_argument("what", metavar="WHAT", nargs="?", choices=[

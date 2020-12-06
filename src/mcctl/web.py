@@ -19,6 +19,7 @@
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
 from pathlib import Path
+from urllib.parse import urlparse
 import time
 import re
 import hashlib
@@ -201,7 +202,6 @@ def download(url: str, dest: Path) -> None:
     Returns:
         Path: The absolute destination Path, filename included.
     """
-
     response = req.get(url, stream=True)
     if dest.is_dir():
         fdisp = response.headers.get('content-disposition')
@@ -229,6 +229,19 @@ def download(url: str, dest: Path) -> None:
                 visuals.progress(loaded, elapsed, total_length)
         print()
     return file_dest.absolute()
+
+
+def is_url(url: str) -> bool:
+    """Test if the string is a valid URL.
+
+    Args:
+        url (str): A string that is potentially a URL
+
+    Returns:
+        bool: True if the submitted String is a valid URL.
+    """
+    seg = urlparse(url)
+    return all((seg.scheme, seg.netloc, seg.path))
 
 
 def join_url(base: str, *parts: str) -> str:
