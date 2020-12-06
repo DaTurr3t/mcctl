@@ -17,7 +17,9 @@
 
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http:// www.gnu.org/licenses/>.
+from typing import Callable
 import random
+
 DASHES = 0
 QUARTERCIRCLE = 1
 HALFCIRCLE = 2
@@ -76,3 +78,49 @@ def get_fmtbytes(num: int) -> str:
         if abs(num) < 1024:
             break
     return f"{round(num, 2)}{out}"
+
+
+def progress(current: int, elapsed: float, total: int) -> None:
+    """Print Progress.
+
+    Output the progress of the download given blockcount, blocksize and total bytes.
+
+    Arguments:
+        downloaded (int): The number of bits recieved.
+        elapsed (int): Elapsed time in seconds.
+        total (int): The size of the complete File.
+    """
+    spinner = SPINNERS[1]
+    chars = spinner.get('chars')
+    char_idx = int((elapsed * spinner.get('fps')) % len(chars))
+
+    percent = current * 100 / total
+    out = f"\r{chars[char_idx]} {percent:3.0f}% {current / 1024 :>{len(str(total // 1024))}.0f}kB / {(total/1024):.0f}kB"
+    print(out, end="")
+
+
+def list_selector(choices: list, display: Callable = lambda x: x) -> list:
+    """Show a list of choices of which one, a range or all can be selected.
+
+    Args:
+        choices (list): A List of potential choices.
+        display (Callable, optional): A callable that returns a display value (str) for a specific choice.
+
+    Returns:
+        list: [description]
+    """
+    for i, choice in enumerate(choices, 1):
+        print(f"{i}: {display(choice)}")
+    ans = input("Please specify a number or '0' to select all: ")
+    while True:
+        try:
+            num_ans = int(ans)
+            valid = True
+        except ValueError:
+            valid = False
+        if valid and num_ans >= 0 and num_ans < len(choices):
+            break
+        msg = f"Please specify a valid number between 0 and {len(choices)}: "
+        ans = input(msg)
+
+    return choices if ans == 0 else [choices[ans]]

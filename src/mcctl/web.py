@@ -198,9 +198,22 @@ def download(url: str, dest: Path) -> None:
     Arguments:
         url (str): The target to query.
         dest (Path): The path where to save the recieved file to.
+    Returns:
+        Path: The absolute destination Path, filename included.
     """
+
     response = req.get(url, stream=True)
-    with open(dest, "wb") as dest_hnd:
+    if dest.is_dir():
+        fdisp = response.headers.get('content-disposition')
+        if fdisp is not None:
+            fname = re.findall("filename=(.+)", fdisp)[0]
+            file_dest = dest / fname
+        else:
+            file_dest = url.split("/")[-1]
+    else:
+        file_dest = dest
+
+    with open(file_dest, "wb") as dest_hnd:
         total_length = int(response.headers.get('content-length', 0))
 
         if not total_length:
@@ -213,27 +226,9 @@ def download(url: str, dest: Path) -> None:
                 loaded += len(data)
                 dest_hnd.write(data)
                 elapsed = time.time() - inital
-                progress(loaded, elapsed, total_length)
+                visuals.progress(loaded, elapsed, total_length)
         print()
-
-
-def progress(current: int, elapsed: float, total: int) -> None:
-    """Print Progress.
-
-    Output the progress of the download given blockcount, blocksize and total bytes.
-
-    Arguments:
-        downloaded (int): The number of bits recieved.
-        elapsed (int): Elapsed time in seconds.
-        total (int): The size of the complete File.
-    """
-    spinner = visuals.SPINNERS[1]
-    chars = spinner.get('chars')
-    char_idx = int((elapsed * spinner.get('fps')) % len(chars))
-
-    percent = current * 100 / total
-    out = f"\r{chars[char_idx]} {percent:3.0f}% {current / 1024 :>{len(str(total // 1024))}.0f}kB / {(total/1024):.0f}kB"
-    print(out, end="")
+    return file_dest.absolute()
 
 
 def join_url(base: str, *parts: str) -> str:
