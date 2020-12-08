@@ -168,8 +168,8 @@ def create_dirs(path: Path) -> None:
     Path.mkdir(path, mode=0o0750, parents=True, exist_ok=True)
 
 
-def remove_dirs(path: Path) -> None:
-    """Remove a path, even if it is full.
+def remove_all(path: Path) -> None:
+    """Remove a path and its children, or a single file.
 
     Arguments:
         path (Path): Path to delete.
@@ -280,7 +280,7 @@ def remove(instance: str, force: bool = False) -> None:
     while ans not in ("y", "n"):
         ans = input("Please answer [y]es or [n]o: ")
     if ans == "y":
-        remove_dirs(del_path)
+        remove_all(del_path)
 
 
 def remove_jar(source: str, force: bool = False) -> None:
@@ -308,7 +308,7 @@ def remove_jar(source: str, force: bool = False) -> None:
         if not del_all:
             del_path.unlink()
         else:
-            remove_dirs(del_path)
+            remove_all(del_path)
 
 
 def inspect(instance: str, limit: int = 0) -> None:

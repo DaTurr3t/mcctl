@@ -343,7 +343,7 @@ def install(instance: str, sources: list, restart: bool = False) -> None:
         else:
             raise ValueError(f"'{plugin_source}' is not '.zip' or '.jar'.")
     add = ". Manual restart/reload required."
-    storage.remove_dirs(cache_path)
+    storage.remove_all(cache_path)
     if restart:
         add = "and restarted Server."
         service.notified_set_status(instance, "restart", "Installing Plugins.")
