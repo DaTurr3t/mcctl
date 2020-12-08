@@ -115,23 +115,19 @@ def get_parser() -> ap.ArgumentParser:
         argparse.ArgumentTypeError: Raised when the parameters given cannot be parsed correctly.
     """
     def check_type_id(value: str) -> str:
-        test_type_id = re.compile(
-            r'(.+:)+.+|https?: \/\/(-\.)?([ ^\s /?\.#-]+\.?)+(/[^\s]*)?$')
-        if not test_type_id.search(value):
+        if not (re.search(r'^[a-z0-9\._-]+(:[a-z0-9\._-]+){1,2}$', value) or web.is_url(value)):
             raise ap.ArgumentTypeError(
                 "must be in the form '<TYPE>:<VERSION>:<BUILD>' or URL.")
         return value
 
     def check_strict_type_id(value: str) -> str:
-        test_type_id = re.compile(r'(.+:)+.+|all')
-        if not test_type_id.search(value):
+        if not re.search(r'^[a-z0-9\._-]+(:[a-z0-9\._-]+){1,2}$|^all$', value):
             raise ap.ArgumentTypeError(
                 "must be in the form '<TYPE>:<VERSION>:<BUILD>' or 'all'.")
         return value
 
     def check_mem(value: str) -> str:
-        test_mem = re.compile(r'^[0-9]+[KMG]$')
-        if not test_mem.search(value):
+        if not re.search(r'^[0-9]*[1-9]+[0-9]*[KMG]$', value):
             raise ap.ArgumentTypeError("Must be in Format <NUMBER>{K,M,G}.")
         return value
 
@@ -151,7 +147,8 @@ def get_parser() -> ap.ArgumentParser:
     subparsers.required = True
 
     force_parser = ap.ArgumentParser(add_help=False)
-    force_parser.add_argument("-f" "--force", action="store_true", help="Skip Prompts and force deletion.")
+    force_parser.add_argument("-f" "--force", action="store_true",
+                              help="Proceed without a prompt.")
 
     type_id_parser = ap.ArgumentParser(
         add_help=False, formatter_class=ap.RawTextHelpFormatter)
@@ -249,7 +246,7 @@ def get_parser() -> ap.ArgumentParser:
     )
     parser_install.add_argument("sources", metavar="PATH_OR_URL", nargs="+", type=check_type_id,
                                 help="Paths or URLs which point to Plugins or zip Files.")
-                            
+
     parser_list = subparsers.add_parser(
         "ls", help="List Instances, installed Versions, etc.")
     parser_list.add_argument("what", metavar="WHAT", nargs="?", choices=[
