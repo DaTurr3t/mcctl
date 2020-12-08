@@ -54,7 +54,7 @@ def get_permlevel(args: ap.Namespace, elevation: dict) -> dict:
     if conditions:
         kwargs = vars(args)
         for key, val in conditions.items():
-            if kwargs[key] == val:
+            if key in kwargs and kwargs[key] == val:
                 cond_match = True
                 break
 
@@ -109,7 +109,7 @@ def get_parser() -> ap.ArgumentParser:
     """Parse Arguments from the Command Line input and returns the converted Values.
 
     Returns:
-        argparse.Namespace: All Arguments, parsed.
+        ArgumentParser: A parser with all arguments.
 
     Raises:
         argparse.ArgumentTypeError: Raised when the parameters given cannot be parsed correctly.
@@ -132,8 +132,11 @@ def get_parser() -> ap.ArgumentParser:
         return value
 
     default_err_template = "{args.action} instance '{args.instance}'"
-    default_elev = {"default": "server_user"}
-    default_semi_elev = {"default": "server_user", "change_to": "root"}
+    no_elev = {"default": "server_user"}
+    semi_elev = {"default": "server_user", "change_to": "root"}
+    re_start_elev = {"default": "server_user",
+                     "change_to": "root",
+                     "on_cond": {'restart': True, 'start': True}}
 
     parser = ap.ArgumentParser("mcctl", description="Manage, configure, create multiple Minecraft servers in a docker-like fashion.\n"
                                f"Version: {__version__}",
@@ -141,7 +144,7 @@ def get_parser() -> ap.ArgumentParser:
     parser.add_argument("-v", "--verbose", action='store_true',
                         help="Enable verbose/debugging output.")
     parser.set_defaults(err_template=default_err_template,
-                        elevation=default_elev)
+                        elevation=no_elev)
 
     subparsers = parser.add_subparsers(title="actions", dest="action")
     subparsers.required = True
@@ -193,13 +196,8 @@ def get_parser() -> ap.ArgumentParser:
         "-e", "--edit", nargs="+", dest="edit_paths", metavar="FILE", help="Edit a File in the Instance Folder interactively.")
     parser_config.add_argument(
         "-p", "--properties", nargs="+", help="Change server.properties options, e.g. server-port=25567 'motd=My new and cool Server'.")
-    parser_config.set_defaults(
-        func=common.configure, err_template="configure '{args.instance}'", editor=CFGVARS.get('user', 'editor'),
-        elevation={
-            "default": "server_user",
-            "change_to": "root",
-            "on_cond": {'restart': True}
-        })
+    parser_config.set_defaults(func=common.configure, err_template="configure '{args.instance}'",
+                               editor=CFGVARS.get('user', 'editor'), elevation=re_start_elev)
 
     parser_create = subparsers.add_parser(
         "create", parents=[instance_name_parser, type_id_parser, memory_parser], help="Create a new Server Instance.", formatter_class=ap.RawTextHelpFormatter)
@@ -229,7 +227,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_export.add_argument(
         "-w", "--world-only", action='store_true', help="Only export World Data.")
     parser_export.set_defaults(
-        func=storage.export, elevation=default_semi_elev)
+        func=storage.export, elevation=semi_elev)
 
     parser_inspect = subparsers.add_parser(
         "inspect", parents=[instance_name_parser], help="Inspect the Log of a Server.")
@@ -239,13 +237,15 @@ def get_parser() -> ap.ArgumentParser:
         func=storage.inspect, err_template="{args.action} logs of '{args.instance}'")
 
     parser_install = subparsers.add_parser(
-        "install", parents=[instance_name_parser], formatter_class=ap.RawTextHelpFormatter,
+        "install", parents=[instance_name_parser, restart_parser], formatter_class=ap.RawTextHelpFormatter,
         help="Install a server Plugin from a local Path or from URL.\n"
-             "No Version or Compatibility Checks are done against the Server,\n"
-             "only if the plugin Folder does not exist, the command fails."
+             "No Version or compatibility checks are done against the Server.\n"
+             "Only if the plugin folder does not exist for the Server, the command fails."
     )
     parser_install.add_argument("sources", metavar="PATH_OR_URL", nargs="+", type=check_type_id,
                                 help="Paths or URLs which point to Plugins or zip Files.")
+    parser_install.set_defaults(func=common.install, elevation=re_start_elev,
+                                err_template="{args.action} plugins on {args.instance}")
 
     parser_list = subparsers.add_parser(
         "ls", help="List Instances, installed Versions, etc.")
@@ -254,7 +254,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_list.add_argument("-f", "--filter", dest="filter_str",
                              default='', help="Filter by Version or Instance Name, etc.")
     parser_list.set_defaults(
-        func=common.mc_ls, err_template="list {args.what}")
+        func=common.mc_ls, err_template="{args.action} {args.what}")
 
     parser_pull = subparsers.add_parser(
         "pull", parents=[type_id_parser], help="Pull a Server .jar-File from the Internet.")
@@ -270,7 +270,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_restart = subparsers.add_parser(
         "restart", parents=[instance_name_parser, message_parser], help="Restart a Server Instance.")
     parser_restart.set_defaults(
-        func=service.notified_set_status, elevation=default_semi_elev)
+        func=service.notified_set_status, elevation=semi_elev)
 
     parser_remove = subparsers.add_parser(
         "rm", parents=[instance_name_parser, force_parser], help="Remove a Server Instance.")
@@ -292,29 +292,23 @@ def get_parser() -> ap.ArgumentParser:
     parser_start.add_argument("-p", "--persistent", action='store_true',
                               help="Start even after Reboot.")
     parser_start.set_defaults(
-        func=service.notified_set_status, elevation=default_semi_elev)
+        func=service.notified_set_status, elevation=semi_elev)
 
     parser_stop = subparsers.add_parser(
         "status", parents=[instance_name_parser], help="Get extensive Information about the Server Instance.")
     parser_stop.set_defaults(
-        func=common.status, err_template="retrieve {args.action} of '{args.instance}'", elevation=default_semi_elev)
+        func=common.status, err_template="retrieve {args.action} of '{args.instance}'", elevation=semi_elev)
 
     parser_stop = subparsers.add_parser(
         "stop", parents=[instance_name_parser, message_parser], help="Stop a Server Instance.")
     parser_stop.add_argument("-p", "--persistent", action='store_true',
                              help="Do not start again after Reboot.")
     parser_stop.set_defaults(
-        func=service.notified_set_status, elevation=default_semi_elev)
+        func=service.notified_set_status, elevation=semi_elev)
 
     parser_update = subparsers.add_parser(
         "update", parents=[instance_name_parser, type_id_parser, restart_parser], help="Update a Server Instance.")
-    parser_update.set_defaults(
-        func=common.update,
-        elevation={
-            "default": "server_user",
-            "change_to": "root",
-            "on_cond": {'restart': True}
-        })
+    parser_update.set_defaults(func=common.update, elevation=re_start_elev)
 
     parser_shell = subparsers.add_parser(
         "shell", parents=[instance_subfolder_parser], help="Use a Shell to interactively edit a Server Instance.")
