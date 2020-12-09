@@ -117,6 +117,7 @@ def list_plugins(filter_str: str = '') -> None:
             print(resolved)
 
 
+def list_jars(filter_str: str = '') -> None:
     """Get a List of all cached .jar-files.
 
     Lists all cached .jar-Files in the Type-Tag format.

@@ -76,7 +76,7 @@ def list_instances(filter_str: str = '') -> None:
     """
     base_path = storage.get_instance_path(bare=True)
     server_paths = base_path.iterdir()
-    servers = [x.name for x in server_paths]
+    servers = (x.name for x in server_paths)
 
     template = "{:16} {:20} {:16} {:10} {:10}"
     title = template.format("Name", "Server Version",
@@ -140,18 +140,22 @@ def mc_ls(what: str, filter_str: str = '') -> None:
     A Function to bundle all Listing Functions, invokes selected Function.
 
     Args:
-        what (str): What to list (jars or instances)
+        what (str): What to list (jars, instances or plugins)
         filter (str): Filter by Instance Name, type or version. (default: '')
 
     Raises:
         ValueError: Raised if "what" is invalid.
     """
-    if what == 'jars':
-        storage.get_jar_list(filter_str)
-    elif what == 'instances':
-        list_instances(filter_str)
-    else:
-        raise ValueError(f"Cannot List '{what}'.")
+    ls_types = {
+        "instances": list_instances,
+        "jars": storage.list_jars,
+        "plugins": storage.list_plugins
+    }
+
+    func = ls_types.get(what)
+    if func is None:
+        raise LookupError(f"Cannot List '{what}'.")
+    func(filter_str)
 
 
 def rename(instance: str, new_name: str) -> None:
