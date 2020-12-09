@@ -86,11 +86,14 @@ def set_status(unit: Unit, action: str) -> None:
     with proc.managed_run_as(0, 0):
         action_func = getattr(unit.Unit, action.capitalize())
         action_func("replace")
+
+    state = None
+    while state in ("deactivating", "activating", None):
+        state = unit.Unit.ActiveState.decode()
+        time.sleep(0.5)
     if action in ("start", "restart", "stop"):
-        time.sleep(1)
         should_be_dead = (action == "stop")
         if is_active(unit) == should_be_dead:
-            state = unit.Unit.ActiveState.decode()
             raise OSError(f"{action.capitalize()} failed! (Unit is {state}).")
 
 
