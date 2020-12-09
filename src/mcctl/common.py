@@ -325,15 +325,17 @@ def install(instance: str, sources: list, restart: bool = False) -> None:
 
     unique_files = set(sources)
     storage.create_dirs(cache_path)
-    for potential_url in unique_files:
-        if web.is_url(potential_url):
-            downloaded = web.download(potential_url, cache_path)
+    for source in unique_files:
+        if web.is_url(source):
+            print(f"Downloading '{source}'")
+            downloaded = web.download(source, cache_path)
             unique_files.add(downloaded)
-            unique_files.discard(potential_url)
+            unique_files.discard(source)
 
     installed = []
     plugin_sources = (storage.Path(x) for x in unique_files)
     for plugin_source in plugin_sources:
+        print(f"Installing '{plugin_source.name}' ...")
         if plugin_source.suffix == ".zip":
             installed.extend(storage.install_compressed_plugin(
                 plugin_source, plugin_dest))
@@ -345,6 +347,6 @@ def install(instance: str, sources: list, restart: bool = False) -> None:
     add = ". Manual restart/reload required."
     storage.remove_all(cache_path)
     if restart:
-        add = "and restarted Server."
+        add = " and restarted Server."
         service.notified_set_status(instance, "restart", "Installing Plugins.")
     print(f"Installed {', '.join(installed)}{add}")
