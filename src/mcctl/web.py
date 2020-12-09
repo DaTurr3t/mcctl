@@ -209,7 +209,7 @@ def download(url: str, dest: Path) -> None:
             fname = re.findall("filename=(.+)", fdisp)[0]
             file_dest = dest / fname
         else:
-            file_dest = url.split("/")[-1]
+            file_dest = dest / url.split("/")[-1]
     else:
         file_dest = dest
 
