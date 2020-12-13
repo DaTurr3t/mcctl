@@ -446,3 +446,43 @@ def install_compressed_plugin(plugin_path: Path, plugin_dest: Path) -> list:
                 dst.chmod(0o750)
                 installed.append(jar_name)
     return installed
+
+
+def mc_import(instance: str, zip_path: Path, world_only: bool = False) -> None:
+    """Import a minecraft server instance from a Zip-File.
+
+    Import a minecraft server instance from a Zip-File.
+    Also, the world files can be extracted separately.
+
+    Arguments:
+        zip_path (Path): The path of the Zip-File to import from. (default: {None})
+        instance (str): The name of the Instance to be imported.
+
+    Keyword Arguments:
+        world_only (bool): Only import the World data without configuration files. (default: {False})
+    """
+    instance_path = get_instance_path(instance)
+    if instance_path.exists() != world_only:
+        if world_only:
+            raise FileNotFoundError(f"Instance Path not found: {instance_path}.")
+        raise FileExistsError("Instance already exists.")
+
+    if not instance_path.exists():
+        create_dirs(instance_path)
+    filter_str = ""
+    with zf.ZipFile(zip_path) as zip_file:
+        if world_only:
+            with zip_file.open("server.properties") as prop, tmpf.NamedTemporaryFile() as tmp_file:
+                shutil.copyfileobj(prop, tmp_file)
+                filter_str = config.get_properties(tmp_file.name).get("level-name", "world")
+        file_list = (x for x in zip_file.infolist() if x.name.startswith(filter_str))
+        t_size = sum(x.file_size for x in file_list)
+        written = 0
+        for zpath in file_list:
+            safe_zpath = zpath.filename.replace("../", "")
+            dst_path = instance_path / safe_zpath
+            with zip_file.open(zpath) as zfile, open(dst_path, 'wb') as dst_file:
+                written += zpath.file_size
+                print(f"\r[{(written * 100 / t_size):3.0f}%] Writing: {safe_zpath}...\033[K", end='')
+                shutil.copyfileobj(zfile, dst_file)
+    print()
