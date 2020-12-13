@@ -47,7 +47,7 @@ def properties_to_dict(property_list: list) -> dict:
     return property_dict
 
 
-def get_properties(file_path: Path) -> dict:
+def get_properties(file_path: Path, encoding: str = "iso8859_1") -> dict:
     """Create a dict from a property file.
 
     Takes a the contents of a file line by line in "KEY=VALUE" form, and remodels it into a dict.
@@ -55,18 +55,24 @@ def get_properties(file_path: Path) -> dict:
     Arguments:
         file_path (Path): The path of the input file.
 
+    Keyword Arguments:
+        encoding (str): The encoding of the properties File (Default: "iso8859_1").
+
     Returns:
         dict: A dict with all properties from the specified file.
     """
-    with open(file_path, "r", encoding="iso8859_1") as config_file:
+    with open(file_path, "r", encoding=encoding) as config_file:
         config = properties_to_dict(config_file.read().splitlines())
     return config
 
 
-def set_properties(file_path: Path, properties: dict) -> None:
+def set_properties(file_path: Path, properties: dict, encoding: str = "iso8859_1") -> None:
     """Write a server.properties file from dict.
 
     The properties are written into the specified file in "KEY=VALUE" form.
+
+    Keyword Arguments:
+        encoding (str): The encoding of the properties File (Default: "iso8859_1").
 
     Arguments:
         file_path (Path): The path of the output file.
@@ -82,7 +88,7 @@ def set_properties(file_path: Path, properties: dict) -> None:
     for key, value in old_config.items():
         new_config.append(f"{key}={value}\n")
 
-    with open(file_path, "w", encoding="iso8859_1") as config_file:
+    with open(file_path, "w", encoding=encoding) as config_file:
         config_file.writelines(new_config)
 
 
