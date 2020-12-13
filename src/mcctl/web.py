@@ -240,7 +240,10 @@ def is_url(url: str) -> bool:
     Returns:
         bool: True if the submitted String is a valid URL.
     """
-    seg = urlparse(url)
+    try:
+        seg = urlparse(url)
+    except ValueError:
+        return False
     return all((seg.scheme, seg.netloc, seg.path))
 
 
