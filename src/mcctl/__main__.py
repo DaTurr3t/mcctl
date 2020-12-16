@@ -24,7 +24,7 @@ import inspect
 import argparse as ap
 from typing import Callable
 from mcctl.__config__ import LOGIN_USER, read_cfg, write_cfg
-from mcctl import proc, storage, service, web, common, CFGVARS, __version__
+from mcctl import proc, storage, package, service, web, common, CFGVARS, __version__
 
 
 def get_permlevel(args: ap.Namespace, elevation: dict) -> dict:
@@ -244,7 +244,7 @@ def get_parser() -> ap.ArgumentParser:
     )
     parser_install.add_argument("sources", metavar="PATH_OR_URL", nargs="+", type=check_type_id,
                                 help="Paths or URLs which point to Plugins or zip Files.")
-    parser_install.set_defaults(func=common.install, elevation=re_start_elev,
+    parser_install.set_defaults(func=package.install, elevation=re_start_elev,
                                 err_template="{args.action} plugins on {args.instance}")
 
     parser_list = subparsers.add_parser(
