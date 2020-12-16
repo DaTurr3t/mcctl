@@ -20,12 +20,12 @@
 
 
 import os
-import sys
 import gzip
 import shutil
 import random
 import string
 import hashlib
+import tempfile as tmpf
 import zipfile as zf
 from typing import List
 from pathlib import Path
@@ -430,20 +430,19 @@ def install_compressed_plugin(plugin_path: Path, plugin_dest: Path) -> list:
                 selection.append(zinfo)
         if len(selection) < 1:
             raise FileNotFoundError("No Plugin(s) found in Archive.")
+        elif len(selection) > 1:
+            print(f"Multiple Plugins found in '{plugin_path}':")
+            final_selection = visuals.list_selector(
+                selection, display=lambda x: Path(x.filename).name)
         else:
-            if len(selection) > 1:
-                print(f"Multiple Plugins found in '{plugin_path}':")
-                final_selection = visuals.list_selector(
-                    selection, display=lambda x: Path(x.filename).name)
-            else:
-                final_selection = selection
-            for zinfo in final_selection:
-                jar_name = Path(zinfo.filename).name
-                dst = plugin_dest / jar_name
-                with zip_file.open(zinfo) as zjar, open(dst, 'wb') as dst_file:
-                    shutil.copyfileobj(zjar, dst_file)
-                dst.chmod(0o750)
-                installed.append(jar_name)
+            final_selection = selection
+        for zinfo in final_selection:
+            jar_name = Path(zinfo.filename).name
+            dst = plugin_dest / jar_name
+            with zip_file.open(zinfo) as zjar, open(dst, 'wb') as dst_file:
+                shutil.copyfileobj(zjar, dst_file)
+            dst.chmod(0o750)
+            installed.append(jar_name)
     return installed
 
 
@@ -482,6 +481,6 @@ def mc_import(instance: str, zip_path: Path, world_only: bool = False) -> None:
             dst_path = instance_path / safe_zpath
             with zip_file.open(zpath) as zfile, open(dst_path, 'wb') as dst_file:
                 written += zpath.file_size
-                print(f"\r[{(written * 100 / t_size):3.0f}%] Writing: {safe_zpath}...\033[K", end='')
+                print(f"\r[{(written * 100 / t_size):3.0f}%] Extracting: {safe_zpath}...\033[K", end='')
                 shutil.copyfileobj(zfile, dst_file)
     print()
