@@ -19,6 +19,8 @@
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
 import codecs
+import tempfile as tmpf
+from pathlib import Path
 from socket import error as sock_error
 from mcstatus import MinecraftServer
 from mcctl import web, storage, service, config, proc, visuals, CFGVARS
@@ -262,7 +264,7 @@ def status(instance: str) -> None:
     """
     instance_path = storage.get_instance_path(instance)
     if not instance_path.exists():
-        raise FileNotFoundError("Instance Path not found.")
+        raise FileNotFoundError(f"Instance Path not found: {instance_path}.")
 
     properties = config.get_properties(
         instance_path / "server.properties")
@@ -320,37 +322,38 @@ def install(instance: str, sources: list, restart: bool = False) -> None:
     """
     instance_path = storage.get_instance_path(instance)
     plugin_dest = instance_path / "plugins"
-    cache_path = storage.get_home_path() / ".plugin_cache"
 
     if not instance_path.is_dir():
         raise FileNotFoundError("Instance not found.")
     if not plugin_dest.is_dir():
-        raise FileNotFoundError("No Plugin Folder found.")
+        raise FileNotFoundError("Plugin Folder not found.")
 
     unique_files = set(sources)
-    storage.create_dirs(cache_path)
-    for source in unique_files:
-        if web.is_url(source):
-            print(f"Downloading '{source}'")
-            downloaded = web.download(source, cache_path)
-            unique_files.add(downloaded)
-            unique_files.discard(source)
-
-    installed = []
-    plugin_sources = (storage.Path(x) for x in unique_files)
-    for plugin_source in plugin_sources:
-        print(f"Installing '{plugin_source.name}' ...")
-        if plugin_source.suffix == ".zip":
-            installed.extend(storage.install_compressed_plugin(
-                plugin_source, plugin_dest))
-        elif plugin_source.suffix == ".jar":
-            installed.append(storage.install_bare_plugin(
-                plugin_source, plugin_dest))
-        else:
-            raise ValueError(f"'{plugin_source}' is not '.zip' or '.jar'.")
-    add = ". Manual restart/reload required."
-    storage.remove_all(cache_path)
+    with tmpf.TemporaryDirectory() as tmp_dir:
+        for source in unique_files:
+            if web.is_url(source):
+                print(f"Downloading '{source}'")
+                downloaded = web.download(source, tmp_dir)
+                unique_files.add(downloaded)
+                unique_files.discard(source)
+        installed = set()
+        plugin_sources = (Path(x) for x in unique_files)
+        for plugin_source in plugin_sources:
+            print(f"Installing {plugin_source.name}...")
+            if plugin_source.suffix == ".zip":
+                installed_files = storage.install_compressed_plugin(plugin_source, plugin_dest)
+                installed.update(installed_files)
+            elif plugin_source.suffix == ".jar":
+                installed_file = storage.install_bare_plugin(plugin_source, plugin_dest)
+                installed.add(installed_file)
+            else:
+                raise ValueError(f"'{plugin_source}' is not a .zip- or .jar-File.")
+    restarted = ". Manual restart/reload required."
     if restart:
-        add = " and restarted Server."
+        restarted = " and restarted Server."
         service.notified_set_status(instance, "restart", "Installing Plugins.")
-    print(f"Installed {', '.join(installed)}{add}")
+    print(f"Installed {', '.join(installed)}{restarted}")
+
+
+def uninstall(instance: str, plugins: list, restart: bool = False) -> None:
+    pass
