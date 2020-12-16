@@ -124,3 +124,19 @@ def list_selector(choices: list, display: Callable = lambda x: x) -> list:
         ans = input(msg)
 
     return choices if ans == 0 else [choices[ans]]
+
+
+def bool_selector(msg: str) -> bool:
+    """Get a definitive answer from the user.
+
+    Args:
+        msg (str): The Message the user is shown/asked.
+
+    Returns:
+        bool: True if the User answered with "y".
+    """
+    msg = f"{msg} [y/n]: "
+    ans = input(msg).lower()
+    while ans not in ("y", "n"):
+        ans = input("Please answer [y]es or [n]o: ")
+    return ans == "y"

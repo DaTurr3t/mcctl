@@ -298,11 +298,10 @@ def remove(instance: str, force: bool = False) -> None:
     if (service.is_enabled(instance) or service.is_active(service.get_unit(instance))):
         raise OSError("The server is still running and/or persistent.")
 
-    msg = f"Are you absolutely sure you want to remove the Instance '{instance}'? [y/n]: "
-    ans = "y" if force else input(msg).lower()
-    while ans not in ("y", "n"):
-        ans = input("Please answer [y]es or [n]o: ")
-    if ans == "y":
+    prompt_msg = f"Are you absolutely sure you want to remove the Instance '{instance}'?"
+    do_remove = force or visuals.bool_selector(prompt_msg)
+
+    if do_remove:
         remove_all(del_path)
 
 
@@ -317,17 +316,14 @@ def remove_jar(source: str, force: bool = False) -> None:
     del_all = source == "all"
     if not del_all:
         del_path = get_jar_path(source)
-        msg = f"Are you absolutely sure you want to remove the Server Jar '{source}'? [y/n]: "
+        msg = f"Are you absolutely sure you want to remove the Server Jar '{source}'?"
     else:
         del_path = get_jar_path(bare=True)
-        msg = "Are you sure you want to remove ALL cached Server Jars? [y/n]: "
+        msg = "Are you sure you want to remove ALL cached Server Jars?"
 
     if not del_path.exists():
         raise FileNotFoundError(f"Type-ID not found in cache: {del_path}.")
-    ans = "y" if force else input(msg).lower()
-    while ans not in ("y", "n"):
-        ans = input("Please answer [y]es or [n]o: ")
-    if ans == "y":
+    if force or visuals.bool_selector(msg):
         if not del_all:
             del_path.unlink()
         else:
