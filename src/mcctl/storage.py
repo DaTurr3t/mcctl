@@ -422,7 +422,7 @@ def install_compressed_plugin(plugin_path: Path, plugin_dest: Path) -> list:
     with zf.ZipFile(plugin_path) as zip_file:
         selection = []
         for zinfo in zip_file.infolist():
-            if not zinfo.is_dir() and zinfo.endswith(".zip"):
+            if not zinfo.is_dir() and zinfo.filename.endswith(".jar"):
                 selection.append(zinfo)
         if len(selection) < 1:
             raise FileNotFoundError("No Plugin(s) found in Archive.")

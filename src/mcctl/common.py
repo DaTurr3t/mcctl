@@ -262,7 +262,7 @@ def status(instance: str) -> None:
     """
     instance_path = storage.get_instance_path(instance)
     if not instance_path.exists():
-        raise FileNotFoundError(f"Instance Path not found: {instance_path}.")
+        raise FileNotFoundError(f"Instance not found: {instance_path}.")
 
     properties = config.get_properties(
         instance_path / "server.properties")
