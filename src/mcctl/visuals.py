@@ -140,3 +140,8 @@ def bool_selector(msg: str) -> bool:
     while ans not in ("y", "n"):
         ans = input("Please answer [y]es or [n]o: ")
     return ans == "y"
+
+
+def clear() -> None:
+    """Clear the screen on Unix-based Systems."""
+    print("\033[2J\033[H", end='')

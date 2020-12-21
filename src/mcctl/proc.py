@@ -28,7 +28,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from pwd import getpwnam
 from mcctl import CFGVARS, storage, service, common
-from mcctl.visuals import compute
+from mcctl.visuals import compute, clear
 
 
 def attach(instance: str) -> None:
@@ -45,6 +45,7 @@ def attach(instance: str) -> None:
     cmd = shlex.split(f"screen -r mc-{instance}")
     proc = sproc.Popen(cmd)
     proc.wait()
+    clear()
 
 
 def shell(instance_subfolder: str, shell_path: Path) -> None:
