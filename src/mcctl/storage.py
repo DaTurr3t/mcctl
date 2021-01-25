@@ -443,7 +443,7 @@ def install_compressed_plugin(plugin_path: Path, plugin_dest: Path) -> list:
     return installed
 
 
-def mc_import(instance: str, zip_path: Path, world_only: bool = False) -> None:
+def mc_import(zip_path: Path, instance: str = None, world_only: bool = False) -> None:
     """Import a minecraft server instance from a Zip-File.
 
     Import a minecraft server instance from a Zip-File.
@@ -451,11 +451,14 @@ def mc_import(instance: str, zip_path: Path, world_only: bool = False) -> None:
 
     Arguments:
         zip_path (Path): The path of the Zip-File to import from. (default: {None})
-        instance (str): The name of the Instance to be imported.
 
     Keyword Arguments:
+        instance (str): The name of the Instance to be imported. Auto-generated from archive name if None. (default: {None})
         world_only (bool): Only import the World data without configuration files. (default: {False})
     """
+    if instance is None:
+        instance = zip_path.stem
+        print(f"No Instance specified, importing to instance '{instance}'.")
     instance_path = get_instance_path(instance)
     if instance_path.exists() != world_only:
         if world_only:
@@ -469,7 +472,7 @@ def mc_import(instance: str, zip_path: Path, world_only: bool = False) -> None:
         if world_only:
             with zip_file.open("server.properties") as prop, tmpf.NamedTemporaryFile() as tmp_file:
                 shutil.copyfileobj(prop, tmp_file)
-                filter_str = config.get_properties(tmp_file.name).get("level-name", "world")
+                filter_str = config.get_properties(tmp_file.name).get("level-name", "world") + "/"
         file_list = (x for x in zip_file.infolist() if x.name.startswith(filter_str))
         t_size = sum(x.file_size for x in file_list)
         written = 0
@@ -482,3 +485,4 @@ def mc_import(instance: str, zip_path: Path, world_only: bool = False) -> None:
                       end='', flush=True)
                 shutil.copyfileobj(zfile, dst_file)
     print()
+    chown(instance_path, user=SERVER_USER)
