@@ -229,6 +229,16 @@ def get_parser() -> ap.ArgumentParser:
     parser_export.set_defaults(
         func=storage.export, elevation=semi_elev)
 
+    parser_import = subparsers.add_parser("import", help="Import an Instance from a zip File.")
+    parser_import.add_argument(
+        "zip_path", metavar="ZIPFILE", help="The Path of the archived Server.")
+    parser_import.add_argument(
+        "-i", "--instance", help="Instance Name of the Minecraft Server.")
+    parser_import.add_argument(
+        "-w", "--world-only", action='store_true', help="Only import World Data (the instance must already exist).")
+    parser_import.set_defaults(err_template="{args.action} '{args.zip_path}'", func=storage.mc_import,
+                               elevation={"default": "login_user", "change_to": "root", "change_fully": True})
+
     parser_inspect = subparsers.add_parser(
         "inspect", parents=[instance_name_parser], help="Inspect the Log of a Server.")
     parser_inspect.add_argument(
