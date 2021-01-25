@@ -267,7 +267,8 @@ def export(instance: str, zip_path: Path = None, compress: bool = False, world_o
         for file_path in file_list:
             full_path = server_path / file_path
             written += full_path.stat().st_size
-            print(f"\r[{(written * 100 / total_size):3.0f}%] Writing: {file_path}...\033[K", end='')
+            print(f"\r[{(written * 100 / total_size):3.0f}%] Writing: {file_path}...\033[K",
+                  end='', flush=True)
             zip_file.write(full_path, file_path)
     print()
 
@@ -353,7 +354,7 @@ def inspect(instance: str, limit: int = 0) -> None:
             break
 
     lines_out = lines[-limit:]
-    print(''.join(lines_out), end='')
+    print(''.join(lines_out), end='', flush=True)
 
 
 def tmpcopy(file_path: Path) -> Path:
@@ -477,6 +478,7 @@ def mc_import(instance: str, zip_path: Path, world_only: bool = False) -> None:
             dst_path = instance_path / safe_zpath
             with zip_file.open(zpath) as zfile, open(dst_path, 'wb') as dst_file:
                 written += zpath.file_size
-                print(f"\r[{(written * 100 / t_size):3.0f}%] Extracting: {safe_zpath}...\033[K", end='')
+                print(f"\r[{(written * 100 / t_size):3.0f}%] Extracting: {safe_zpath}...\033[K",
+                      end='', flush=True)
                 shutil.copyfileobj(zfile, dst_file)
     print()

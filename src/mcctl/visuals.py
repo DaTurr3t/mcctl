@@ -96,7 +96,7 @@ def progress(current: int, elapsed: float, total: int) -> None:
 
     percent = current * 100 / total
     out = f"\r{chars[char_idx]} {percent:3.0f}% {current / 1024 :>{len(str(total // 1024))}.0f}kB / {(total/1024):.0f}kB"
-    print(out, end="")
+    print(out, end="", flush=True)
 
 
 def list_selector(choices: list, display: Callable = lambda x: x) -> list:
@@ -144,4 +144,4 @@ def bool_selector(msg: str) -> bool:
 
 def clear() -> None:
     """Clear the screen on Unix-based Systems."""
-    print("\033[2J\033[H", end='')
+    print("\033[2J\033[H", end='', flush=True)

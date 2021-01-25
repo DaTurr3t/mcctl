@@ -224,7 +224,7 @@ def pre_start(jar_path: Path, watch_file: Path = None, kill_sec: int = 80) -> bo
     signaled = False
     success = False
     for i in range(kill_sec * fps + 1):
-        print(f"\r{compute(2)} Setting up config files...", end="")
+        print(f"\r{compute(2)} Setting up config files...", end="", flush=True)
         time.sleep(1 / fps)
         if not signaled and watch_file is not None and watch_file.is_file():
             proc.terminate()
