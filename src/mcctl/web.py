@@ -279,7 +279,7 @@ def pull(source: str, literal_url: bool = False) -> tuple:
         url = source
         # Generate artificial Version Tag
         url_hash = hashlib.sha1(url.encode()).hexdigest()
-        tag = f"other/{url_hash[:12]}"
+        tag = f"other:{url_hash[:16]}"
     else:
         try:
             url, tag = get_download_url(source)
