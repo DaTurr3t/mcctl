@@ -104,15 +104,20 @@ def set_persistence(unit: Unit, enable: bool = True) -> None:
         unit (Unit): A systemd Unit object, already loaded.
         enable (bool, optional): Wether to enable or disable the Unit. Defaults to True.
     """
-    with Manager() as mgr:
+    with Manager() as mgr, proc.managed_run_as(0, 0):
         if enable:
+            # Enable Unit file named "x.service", not in runtime (persistently), and force
             link = mgr.Manager.EnableUnitFiles([unit.Unit.Id], False, True)[1]
-            if link[0]:
+            if link:
                 print(f"Linked Unit: '{link[0][1].decode()}'")
+            else:
+                raise ValueError("Unit already linked")
         else:
             link = mgr.Manager.DisableUnitFiles([unit.Unit.Id], False)
-            if link[0]:
+            if link:
                 print(f"Unlinked Unit: '{link[0][1].decode()}'")
+            else:
+                raise ValueError("Unit already unlinked")
 
 
 def notified_set_status(instance: str, action: str, message: str = '', persistent: bool = False) -> None:
