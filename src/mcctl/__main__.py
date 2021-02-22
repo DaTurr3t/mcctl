@@ -150,7 +150,7 @@ def get_parser() -> ap.ArgumentParser:
     subparsers.required = True
 
     force_parser = ap.ArgumentParser(add_help=False)
-    force_parser.add_argument("-f" "--force", action="store_true",
+    force_parser.add_argument("-f", "--force", action="store_true",
                               help="Proceed without a prompt.")
 
     type_id_parser = ap.ArgumentParser(
