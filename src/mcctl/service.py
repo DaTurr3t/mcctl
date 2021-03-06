@@ -19,9 +19,8 @@
 # along with mcctl. If not, see <http:// www.gnu.org/licenses/>.
 
 import time
-import shlex
 from pystemd.systemd1 import Unit, Manager
-from mcctl import CFGVARS, proc
+from mcctl import CFGVARS, perms
 
 
 UNIT_NAME = CFGVARS.get('system', 'systemd_service')
@@ -83,7 +82,7 @@ def set_status(unit: Unit, action: str) -> None:
     if action not in ("start", "restart", "stop"):
         raise ValueError(f"Invalid action '{action}'")
 
-    with proc.managed_run_as(0, 0):
+    with perms.run_as(0, 0):
         action_func = getattr(unit.Unit, action.capitalize())
         action_func("replace")
 
@@ -104,7 +103,7 @@ def set_persistence(unit: Unit, enable: bool = True) -> None:
         unit (Unit): A systemd Unit object, already loaded.
         enable (bool, optional): Wether to enable or disable the Unit. Defaults to True.
     """
-    with Manager() as mgr, proc.managed_run_as(0, 0):
+    with Manager() as mgr, perms.run_as(0, 0):
         if enable:
             # Enable Unit file named "x.service", not in runtime (persistently), and force
             link = mgr.Manager.EnableUnitFiles([unit.Unit.Id], False, True)[1]
@@ -118,34 +117,3 @@ def set_persistence(unit: Unit, enable: bool = True) -> None:
                 print(f"Unlinked Unit: '{link[0][1].decode()}'")
             else:
                 raise ValueError("Unit already unlinked")
-
-
-def notified_set_status(instance: str, action: str, message: str = '', persistent: bool = False) -> None:
-    """Notifies the Players on the Server if applicable and sets the Service Status.
-
-    Arguments:
-        instance (str): The name of the instance.
-        action (str): The systemd action to apply to the service. Can be "start", "restart", "stop".
-
-    Keyword Arguments:
-        message (str): A message relayed to Server Chat, e.g. reason the Server is shutting down.
-        persistent (bool): If True, the Server will not start after a Machine reboot (default: {False})
-        restart (bool): If True, persistent wil be ignored and the server wil be restarted (default: {False})
-    """
-    if action not in ("start", "restart", "stop"):
-        raise ValueError(f"Invalid action '{action}'")
-
-    unit = get_unit(instance)
-    if persistent and action != "restart":
-        enable = (action == "start")
-        set_persistence(unit, enable)
-
-    if action in ("stop", "restart"):
-        msgcol = "6" if action == "restart" else "4"
-        msg = f"say §{msgcol}Server {action} pending"
-        msg += f": {message}" if message else "."
-        try:
-            proc.mc_exec(instance, shlex.split(msg))
-        except ConnectionError:
-            pass
-    set_status(unit, action)

@@ -24,7 +24,7 @@ import inspect
 import argparse as ap
 from typing import Callable
 from mcctl.__config__ import LOGIN_USER, read_cfg, write_cfg
-from mcctl import proc, storage, package, service, web, common, CFGVARS, __version__
+from mcctl import proc, storage, package, perms, web, common, CFGVARS, __version__
 
 
 def get_permlevel(args: ap.Namespace, elevation: dict) -> dict:
@@ -48,7 +48,7 @@ def get_permlevel(args: ap.Namespace, elevation: dict) -> dict:
         "root": "root"
     }
 
-    perms = {"usr": users.get(elevation.get("default"))}
+    permissions = {"usr": users.get(elevation.get("default"))}
     conditions = elevation.get("on_cond")
     cond_match = not bool(conditions)
     if conditions:
@@ -60,10 +60,10 @@ def get_permlevel(args: ap.Namespace, elevation: dict) -> dict:
 
     change_to = elevation.get("change_to")
     if cond_match and change_to:
-        perms["usr"] = users.get(change_to)
+        permissions["usr"] = users.get(change_to)
         if not elevation.get("change_fully", False):
-            perms["eusr"] = users.get(elevation.get("default"))
-    return perms
+            permissions["eusr"] = users.get(elevation.get("default"))
+    return permissions
 
 
 def apply_permlevel(permlevel: dict) -> None:
@@ -74,11 +74,11 @@ def apply_permlevel(permlevel: dict) -> None:
             - "usr": The user to elevate to via sudo.
             - "eusr" (optional): The user of which the EIDs are set.
     """
-    proc.elevate(permlevel.get('usr'))
+    perms.elevate(permlevel.get('usr'))
     demote_user = permlevel.get('eusr')
     if demote_user:
         user_ids = proc.get_ids(demote_user)
-        proc.run_as(*user_ids)
+        perms.run_as(*user_ids)
 
 
 def filter_args(unfiltered_kwargs: dict, func: Callable) -> dict:

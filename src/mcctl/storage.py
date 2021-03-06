@@ -32,7 +32,7 @@ from pathlib import Path
 from datetime import datetime
 from grp import getgrgid
 from pwd import getpwnam
-from mcctl import service, config, visuals, CFGVARS
+from mcctl import service, config, visuals, perms, CFGVARS
 
 SERVER_USER = CFGVARS.get('system', 'server_user')
 
@@ -262,13 +262,13 @@ def export(instance: str, zip_path: Path = None, compress: bool = False, world_o
     file_list = get_relative_paths(server_path, filter_str)
     total_size = sum((server_path / x).stat().st_size for x in file_list)
     compress_mode = zf.ZIP_DEFLATED if compress else zf.ZIP_STORED
-    with zf.ZipFile(zip_path, "w", compression=compress_mode, allowZip64=True) as zip_file:
+    with perms.run_as(0, 0), zf.ZipFile(zip_path, "w", compression=compress_mode, allowZip64=True) as zip_file:
         written = 0
         for file_path in file_list:
             full_path = server_path / file_path
             written += full_path.stat().st_size
-            print(f"\r[{(written * 100 / total_size):3.0f}%] Writing: {file_path}...\033[K",
-                  end='', flush=True)
+            msg = f"\r[{(written * 100 / total_size):3.0f}%] Writing: {file_path}...\033[K"
+            print(msg, end='', flush=True)
             zip_file.write(full_path, file_path)
     print()
 
@@ -278,7 +278,8 @@ def export(instance: str, zip_path: Path = None, compress: bool = False, world_o
         login_name = None
         print("WARN: Unable to retrieve Login Name.")
     if login_name:
-        chown(zip_path, login_name)
+        with perms.run_as(0, 0):
+            chown(zip_path, login_name)
 
     print(f"Archive saved in '{zip_path}'")
     return zip_path
@@ -296,7 +297,8 @@ def remove(instance: str, force: bool = False) -> None:
     del_path = get_instance_path(instance)
     if not del_path.exists():
         raise FileNotFoundError(f"Instance Path not found: {del_path}.")
-    if (service.is_enabled(instance) or service.is_active(service.get_unit(instance))):
+    unit = service.get_unit(instance)
+    if (service.is_enabled(unit) or service.is_active(unit)):
         raise OSError("The server is still running and/or persistent.")
 
     prompt_msg = f"Are you absolutely sure you want to remove the Instance '{instance}'?"
@@ -323,7 +325,10 @@ def remove_jar(source: str, force: bool = False) -> None:
         msg = "Are you sure you want to remove ALL cached Server Jars?"
 
     if not del_path.exists():
-        raise FileNotFoundError(f"Type-ID not found in cache: {del_path}.")
+        if not del_all:
+            raise FileNotFoundError(f"Type-ID not found in cache: {del_path}.")
+        else:
+            raise FileNotFoundError("Cache already cleared.")
     if force or visuals.bool_selector(msg):
         if not del_all:
             del_path.unlink()
@@ -462,7 +467,8 @@ def mc_import(zip_path: Path, instance: str = None, world_only: bool = False) ->
     instance_path = get_instance_path(instance)
     if instance_path.exists() != world_only:
         if world_only:
-            raise FileNotFoundError(f"Instance Path not found: {instance_path}.")
+            raise FileNotFoundError(
+                f"Instance Path not found: {instance_path}.")
         raise FileExistsError("Instance already exists.")
 
     if not instance_path.exists():
@@ -472,8 +478,10 @@ def mc_import(zip_path: Path, instance: str = None, world_only: bool = False) ->
         if world_only:
             with zip_file.open("server.properties") as prop, tmpf.NamedTemporaryFile() as tmp_file:
                 shutil.copyfileobj(prop, tmp_file)
-                filter_str = config.get_properties(tmp_file.name).get("level-name", "world") + "/"
-        file_list = (x for x in zip_file.infolist() if x.name.startswith(filter_str))
+                properties = config.get_properties(tmp_file.name)
+                filter_str = properties.get("level-name", "world") + "/"
+        file_list = (x for x in zip_file.infolist()
+                     if x.name.startswith(filter_str))
         t_size = sum(x.file_size for x in file_list)
         written = 0
         for zpath in file_list:

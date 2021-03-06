@@ -79,7 +79,7 @@ def edit(file_path: Path, editor: str) -> None:
         file_path (Path): The file to be edited in the Editor.
     """
     cmd = shlex.split(f"{editor} '{file_path}'")
-    proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
+    proc = sproc.Popen(cmd, preexec_fn=perms.demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
     proc.wait()
 
 
@@ -104,7 +104,7 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
     unit = service.get_unit(instance)
     if not service.is_active(unit):
         raise OSError("The Server is not running.")
-    elif not common.is_ready(instance):
+    elif not status.is_ready(instance):
         raise ConnectionError("The Server is starting up.")
 
     log_path = storage.get_instance_path(instance) / "logs/latest.log"
@@ -116,7 +116,7 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
         # Use ^U^Y to cut and paste Text already in the Session
         cmd = shlex.split(
             f"screen -p 0 -S mc-{instance} -X stuff '^U{jar_cmd}^M^Y'")
-        proc = sproc.Popen(cmd, preexec_fn=demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
+        proc = sproc.Popen(cmd, preexec_fn=perms.demote())  # nopep8 pylint: disable=subprocess-popen-preexec-fn
         proc.wait()
 
         i = 0
@@ -144,62 +144,6 @@ def get_ids(user: str) -> tuple:
     return user_data.pw_uid, user_data.pw_gid
 
 
-def run_as(uid: int, gid: int) -> tuple:
-    """Change the user of the currently running python instance.
-
-    Set the EGID and EUID of the running Python script to the permissions of <as_user>.
-
-    Arguments:
-        uid (int): The Effective User ID that is set.
-        gid (int): The Effective Group ID that is set.
-
-    Retruns:
-        old_ids (tuple): A tuple of the UID and GID that were set before the change.
-    """
-    old_ids = (os.geteuid(), os.getegid())
-
-    os.setegid(gid)
-    os.seteuid(uid)
-
-    return old_ids
-
-
-@contextmanager
-def managed_run_as(uid: int, gid: int) -> None:
-    """Manage the User Context and reset it after execution of the "with"-Block.
-
-    Args:
-        uid (int): The Effective User ID that is set during the "with"-Block.
-        gid (int): The Effective Group ID that is set during the "with"-Block.
-    """
-    old = run_as(uid, gid)
-    try:
-        yield
-    finally:
-        run_as(*old)
-
-
-def demote() -> Callable:
-    """Demote a subprocess. for use in preexec_fn.
-
-    Returns:
-        Callable: Returns a function executed by Popen() before running the external command.
-    """
-    user_name = CFGVARS.get('system', 'server_user')
-    user = getpwnam(user_name)
-
-    def set_ids() -> None:
-        if os.getgid() + os.getuid() == 0:
-            # Set EGID and EUID so that GID and UID can be set correctly.
-            os.setegid(0)
-            os.seteuid(0)
-
-            os.setgid(user.pw_gid)
-            os.setuid(user.pw_uid)
-
-    return set_ids
-
-
 def pre_start(jar_path: Path, watch_file: Path = None, kill_sec: int = 80) -> bool:
     """Prepare the server and lets it create configuration files and such.
 
@@ -218,7 +162,7 @@ def pre_start(jar_path: Path, watch_file: Path = None, kill_sec: int = 80) -> bo
     """
     cmd = shlex.split(f"/bin/java -jar {jar_path}")
     proc = sproc.Popen(cmd, cwd=jar_path.parent, stdout=sproc.PIPE,  # nopep8 pylint: disable=subprocess-popen-preexec-fn
-                       stderr=sproc.PIPE, preexec_fn=demote())
+                       stderr=sproc.PIPE, preexec_fn=perms.demote())
 
     fps = 4
     signaled = False
@@ -236,24 +180,3 @@ def pre_start(jar_path: Path, watch_file: Path = None, kill_sec: int = 80) -> bo
             break
     print()
     return success
-
-
-def elevate(user: str = "root") -> None:
-    """Replace the current Process with a new one as a different User. Requires sudo.
-
-    Args:
-        user (str, optional): The User that will be switched to. Defaults to "root".
-    """
-    desired_uid = getpwnam(user).pw_uid
-    if os.getuid() == desired_uid:
-        return
-
-    package = sys.modules.get('__main__', {}).__package__
-    if package is None:
-        args = sys.argv
-    else:
-        args = [sys.executable, "-m", package] + sys.argv[1:]
-
-    userargs = ["-u", user] if user != 'root' else []
-    sudoargs = ["sudo"] + userargs + args
-    os.execvp(sudoargs[0], sudoargs)
