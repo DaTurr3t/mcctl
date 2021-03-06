@@ -20,14 +20,10 @@
 
 import shlex
 import time
-import os
-import sys
 import subprocess as sproc
-from typing import Callable
-from contextlib import contextmanager
 from pathlib import Path
 from pwd import getpwnam
-from mcctl import CFGVARS, storage, service, common
+from mcctl import storage, service, status, perms
 from mcctl.visuals import compute, clear
 
 

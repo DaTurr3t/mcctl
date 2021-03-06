@@ -21,7 +21,7 @@
 import codecs
 from socket import error as sock_error
 from mcstatus import MinecraftServer
-from mcctl import web, storage, service, config, proc, visuals, CFGVARS
+from mcctl import web, storage, service, status, config, proc, visuals, CFGVARS
 
 
 def create(instance: str, source: str, memory: str, properties: list, literal_url: bool = False, start: bool = False) -> None:
@@ -87,51 +87,19 @@ def list_instances(filter_str: str = '') -> None:
         if filter_str in name:
             cfg = config.get_properties(base_path / name / "server.properties")
             port = int(cfg.get("server-port"))
-
-            try:
                 server = MinecraftServer('localhost', port)
-                mc_status = server.status()
-                online = mc_status.players.online
-                proto = mc_status.version.protocol
-                version = mc_status.version.name
-            except (ConnectionError, sock_error):
-                online = 0
-                proto = -1
-                version = "n/a"
+            status_info = status.get_simple_status(server)
 
             unit = service.get_unit(name)
-            service_state = unit.Unit.ActiveState.decode()
-            if proto > -1 and service_state == "active":
-                run_status = "Starting"
-            else:
-                run_status = service_state.capitalize()
+            state = unit.ActiveState.decode().capitalize()
+            if state == "Active" and status_info.get("proto") < 0:
+                state = "Starting"
 
+            player_ratio = f"{status_info.get('online')}/{cfg.get('max-players')}"
             contents = template.format(
-                name, version, f"{online}/{cfg.get('max-players')}",
-                run_status, str(service.is_enabled(name)))
+                name, status_info.get("version"), player_ratio,
+                state, str(service.is_enabled(unit)))
             print(contents)
-
-
-def is_ready(instance: str) -> bool:
-    """Check if the Server is ready to serve connections/is fully started.
-
-    Args:
-        instance (str): The Instance ID.
-
-    Returns:
-        bool: True if the Server is ready to serve connections.
-    """
-    cfg = config.get_properties(
-        storage.get_instance_path(instance) / "server.properties")
-    port = int(cfg.get("server-port"))
-    try:
-        server = MinecraftServer('localhost', port)
-        mc_status = server.status()
-        proto = mc_status.version.protocol
-    except (ConnectionError, sock_error):
-        return False
-
-    return proto > -1
 
 
 def mc_ls(what: str, filter_str: str = '') -> None:
@@ -254,7 +222,7 @@ def configure(instance: str, editor: str, properties: list = None, edit_paths: l
         service.notified_set_status(instance, "start")
 
 
-def status(instance: str) -> None:
+def mc_status(instance: str) -> None:
     """Show Status Information about a Service.
 
     Args:
@@ -274,12 +242,15 @@ def status(instance: str) -> None:
 
     port = properties.get("server-port")
     server = MinecraftServer('localhost', int(port))
-    mc_status = server.status()
+    status_info = status.get_simple_status(server)
 
     unit = service.get_unit(instance)
-    state = unit.ActiveState.decode().capitalize()
     files = storage.get_child_paths(instance_path)
     total_size = sum(x.stat().st_size for x in files)
+
+    state = unit.ActiveState.decode().capitalize()
+    if state == "Active" and status_info.get("proto") < 0:
+        state = "Starting"
 
     cmdvars = {k: v for k, v in (x.decode().split("=")
                                  for x in unit.Service.Environment)}
@@ -289,8 +260,8 @@ def status(instance: str) -> None:
 
     info = {
         "MOTD": codecs.decode(properties.get("motd", "?"), "unicode-escape").replace("\\", ""),
-        "Player Count": f"{mc_status.players.online}/{properties.get('max-players', '?')}",
-        "Version": f"{mc_status.version.name} (protocol {mc_status.version.protocol})",
+        "Player Count": f"{status_info.get('online')}/{properties.get('max-players', '?')}",
+        "Version": f"{status_info.get('version')} (protocol {status_info.get('proto')})",
         "Server Port": port,
         "Size on Disk": visuals.get_fmtbytes(total_size),
         "Persistent": str(unit.UnitFileState.decode() == "enabled"),
