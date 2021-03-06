@@ -1,7 +1,28 @@
+#!/bin/env python3
+
+# mcctl: A Minecraft Server Management Utility written in Python
+# Copyright (C) 2021 Matthias Cotting
+
+# This file is part of mcctl.
+
+# mcctl is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# mcctl is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with mcctl. If not, see <http://www.gnu.org/licenses/>.
+
+
 import difflib
 import tempfile as tmpf
 from pathlib import Path
-from mcctl import service, storage, web, visuals
+from mcctl import storage, web, visuals, common
 
 
 def install(instance: str, sources: list, restart: bool = False) -> None:
@@ -47,7 +68,7 @@ def install(instance: str, sources: list, restart: bool = False) -> None:
     restarted = ". Manual restart/reload required."
     if restart:
         restarted = " and restarted Server."
-        service.notified_set_status(instance, "restart", "Installing Plugins.")
+        common.notified_set_status(instance, "restart", "Installing Plugins.")
     print(f"Installed {', '.join(installed)}{restarted}")
 
 
@@ -83,7 +104,7 @@ def uninstall(instance: str, plugins: list, restart: bool = False, force: bool =
         print(f"  {', '.join(resolved_names)}")
         if force or visuals.bool_selector("Is this ok?"):
             if restart:
-                service.notified_set_status(instance, "restart", "Removing Plugins.")
+                common.notified_set_status(instance, "restart", "Removing Plugins.")
             for plugin_name in resolved_names:
                 rm_path = plugin_path / plugin_name
                 rm_path.unlink()

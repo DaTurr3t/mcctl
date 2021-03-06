@@ -19,7 +19,7 @@
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
 import codecs
-from socket import error as sock_error
+import shlex
 from mcstatus import MinecraftServer
 from mcctl import web, storage, service, status, config, proc, visuals, CFGVARS
 
@@ -56,7 +56,7 @@ def create(instance: str, source: str, memory: str, properties: list, literal_ur
             env_path = instance_path / CFGVARS.get('system', 'env_file')
             config.set_properties(env_path, {"MEM": memory})
         if start:
-            service.notified_set_status(instance, "start", persistent=True)
+            notified_set_status(instance, "start", persistent=True)
 
         started = "and started " if start else ""
         print(f"Configured {started}with Version '{version}'.")
@@ -87,7 +87,7 @@ def list_instances(filter_str: str = '') -> None:
         if filter_str in name:
             cfg = config.get_properties(base_path / name / "server.properties")
             port = int(cfg.get("server-port"))
-                server = MinecraftServer('localhost', port)
+            server = MinecraftServer('localhost', port)
             status_info = status.get_simple_status(server)
 
             unit = service.get_unit(name)
@@ -160,8 +160,7 @@ def update(instance: str, source: str, literal_url: bool = False, restart: bool 
     additions = ''
     unit = service.get_unit(instance)
     if service.is_active(unit) and restart:
-        service.notified_set_status(
-            instance, "restart", f"Updating to Version {version}")
+        notified_set_status(instance, "restart", f"Updating to Version {version}")
     else:
         additions = " Manual restart required."
     print(f"Update successful.{additions}")
@@ -212,14 +211,13 @@ def configure(instance: str, editor: str, properties: list = None, edit_paths: l
     unit = service.get_unit(instance)
     do_restart = service.is_active(unit) and len(paths) > 0 and restart
     if do_restart:
-        service.notified_set_status(
-            instance, "stop", "Reconfiguring and restarting Server.")
+        notified_set_status(instance, "stop", "Reconfiguring and restarting Server.")
 
     for dst, src in paths.items():
         storage.move(src, dst)
 
     if do_restart:
-        service.notified_set_status(instance, "start")
+        notified_set_status(instance, "start")
 
 
 def mc_status(instance: str) -> None:
@@ -275,3 +273,34 @@ def mc_status(instance: str) -> None:
     for key, val in info.items():
         print(f"{key:>{maxlen}}: {val}")
     print()
+
+
+def notified_set_status(instance: str, action: str, message: str = '', persistent: bool = False) -> None:
+    """Notifies the Players on the Server if applicable and sets the Service Status.
+
+    Arguments:
+        instance (str): The name of the instance.
+        action (str): The systemd action to apply to the service. Can be "start", "restart", "stop".
+
+    Keyword Arguments:
+        message (str): A message relayed to Server Chat, e.g. reason the Server is shutting down.
+        persistent (bool): If True, the Server will not start after a Machine reboot (default: {False})
+        restart (bool): If True, persistent wil be ignored and the server wil be restarted (default: {False})
+    """
+    if action not in ("start", "restart", "stop"):
+        raise ValueError(f"Invalid action '{action}'")
+
+    unit = service.get_unit(instance)
+    if persistent and action != "restart":
+        enable = (action == "start")
+        service.set_persistence(unit, enable)
+
+    if action in ("stop", "restart"):
+        msgcol = "6" if action == "restart" else "4"
+        msg = f"say §{msgcol}Server {action} pending"
+        msg += f": {message}" if message else "."
+        try:
+            proc.mc_exec(instance, shlex.split(msg))
+        except ConnectionError:
+            pass
+    service.set_status(unit, action)
