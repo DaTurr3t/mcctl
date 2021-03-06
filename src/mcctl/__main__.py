@@ -280,7 +280,7 @@ def get_parser() -> ap.ArgumentParser:
     parser_restart = subparsers.add_parser(
         "restart", parents=[instance_name_parser, message_parser], help="Restart a Server Instance.")
     parser_restart.set_defaults(
-        func=service.notified_set_status, elevation=semi_elev)
+        func=common.notified_set_status, elevation=semi_elev)
 
     parser_remove = subparsers.add_parser(
         "rm", parents=[instance_name_parser, force_parser], help="Remove a Server Instance.")
@@ -302,19 +302,19 @@ def get_parser() -> ap.ArgumentParser:
     parser_start.add_argument("-p", "--persistent", action='store_true',
                               help="Start even after Reboot.")
     parser_start.set_defaults(
-        func=service.notified_set_status, elevation=semi_elev)
+        func=common.notified_set_status, elevation=semi_elev)
 
     parser_stop = subparsers.add_parser(
         "status", parents=[instance_name_parser], help="Get extensive Information about the Server Instance.")
     parser_stop.set_defaults(
-        func=common.status, err_template="retrieve {args.action} of '{args.instance}'", elevation=semi_elev)
+        func=common.mc_status, err_template="retrieve {args.action} of '{args.instance}'", elevation=semi_elev)
 
     parser_stop = subparsers.add_parser(
         "stop", parents=[instance_name_parser, message_parser], help="Stop a Server Instance.")
     parser_stop.add_argument("-p", "--persistent", action='store_true',
                              help="Do not start again after Reboot.")
     parser_stop.set_defaults(
-        func=service.notified_set_status, elevation=semi_elev)
+        func=common.notified_set_status, elevation=semi_elev)
 
     parser_update = subparsers.add_parser(
         "update", parents=[instance_name_parser, type_id_parser, restart_parser], help="Update a Server Instance.")
