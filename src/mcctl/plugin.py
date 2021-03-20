@@ -38,7 +38,7 @@ def install(instance: str, sources: list, restart: bool = False) -> None:
         ValueError: Unsupported File Format.
     """
     instance_path = storage.get_instance_path(instance)
-    plugin_dest = instance_path / "plugins"
+    plugin_dest = storage.get_plugin_path(instance)
 
     if not instance_path.is_dir():
         raise FileNotFoundError(f"Instance not found: {instance_path}.")
@@ -89,7 +89,7 @@ def uninstall(instance: str, plugins: list, restart: bool = False, force: bool =
         set: A collection of all uninstalled plugins.
     """
     instance_path = storage.get_instance_path(instance)
-    plugin_path = instance_path / "plugins"
+    plugin_path = storage.get_plugin_path(instance)
     if not instance_path.is_dir():
         raise FileNotFoundError(f"Instance not found: {instance_path}.")
     if not plugin_path.is_dir():
@@ -130,7 +130,7 @@ def auto_uninstall(instance: str, new_plugins: list, force: bool = False) -> set
     Returns:
         set: A collection of all uninstalled plugins.
     """
-    plugin_path = storage.get_instance_path(instance) / "plugins"
+    plugin_path = storage.get_plugin_path(instance)
     installed_names = {x.name for x in plugin_path.iterdir() if x.suffix == ".jar"}
     old_installed = installed_names.difference(new_plugins)
     resolved_names = set()

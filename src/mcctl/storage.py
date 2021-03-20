@@ -65,6 +65,18 @@ def get_instance_path(instance: str = '', bare: bool = False) -> Path:
     return get_home_path() / "instances" / instance
 
 
+def get_plugin_path(instance: str) -> Path:
+    """Return the assembled absolute Plugin Path.
+
+    Arguments:
+        instance (str): The name of the Instance.
+
+    Returns:
+        Path: The absolute Path to the Plugin folder of the Instance.
+    """
+    return get_instance_path() / "plugins"
+
+
 def get_jar_path(type_id: str = '', bare: bool = False) -> Path:
     """Return the assembled asolute Path of a cached .jar-File.
 
