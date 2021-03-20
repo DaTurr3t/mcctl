@@ -105,30 +105,6 @@ def get_child_paths(path: Path) -> list:
     return sorted(path.rglob("*"))
 
 
-def list_plugins(filter_str: str = '') -> None:
-    """List all Servers which have plugins installed.
-
-    Args:
-        filter_str (str, optional): [description]. Defaults to ''.
-    """
-    base_path = get_instance_path(bare=True)
-    instance_paths = base_path.iterdir()
-
-    template = "{:16}: {:^18} {}"
-    print(template.format("Instance", "Plugins supported", "Plugins installed"))
-
-    for instance_path in instance_paths:
-        instance = instance_path.name
-        plugin_path = instance_path / "plugins"
-        if plugin_path.is_dir():
-            plugins = (x.name for x in plugin_path.iterdir() if x.suffix == ".jar")
-        else:
-            plugins = None
-        resolved = template.format(instance, str(plugins is not None), ", ".join(plugins))
-        if filter_str in resolved:
-            print(resolved)
-
-
 def list_jars(filter_str: str = '') -> None:
     """Get a List of all cached .jar-files.
 

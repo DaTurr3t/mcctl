@@ -21,7 +21,7 @@
 import codecs
 import shlex
 from mcstatus import MinecraftServer
-from mcctl import web, storage, service, status, config, proc, visuals, CFGVARS
+from mcctl import web, storage, plugin, service, status, config, proc, visuals, CFGVARS
 
 
 def create(instance: str, source: str, memory: str, properties: list, literal_url: bool = False, start: bool = False) -> None:
@@ -117,7 +117,7 @@ def mc_ls(what: str, filter_str: str = '') -> None:
     ls_types = {
         "instances": list_instances,
         "jars": storage.list_jars,
-        "plugins": storage.list_plugins
+        "plugins": plugin.list_plugins
     }
 
     func = ls_types.get(what)
