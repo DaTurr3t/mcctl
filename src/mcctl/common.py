@@ -271,7 +271,7 @@ def mc_status(instance: str) -> None:
         "Memory Usage": f"{visuals.get_fmtbytes(unit.Service.MemoryCurrent)} ({cmdvars.get('MEM')} for JVM)",
     }
 
-    maxlen = len(max(info, key=len))
+    maxlen = len(max(info.keys(), key=len))
     print(f"--- [{state.upper()}] {unit.Unit.Description.decode()} ---")
     for key, val in info.items():
         print(f"{key:>{maxlen}}: {val}")

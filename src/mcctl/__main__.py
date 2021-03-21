@@ -252,7 +252,7 @@ def get_parser() -> ap.ArgumentParser:
              "No Version or compatibility checks are done against the Server.\n"
              "Only if the plugin folder does not exist for the Server, the command fails."
     )
-    parser_install.add_argument("sources", metavar="PATH_OR_URL", nargs="+", type=check_type_id,
+    parser_install.add_argument("sources", metavar="LOCAL_PATH_OR_URL", nargs="+",
                                 help="Paths or URLs which point to Plugins or zip Files.")
     parser_install.set_defaults(func=plugin.install, elevation=re_start_elev,
                                 err_template="{args.action} plugins on {args.instance}")
@@ -272,8 +272,8 @@ def get_parser() -> ap.ArgumentParser:
 
     parser_list = subparsers.add_parser(
         "ls", help="List Instances, installed Versions, Plugins, etc.")
-    parser_list.add_argument("what", metavar="WHAT", nargs="?", choices=[
-        "plugins", "instances", "jars"], default="instances", help="What Type (instnaces/jars) to return.")
+    parser_list.add_argument("what", metavar="WHAT", nargs="?", choices=("plugins", "instances", "jars"),
+                             default="instances", help="What Type (instnaces/jars) to return.")
     parser_list.add_argument("-f", "--filter", dest="filter_str",
                              default='', help="Filter by Version or Instance Name, etc.")
     parser_list.set_defaults(
