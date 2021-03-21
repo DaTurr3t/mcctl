@@ -158,3 +158,21 @@ class TestParserMappings(unittest.TestCase):
         kwargs, params = get_missing(vars(args), args.func)
         self.assertListEqual(sorted(kwargs), sorted(params_ok))
         self.assertListEqual(params, [])
+
+    def test_install(self):
+        args = self.parser.parse_args(
+            "install testserver https://plugins.example.com/test -a never".split())
+        params_ok = []
+        params_ok.extend(self.param_base)
+        kwargs, params = get_missing(vars(args), args.func)
+        self.assertListEqual(sorted(kwargs), sorted(params_ok))
+        self.assertListEqual(params, [])
+
+    def test_uninstall(self):
+        args = self.parser.parse_args(
+            "uninstall testserver testplugin".split())
+        params_ok = []
+        params_ok.extend(self.param_base)
+        kwargs, params = get_missing(vars(args), args.func)
+        self.assertListEqual(sorted(kwargs), sorted(params_ok))
+        self.assertListEqual(params, [])
