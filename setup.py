@@ -16,7 +16,7 @@ setup(
     name="mcctl",
     packages=find_packages(where="src", exclude=["test*"]),
     version="0.4.0",
-    description="Manage, configure, create multiple Minecraft servers in a docker-like fashion.",
+    description="Manage, configure, and create multiple Minecraft servers easily with a command-line interface.",
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://github.com/DaTurret/mcctl",

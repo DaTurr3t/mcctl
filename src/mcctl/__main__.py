@@ -138,7 +138,7 @@ def get_parser() -> ap.ArgumentParser:
                      "change_to": "root",
                      "on_cond": {'restart': True, 'start': True}}
 
-    parser = ap.ArgumentParser("mcctl", description="Manage, configure, create multiple Minecraft servers in a docker-like fashion.\n"
+    parser = ap.ArgumentParser("mcctl", description="Manage, configure, and create multiple Minecraft servers easily with a command-line interface.\n"
                                f"Version: {__version__}",
                                formatter_class=ap.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-v", "--verbose", action='store_true',
