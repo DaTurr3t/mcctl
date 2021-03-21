@@ -257,6 +257,19 @@ def get_parser() -> ap.ArgumentParser:
     parser_install.set_defaults(func=plugin.install, elevation=re_start_elev,
                                 err_template="{args.action} plugins on {args.instance}")
 
+    parser_uninstall = subparsers.add_parser(
+        "uninstall", parents=[instance_name_parser, restart_parser, force_parser], formatter_class=ap.RawTextHelpFormatter,
+        help="Install a server Plugin from a local Path or from URL.\n"
+             "No Version or compatibility checks are done against the Server.\n"
+             "Only if the plugin folder does not exist for the Server, the command fails."
+    )
+    parser_uninstall.add_argument("plugins", metavar="PLUGIN_NAME", nargs="+",
+                                  help="Plugin File names in the plugins folder of the instance.")
+    parser_uninstall.add_argument("-a", "--autoremove", metavar="MODE", choices=("never", "ask", "always"),
+                                  help="Autoremove older Versions of plugins.")
+    parser_uninstall.set_defaults(func=plugin.install, elevation=re_start_elev,
+                                  err_template="{args.action} plugins on {args.instance}")
+
     parser_list = subparsers.add_parser(
         "ls", help="List Instances, installed Versions, Plugins, etc.")
     parser_list.add_argument("what", metavar="WHAT", nargs="?", choices=[
