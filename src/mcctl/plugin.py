@@ -25,17 +25,19 @@ from pathlib import Path
 from mcctl import storage, web, visuals, common
 
 
-def install(instance: str, sources: list, restart: bool = False) -> None:
+def install(instance: str, sources: list, restart: bool = False, autoremove: str = "ask") -> None:
     """Install a list of archived or bare plugins on a server.
 
     Args:
         instance (str): The name of the instance.
         sources (list): A list of zip and jar Files/URLs which contain or are Plugins.
         restart (bool, optional): Restart the Server after Installation. Defaults to False.
+        autoremove (str, optional): Uninstall all similar Plugins but ask first ("ask"),
+        disable completely ("never"), or always uninstall ("always").
 
     Raises:
         FileNotFoundError: If a Plugin File or Archive is not found.
-        ValueError: Unsupported File Format.
+        ValueError: Unsupported File Format/No sources specified.
     """
     instance_path = storage.get_instance_path(instance)
     plugin_dest = storage.get_plugin_path(instance)
@@ -44,6 +46,10 @@ def install(instance: str, sources: list, restart: bool = False) -> None:
         raise FileNotFoundError(f"Instance not found: {instance_path}.")
     if not plugin_dest.is_dir():
         raise FileNotFoundError("This Instance does not support plugins.")
+    if not sources:
+        raise ValueError("No Plugins specified to install.")
+    if autoremove not in ("never", "ask", "always"):
+        raise ValueError("autoremove invalid")
 
     unique_files = set(sources)
     with tmpf.TemporaryDirectory() as tmp_dir:
@@ -65,11 +71,14 @@ def install(instance: str, sources: list, restart: bool = False) -> None:
                 installed.add(installed_file)
             else:
                 raise ValueError(f"'{plugin_source}' is not a .zip- or .jar-File.")
-    restarted = ". Manual restart/reload required."
+    state_note = "Manual restart/reload required."
     if restart:
-        restarted = " and restarted Server."
+        state_note = "Restarted Server."
         common.notified_set_status(instance, "restart", "Installing Plugins.")
-    print(f"Installed {', '.join(installed)}{restarted}")
+    print(f"Installed {', '.join(installed)}. {state_note}")
+    always_remove = autoremove == "always"
+    if autoremove != "never":
+        auto_uninstall(instance, installed, always_remove)
 
 
 def uninstall(instance: str, plugins: list, restart: bool = False, force: bool = False) -> set:
@@ -95,19 +104,23 @@ def uninstall(instance: str, plugins: list, restart: bool = False, force: bool =
     if not plugin_path.is_dir():
         raise FileNotFoundError("This Instance does not support plugins.")
 
-    installed_names = (x.name for x in plugin_path.iterdir() if x.suffix == ".jar")
+    installed_names = (x.name for x in plugin_path.iterdir()
+                       if x.suffix == ".jar")
     resolved_names = set()
     for plugin_search in plugins:
-        resolved_names.update(x for x in installed_names if plugin_search.lower() in x.lower())
+        resolved_names.update(x for x in installed_names
+                              if plugin_search.lower() in x.lower())
     if len(resolved_names) > 0:
         print("The following plugins will be removed:")
         print(f"  {', '.join(resolved_names)}")
         if force or visuals.bool_selector("Is this ok?"):
             if restart:
-                common.notified_set_status(instance, "restart", "Removing Plugins.")
+                common.notified_set_status(instance, "stop", "Removing Plugins.")
             for plugin_name in resolved_names:
                 rm_path = plugin_path / plugin_name
                 rm_path.unlink()
+            if restart:
+                common.notified_set_status(instance, "start")
             print(f"Removed {', '.join(resolved_names)}")
             return resolved_names
     else:
@@ -124,26 +137,29 @@ def auto_uninstall(instance: str, new_plugins: list, force: bool = False) -> set
 
     Args:
         instance (str): The name of the instance.
-        new_plugins (list): A list of newly installed plugins.
+        new_plugins (list): A list of newly installed plugin names.
         force (bool, optional): Remove matching Plugins without confirmation prompt. Defaults to False.
 
     Returns:
         set: A collection of all uninstalled plugins.
     """
     plugin_path = storage.get_plugin_path(instance)
-    installed_names = {x.name for x in plugin_path.iterdir() if x.suffix == ".jar"}
+    installed_names = {x.name for x in plugin_path.iterdir()
+                       if x.suffix == ".jar"}
     old_installed = installed_names.difference(new_plugins)
     resolved_names = set()
     for plugin_name in new_plugins:
-        resolved_names.update(difflib.get_close_matches(plugin_name, old_installed, 2))
+        resolved_names.update(difflib.get_close_matches(
+            plugin_name, old_installed, 2))
     if len(resolved_names) > 0:
-        print("The following plugins seem to be old Versions of the Plugin(s) just installed:")
+        print(
+            "The following plugins seem to be old Versions of the Plugin(s) just installed:")
         print(f"  {', '.join(resolved_names)}")
         if force or visuals.bool_selector("Remove them?"):
             for plugin_name in resolved_names:
                 rm_path = plugin_path / plugin_name
                 rm_path.unlink()
-            print(f"Autoremoved {', '.join(resolved_names)}")
+            print(f"Automatically removed {', '.join(resolved_names)}")
             return resolved_names
     else:
         print("No similar plugins found to uninstall.")
@@ -154,7 +170,7 @@ def list_plugins(filter_str: str = '') -> None:
     """List all Servers which have plugins installed.
 
     Args:
-        filter_str (str, optional): [description]. Defaults to ''.
+        filter_str (str, optional): Simple line filter. Filter bz Instance or plugin name. Defaults to ''.
     """
     base_path = storage.get_instance_path(bare=True)
     instance_paths = base_path.iterdir()
@@ -166,7 +182,8 @@ def list_plugins(filter_str: str = '') -> None:
         instance = instance_path.name
         plugin_path = storage.get_plugin_path()
         if plugin_path.is_dir():
-            plugins = (x.name for x in plugin_path.iterdir() if x.suffix == ".jar")
+            plugins = (x.name for x in plugin_path.iterdir()
+                       if x.suffix == ".jar")
         else:
             plugins = None
         resolved = template.format(instance, str(plugins is not None), ", ".join(plugins))
