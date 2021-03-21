@@ -178,6 +178,9 @@ def configure(instance: str, editor: str, properties: list = None, edit_paths: l
         restart (bool, optional): Stops the server, applies changes and starts it again when set to true.
         Defaults to False.
     """
+    if not any((properties, edit_paths, memory)):
+        raise ValueError("No properties or files to edit specified.")
+
     instance_path = storage.get_instance_path(instance)
     paths = {}
 
