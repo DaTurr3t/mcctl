@@ -229,7 +229,8 @@ def get_parser() -> ap.ArgumentParser:
     parser_export.set_defaults(
         func=storage.export, elevation=semi_elev)
 
-    parser_import = subparsers.add_parser("import", help="Import an Instance from a zip File.")
+    parser_import = subparsers.add_parser(
+        "import", help="Import an Instance from a zip File.")
     parser_import.add_argument(
         "zip_path", metavar="ZIPFILE", help="The Path of the archived Server.")
     parser_import.add_argument(
@@ -248,14 +249,15 @@ def get_parser() -> ap.ArgumentParser:
 
     parser_install = subparsers.add_parser(
         "install", parents=[instance_name_parser, restart_parser], formatter_class=ap.RawTextHelpFormatter,
-        help="Install a server Plugin from a local Path or from URL.\n"
-             "No Version or compatibility checks are done against the Server.\n"
-             "Only if the plugin folder does not exist for the Server, the command fails."
+        help="Install or update a server Plugin from a local Path or from URL.\n"
+             "Old plugins closely matching the new name can optionally be deleted."
     )
     parser_install.add_argument("sources", metavar="LOCAL_PATH_OR_URL", nargs="+",
                                 help="Paths or URLs which point to Plugins or zip Files.")
     parser_install.set_defaults(func=plugin.install, elevation=re_start_elev,
                                 err_template="{args.action} plugins on {args.instance}")
+    parser_install.add_argument("-a", "--autoremove", metavar="MODE", choices=("never", "ask", "always"), default="ask",
+                                help="Autoremove older Versions of plugins.")
 
     parser_uninstall = subparsers.add_parser(
         "uninstall", parents=[instance_name_parser, restart_parser, force_parser], formatter_class=ap.RawTextHelpFormatter,
@@ -265,9 +267,7 @@ def get_parser() -> ap.ArgumentParser:
     )
     parser_uninstall.add_argument("plugins", metavar="PLUGIN_NAME", nargs="+",
                                   help="Plugin File names in the plugins folder of the instance.")
-    parser_uninstall.add_argument("-a", "--autoremove", metavar="MODE", choices=("never", "ask", "always"),
-                                  help="Autoremove older Versions of plugins.")
-    parser_uninstall.set_defaults(func=plugin.install, elevation=re_start_elev,
+    parser_uninstall.set_defaults(func=plugin.uninstall, elevation=re_start_elev,
                                   err_template="{args.action} plugins on {args.instance}")
 
     parser_list = subparsers.add_parser(
