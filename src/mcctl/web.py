@@ -206,7 +206,7 @@ def download(url: str, dest: Path) -> None:
     if dest.is_dir():
         fdisp = response.headers.get('content-disposition')
         if fdisp is not None:
-            fname = re.findall("filename=(.+)", fdisp)[0]
+            fname = re.findall(r"filename\*?=(?:.+'')?(.+)", fdisp)[-1]
             file_dest = dest / fname
         else:
             file_dest = dest / url.split("/")[-1]
