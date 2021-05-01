@@ -256,14 +256,12 @@ def get_parser() -> ap.ArgumentParser:
                                 help="Paths or URLs which point to Plugins or zip Files.")
     parser_install.set_defaults(func=plugin.install, elevation=re_start_elev,
                                 err_template="{args.action} plugins on {args.instance}")
-    parser_install.add_argument("-a", "--autoremove", metavar="MODE", choices=("never", "ask", "always"), default="ask",
-                                help="Autoremove older Versions of plugins.")
+    parser_install.add_argument("-a", "--autoupgrade", action='store_true',
+                                help="Upgrade plugin and remove previous versions by name (interactive).")
 
     parser_uninstall = subparsers.add_parser(
         "uninstall", parents=[instance_name_parser, restart_parser, force_parser], formatter_class=ap.RawTextHelpFormatter,
-        help="Install a server Plugin from a local Path or from URL.\n"
-             "No Version or compatibility checks are done against the Server.\n"
-             "Only if the plugin folder does not exist for the Server, the command fails."
+        help="Uninstall a server Plugin by File Name.\n"
     )
     parser_uninstall.add_argument("plugins", metavar="PLUGIN_NAME", nargs="+",
                                   help="Plugin File names in the plugins folder of the instance.")
