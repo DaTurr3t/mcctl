@@ -1,4 +1,5 @@
 # pylint: skip-file
+# flake8: noqa
 import unittest
 import inspect
 from mcctl.__main__ import get_parser
@@ -162,7 +163,7 @@ class TestParserMappings(unittest.TestCase):
     def test_install(self):
         args = self.parser.parse_args(
             "install testserver https://plugins.example.com/test -a never".split())
-        params_ok = []
+        params_ok = ["action"]
         params_ok.extend(self.param_base)
         kwargs, params = get_missing(vars(args), args.func)
         self.assertListEqual(sorted(kwargs), sorted(params_ok))
@@ -171,7 +172,7 @@ class TestParserMappings(unittest.TestCase):
     def test_uninstall(self):
         args = self.parser.parse_args(
             "uninstall testserver testplugin".split())
-        params_ok = []
+        params_ok = ["action"]
         params_ok.extend(self.param_base)
         kwargs, params = get_missing(vars(args), args.func)
         self.assertListEqual(sorted(kwargs), sorted(params_ok))
