@@ -162,7 +162,7 @@ class TestParserMappings(unittest.TestCase):
 
     def test_install(self):
         args = self.parser.parse_args(
-            "install testserver https://plugins.example.com/test -a never".split())
+            "install testserver https://plugins.example.com/test -a".split())
         params_ok = ["action"]
         params_ok.extend(self.param_base)
         kwargs, params = get_missing(vars(args), args.func)
