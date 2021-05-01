@@ -25,15 +25,14 @@ from pathlib import Path
 from mcctl import storage, web, visuals, common
 
 
-def install(instance: str, sources: list, restart: bool = False, autoremove: str = "ask") -> None:
+def install(instance: str, sources: list, restart: bool = False, autoupgrade: str = "ask") -> None:
     """Install a list of archived or bare plugins on a server.
 
     Args:
         instance (str): The name of the instance.
         sources (list): A list of zip and jar Files/URLs which contain or are Plugins.
+        autoupgrade (bool): Uninstall similarly named Plugins but ask first.
         restart (bool, optional): Restart the Server after Installation. Defaults to False.
-        autoremove (str, optional): Uninstall all similar Plugins but ask first ("ask"),
-        disable completely ("never"), or always uninstall ("always").
 
     Raises:
         FileNotFoundError: If a Plugin File or Archive is not found.
@@ -48,8 +47,6 @@ def install(instance: str, sources: list, restart: bool = False, autoremove: str
         raise FileNotFoundError("This Instance does not support plugins.")
     if not sources:
         raise ValueError("No Plugins specified to install.")
-    if autoremove not in ("never", "ask", "always"):
-        raise ValueError("autoremove invalid")
 
     unique_files = set(sources)
     with tmpf.TemporaryDirectory() as tmp_dir:
@@ -76,9 +73,8 @@ def install(instance: str, sources: list, restart: bool = False, autoremove: str
         state_note = "Restarted Server."
         common.notified_set_status(instance, "restart", "Installing Plugins.")
     print(f"Installed {', '.join(installed)}. {state_note}")
-    always_remove = autoremove == "always"
-    if autoremove != "never":
-        auto_uninstall(instance, installed, always_remove)
+    if autoupgrade:
+        auto_uninstall(instance, installed, False)
 
 
 def uninstall(instance: str, plugins: list, restart: bool = False, force: bool = False) -> set:
