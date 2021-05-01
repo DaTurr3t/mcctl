@@ -170,7 +170,7 @@ def list_plugins(filter_str: str = '') -> None:
     """List all Servers which have plugins installed.
 
     Args:
-        filter_str (str, optional): Simple line filter. Filter bz Instance or plugin name. Defaults to ''.
+        filter_str (str, optional): Simple line filter. Filter by Instance or plugin name. Defaults to ''.
     """
     base_path = storage.get_instance_path(bare=True)
     instance_paths = base_path.iterdir()
@@ -185,7 +185,7 @@ def list_plugins(filter_str: str = '') -> None:
             plugins = (x.name for x in plugin_path.iterdir()
                        if x.suffix == ".jar")
         else:
-            plugins = None
-        resolved = template.format(instance, str(plugins is not None), ", ".join(plugins))
+            plugins = ()
+        resolved = template.format(instance, str(bool(plugins)), ", ".join(plugins))
         if filter_str in resolved:
             print(resolved)
