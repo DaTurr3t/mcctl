@@ -395,7 +395,8 @@ def install_bare_plugin(plugin_path: Path, plugin_dest: Path) -> str:
     """
     dst_file = plugin_dest / plugin_path.name
     copy(plugin_path, dst_file)
-    dst_file.chmod(0o750)
+    dst_file.chmod(0o640)
+    chown(dst_file, user=SERVER_USER)
     return plugin_path.name
 
 
@@ -431,7 +432,8 @@ def install_compressed_plugin(plugin_path: Path, plugin_dest: Path) -> list:
             dst = plugin_dest / jar_name
             with zip_file.open(zinfo) as zjar, open(dst, 'wb') as dst_file:
                 shutil.copyfileobj(zjar, dst_file)
-            dst.chmod(0o750)
+            dst.chmod(0o640)
+            chown(dst, user=SERVER_USER)
             installed.append(jar_name)
     return installed
 
