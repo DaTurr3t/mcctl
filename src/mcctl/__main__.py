@@ -315,9 +315,9 @@ def get_parser() -> ap.ArgumentParser:
     parser_start.set_defaults(
         func=common.notified_set_status, elevation=semi_elev)
 
-    parser_stop = subparsers.add_parser(
+    parser_status = subparsers.add_parser(
         "status", parents=[instance_name_parser], help="Get extensive Information about the Server Instance.")
-    parser_stop.set_defaults(
+    parser_status.set_defaults(
         func=common.mc_status, err_template="retrieve {args.action} of '{args.instance}'", elevation=semi_elev)
 
     parser_stop = subparsers.add_parser(
