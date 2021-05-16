@@ -254,10 +254,10 @@ def get_parser() -> ap.ArgumentParser:
     )
     parser_install.add_argument("sources", metavar="LOCAL_PATH_OR_URL", nargs="+",
                                 help="Paths or URLs which point to Plugins or zip Files.")
-    parser_install.set_defaults(func=plugin.install, elevation=re_start_elev,
-                                err_template="{args.action} plugins on {args.instance}")
     parser_install.add_argument("-a", "--autoupgrade", action='store_true',
                                 help="Upgrade plugin and remove previous versions by name (interactive).")
+    parser_install.set_defaults(func=plugin.install, elevation=semi_elev,
+                                err_template="{args.action} plugins on {args.instance}")
 
     parser_uninstall = subparsers.add_parser(
         "uninstall", parents=[instance_name_parser, restart_parser, force_parser], formatter_class=ap.RawTextHelpFormatter,
