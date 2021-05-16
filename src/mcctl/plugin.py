@@ -61,18 +61,18 @@ def install(instance: str, sources: list, restart: bool = False, autoupgrade: st
         for plugin_source in plugin_sources:
             print(f"Installing {plugin_source.name}...")
             with perms.run_as(0, 0):
-            if plugin_source.suffix == ".zip":
+                if plugin_source.suffix == ".zip":
                     installed_files = storage.install_compressed_plugin(
                         plugin_source, plugin_dest)
-                installed.update(installed_files)
+                    installed.update(installed_files)
 
-            elif plugin_source.suffix == ".jar":
+                elif plugin_source.suffix == ".jar":
                     installed_file = storage.install_bare_plugin(
                         plugin_source, plugin_dest)
-                installed.add(installed_file)
+                    installed.add(installed_file)
 
-            else:
-                raise ValueError(f"'{plugin_source}' is not a .zip- or .jar-File.")
+                else:
+                    raise ValueError(f"'{plugin_source}' is not a .zip- or .jar-File.")
     state_note = "Manual restart/reload required."
     if restart:
         state_note = "Restarted Server."
@@ -176,17 +176,17 @@ def list_plugins(filter_str: str = '') -> None:
     base_path = storage.get_instance_path(bare=True)
     instance_paths = base_path.iterdir()
 
-    template = "{:16}: {:^18} {}"
-    print(template.format("Instance", "Plugins supported", "Plugins installed"))
+    template = "{:16} {:^14} {}"
+    print(template.format("Instance", "Plugins", "Installed"))
 
     for instance_path in instance_paths:
         instance = instance_path.name
-        plugin_path = storage.get_plugin_path()
+        plugin_path = storage.get_plugin_path(instance)
         if plugin_path.is_dir():
             plugins = (x.name for x in plugin_path.iterdir()
                        if x.suffix == ".jar")
         else:
             plugins = ()
-        resolved = template.format(instance, str(bool(plugins)), ", ".join(plugins))
+        resolved = template.format(instance, ("supported" if plugins else "not supported"), ", ".join(plugins))
         if filter_str in resolved:
             print(resolved)
