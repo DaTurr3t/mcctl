@@ -74,7 +74,7 @@ def get_plugin_path(instance: str) -> Path:
     Returns:
         Path: The absolute Path to the Plugin folder of the Instance.
     """
-    return get_instance_path() / "plugins"
+    return get_instance_path(instance) / "plugins"
 
 
 def get_jar_path(type_id: str = '', bare: bool = False) -> Path:
