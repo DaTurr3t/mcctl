@@ -69,8 +69,8 @@ class TestParserMappings(unittest.TestCase):
         self.assertListEqual(sorted(kwargs), sorted(params_ok))
         self.assertListEqual(params, kwargs_ok)
 
-    def test_inspect(self):
-        args = self.parser.parse_args("inspect testserver -n 10".split())
+    def test_logs(self):
+        args = self.parser.parse_args("logs testserver -n 10".split())
         params_ok = ["action"]
         params_ok.extend(self.param_base)
         kwargs, params = get_missing(vars(args), args.func)

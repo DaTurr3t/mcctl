@@ -324,11 +324,11 @@ def remove_jar(source: str, force: bool = False) -> None:
             remove_all(del_path)
 
 
-def inspect(instance: str, limit: int = 0) -> None:
+def logs(instance: str, limit: int = 0) -> None:
     """Get the last lines of the Log.
 
     Arguments:
-        instance (str): The name of the instance to be inspected.
+        instance (str): The name of the instance to read logs from.
 
     Keyword Arguments:
         limit (int): The amount of lines to output. 0 returns all lines. (default: {0})

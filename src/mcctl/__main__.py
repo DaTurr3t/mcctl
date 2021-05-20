@@ -240,12 +240,12 @@ def get_parser() -> ap.ArgumentParser:
     parser_import.set_defaults(err_template="{args.action} '{args.zip_path}'", func=storage.mc_import,
                                elevation={"default": "login_user", "change_to": "root", "change_fully": True})
 
-    parser_inspect = subparsers.add_parser(
-        "inspect", parents=[instance_name_parser], help="Inspect the Log of a Server.")
-    parser_inspect.add_argument(
+    parser_logs = subparsers.add_parser(
+        "logs", parents=[instance_name_parser], help="Read the Logs of a Server.")
+    parser_logs.add_argument(
         "-n", "--lines", dest="limit", type=int, default=0, help="Limit the line output count to n.")
-    parser_inspect.set_defaults(
-        func=storage.inspect, err_template="{args.action} logs of '{args.instance}'")
+    parser_logs.set_defaults(
+        func=storage.logs, err_template="read logs of '{args.instance}'")
 
     parser_install = subparsers.add_parser(
         "install", parents=[instance_name_parser, restart_parser], formatter_class=ap.RawTextHelpFormatter,
