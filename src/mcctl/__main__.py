@@ -78,7 +78,7 @@ def apply_permlevel(permlevel: dict) -> None:
     demote_user = permlevel.get('eusr')
     if demote_user:
         user_ids = proc.get_ids(demote_user)
-        perms.run_as(*user_ids)
+        perms.set_eids(*user_ids)
 
 
 def filter_args(unfiltered_kwargs: dict, func: Callable) -> dict:
@@ -360,7 +360,7 @@ def main() -> None:
     """
     read_cfg()
     # Determine needed Permission Level and restart with sudo.
-    args = get_parser().parse_args()
+    args = get_parser().parse_args("config cunt-empire -p 'test=1' -r".split(" "))
     plvl = get_permlevel(args, args.elevation)
     try:
         apply_permlevel(plvl)
@@ -369,7 +369,6 @@ def main() -> None:
             raise
         print(f"Process Elevation failed: {ex}")
         sys.exit(1)
-
     safe_kwargs = filter_args(vars(args), args.func)
     try:
         args.func(**safe_kwargs)

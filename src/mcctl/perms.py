@@ -26,7 +26,7 @@ from contextlib import contextmanager
 from mcctl import CFGVARS
 
 
-def _set_eids(uid: int, gid: int) -> tuple:
+def set_eids(uid: int, gid: int) -> tuple:
     """Change the user of the currently running python instance.
 
     Set the EGID and EUID of the running Python script to the permissions of <as_user>.
@@ -39,7 +39,6 @@ def _set_eids(uid: int, gid: int) -> tuple:
         old_ids (tuple): A tuple of the UID and GID that were set before the change.
     """
     old_ids = (os.geteuid(), os.getegid())
-
     os.setegid(gid)
     os.seteuid(uid)
 
@@ -54,11 +53,11 @@ def run_as(uid: int, gid: int) -> None:
         uid (int): The Effective User ID that is set during the "with"-Block.
         gid (int): The Effective Group ID that is set during the "with"-Block.
     """
-    old = _set_eids(uid, gid)
+    old = set_eids(uid, gid)
     try:
         yield
     finally:
-        _set_eids(*old)
+        set_eids(*old)
 
 
 def elevate(user: str = "root") -> None:
