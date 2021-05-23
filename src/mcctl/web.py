@@ -82,10 +82,16 @@ def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
     version_url = join_url(base_url, major, minor)
     try:
         resolved_data = rest_get(version_url)
+    except OSError as ex:
+        raise LookupError(f"Server Version not found: {ex}")
+
+    if "error" in resolved_data.keys():
+        error = resolved_data.get("error").capitalize()
+        raise LookupError(f"{error.capitalize()}")
+
     # Make sure revision is str and not int
     resolved_tag = ":".join(str(x) for x in resolved_data.values())
-    except OSError as ex:
-        raise LookupError(f"Server Version not found: {ex}") from ex
+
     return join_url(version_url, "download"), resolved_tag
 
 
