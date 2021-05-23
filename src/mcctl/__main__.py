@@ -131,6 +131,18 @@ def get_parser() -> ap.ArgumentParser:
             raise ap.ArgumentTypeError("Must be in Format <NUMBER>{K,M,G}.")
         return value
 
+    def autocomplete_instance(value: str) -> str:
+        base = storage.get_instance_path(bare=True)
+        try:
+            matches = [x.name for x in base.iterdir() if x.name.startswith(value)]
+        except OSError:
+            return value
+        if len(matches) > 1:
+            raise ap.ArgumentTypeError(f"Instance Name '{value}' is ambiguous.")
+        elif len(matches) < 1:
+            return value
+        return matches[0]
+
     default_err_template = "{args.action} instance '{args.instance}'"
     no_elev = {"default": "server_user"}
     semi_elev = {"default": "server_user", "change_to": "root"}
@@ -165,13 +177,21 @@ def get_parser() -> ap.ArgumentParser:
               "Versions: e.g. '1.15.2', 'latest'\n"
               "Build (only for paper): e.g. '122', 'latest'\n"))
 
-    instance_name_parser = ap.ArgumentParser(add_help=False)
-    instance_name_parser.add_argument(
-        "instance", metavar="INSTANCE_ID", help="Instance Name of the Minecraft Server.")
+    # Auto-Completing Instance Name
+    existing_instance_parser = ap.ArgumentParser(add_help=False)
+    existing_instance_parser.add_argument(
+        "instance", metavar="INSTANCE_ID", type=autocomplete_instance,
+        help="Instance Name of the Minecraft Server.")
+    # New Instance Name
+    instance_parser = ap.ArgumentParser(add_help=False)
+    instance_parser.add_argument(
+        "instance", metavar="INSTANCE_ID",
+        help="Instance Name of the Minecraft Server.")
     # Optional Instance Name
     instance_subfolder_parser = ap.ArgumentParser(add_help=False)
     instance_subfolder_parser.add_argument(
-        "instance_subfolder", metavar="INSTANCE/SUBFOLDER", nargs="?", help="Instance Name or Subpath in Instance Files, e.g. INSTANCE/world.")
+        "instance_subfolder", metavar="INSTANCE/SUBFOLDER", nargs="?",
+        help="Instance Name or Subpath in Instance Files, e.g. INSTANCE/world.")
 
     message_parser = ap.ArgumentParser(add_help=False)
     message_parser.add_argument(
@@ -186,12 +206,12 @@ def get_parser() -> ap.ArgumentParser:
         "-m", "--memory", type=check_mem, help="Memory Allocation for the Server in {K,M,G}Bytes, e.g. 2G, 1024M.")
 
     parser_attach = subparsers.add_parser(
-        "attach", parents=[instance_name_parser], help="Attach to the Console of the Minecraft Instance.")
+        "attach", parents=[existing_instance_parser], help="Attach to the Console of the Minecraft Instance.")
     parser_attach.set_defaults(
         func=proc.attach, err_template="attach to '{args.instance}'")
 
     parser_config = subparsers.add_parser(
-        "config", parents=[instance_name_parser, restart_parser, memory_parser], help="Configure/Change Files of a Minecraft Server Instance.")
+        "config", parents=[existing_instance_parser, restart_parser, memory_parser], help="Configure/Change Files of a Minecraft Server Instance.")
     parser_config.add_argument(
         "-e", "--edit", nargs="+", dest="edit_paths", metavar="FILE", help="Edit a File in the Instance Folder interactively.")
     parser_config.add_argument(
@@ -200,7 +220,7 @@ def get_parser() -> ap.ArgumentParser:
                                editor=CFGVARS.get('user', 'editor'), elevation=re_start_elev)
 
     parser_create = subparsers.add_parser(
-        "create", parents=[instance_name_parser, type_id_parser, memory_parser], help="Create a new Server Instance.", formatter_class=ap.RawTextHelpFormatter)
+        "create", parents=[instance_parser, type_id_parser, memory_parser], help="Create a new Server Instance.", formatter_class=ap.RawTextHelpFormatter)
     parser_create.add_argument(
         "-s", "--start", action='store_true', help="Start the Server after creation, persistent enabled.")
     parser_create.add_argument(
@@ -214,14 +234,14 @@ def get_parser() -> ap.ArgumentParser:
         })
 
     parser_exec = subparsers.add_parser(
-        "exec", parents=[instance_name_parser], help="Execute a command in the Console of the Instance.")
+        "exec", parents=[existing_instance_parser], help="Execute a command in the Console of the Instance.")
     parser_exec.add_argument("command", nargs="+",
                              help="Command to execute in the Server Console.")
     parser_exec.set_defaults(
         func=proc.mc_exec, err_template="execute command on {args.instance}")
 
     parser_export = subparsers.add_parser(
-        "export", parents=[instance_name_parser], help="Export an Instance to a zip File.")
+        "export", parents=[existing_instance_parser], help="Export an Instance to a zip File.")
     parser_export.add_argument(
         "-c", "--compress", action='store_true', help="Compress the Archive.")
     parser_export.add_argument(
@@ -241,14 +261,14 @@ def get_parser() -> ap.ArgumentParser:
                                elevation={"default": "login_user", "change_to": "root", "change_fully": True})
 
     parser_logs = subparsers.add_parser(
-        "logs", parents=[instance_name_parser], help="Read the Logs of a Server.")
+        "logs", parents=[existing_instance_parser], help="Read the Logs of a Server.")
     parser_logs.add_argument(
         "-n", "--lines", dest="limit", type=int, default=0, help="Limit the line output count to n.")
     parser_logs.set_defaults(
         func=storage.logs, err_template="read logs of '{args.instance}'")
 
     parser_install = subparsers.add_parser(
-        "install", parents=[instance_name_parser, restart_parser], formatter_class=ap.RawTextHelpFormatter,
+        "install", parents=[existing_instance_parser, restart_parser], formatter_class=ap.RawTextHelpFormatter,
         help="Install or update a server Plugin from a local Path or from URL.\n"
              "Old plugins closely matching the new name can optionally be deleted."
     )
@@ -260,7 +280,7 @@ def get_parser() -> ap.ArgumentParser:
                                 err_template="{args.action} plugins on {args.instance}")
 
     parser_uninstall = subparsers.add_parser(
-        "uninstall", parents=[instance_name_parser, restart_parser, force_parser], formatter_class=ap.RawTextHelpFormatter,
+        "uninstall", parents=[existing_instance_parser, restart_parser, force_parser], formatter_class=ap.RawTextHelpFormatter,
         help="Uninstall a server Plugin by File Name.\n"
     )
     parser_uninstall.add_argument("plugins", metavar="PLUGIN_NAME", nargs="+",
@@ -283,18 +303,18 @@ def get_parser() -> ap.ArgumentParser:
         func=web.pull, err_template="{args.action} Server Type '{args.source}'")
 
     parser_rename = subparsers.add_parser(
-        "rename", parents=[instance_name_parser], help="Rename a Server Instance.")
+        "rename", parents=[existing_instance_parser], help="Rename a Server Instance.")
     parser_rename.add_argument(
         "new_name", metavar="NEW_NAME", help="The new Name of the Server Instance.")
     parser_rename.set_defaults(func=common.rename)
 
     parser_restart = subparsers.add_parser(
-        "restart", parents=[instance_name_parser, message_parser], help="Restart a Server Instance.")
+        "restart", parents=[existing_instance_parser, message_parser], help="Restart a Server Instance.")
     parser_restart.set_defaults(
         func=common.notified_set_status, elevation=semi_elev)
 
     parser_remove = subparsers.add_parser(
-        "rm", parents=[instance_name_parser, force_parser], help="Remove a Server Instance.")
+        "rm", parents=[existing_instance_parser, force_parser], help="Remove a Server Instance.")
     parser_remove.set_defaults(
         func=storage.remove, err_template="remove '{args.instance}'")
 
@@ -309,26 +329,26 @@ def get_parser() -> ap.ArgumentParser:
         func=storage.remove_jar, err_template="remove .jar File '{args.source}'")
 
     parser_start = subparsers.add_parser(
-        "start", parents=[instance_name_parser], help="Start a Server Instance.")
+        "start", parents=[existing_instance_parser], help="Start a Server Instance.")
     parser_start.add_argument("-p", "--persistent", action='store_true',
                               help="Start even after Reboot.")
     parser_start.set_defaults(
         func=common.notified_set_status, elevation=semi_elev)
 
     parser_status = subparsers.add_parser(
-        "status", parents=[instance_name_parser], help="Get extensive Information about the Server Instance.")
+        "status", parents=[existing_instance_parser], help="Get extensive Information about the Server Instance.")
     parser_status.set_defaults(
         func=common.mc_status, err_template="retrieve {args.action} of '{args.instance}'", elevation=semi_elev)
 
     parser_stop = subparsers.add_parser(
-        "stop", parents=[instance_name_parser, message_parser], help="Stop a Server Instance.")
+        "stop", parents=[existing_instance_parser, message_parser], help="Stop a Server Instance.")
     parser_stop.add_argument("-p", "--persistent", action='store_true',
                              help="Do not start again after Reboot.")
     parser_stop.set_defaults(
         func=common.notified_set_status, elevation=semi_elev)
 
     parser_update = subparsers.add_parser(
-        "update", parents=[instance_name_parser, type_id_parser, restart_parser], help="Update a Server Instance.")
+        "update", parents=[existing_instance_parser, type_id_parser, restart_parser], help="Update a Server Instance.")
     parser_update.set_defaults(func=common.update, elevation=re_start_elev)
 
     parser_shell = subparsers.add_parser(
@@ -360,7 +380,7 @@ def main() -> None:
     """
     read_cfg()
     # Determine needed Permission Level and restart with sudo.
-    args = get_parser().parse_args("config cunt-empire -p 'test=1' -r".split(" "))
+    args = get_parser().parse_args()
     plvl = get_permlevel(args, args.elevation)
     try:
         apply_permlevel(plvl)
