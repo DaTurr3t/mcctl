@@ -82,8 +82,8 @@ def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
     version_url = join_url(base_url, major, minor)
     try:
         resolved_data = rest_get(version_url)
-        # Make sure revision is str and not int
-        resolved_tag = ":".join(str(x) for x in resolved_data.values())
+    # Make sure revision is str and not int
+    resolved_tag = ":".join(str(x) for x in resolved_data.values())
     except OSError as ex:
         raise LookupError(f"Server Version not found: {ex}") from ex
     return join_url(version_url, "download"), resolved_tag
@@ -287,7 +287,7 @@ def pull(source: str, literal_url: bool = False) -> tuple:
             print("Resolving Tag failed, looking in local cache.")
             tag = source
 
-    print(f"Pulling version '{tag}'")
+    print(f"Pulling version '{tag}'...")
     dest = storage.get_jar_path(tag)
 
     if not dest.is_file():
