@@ -154,10 +154,13 @@ def get_download_url(server_tag: str) -> tuple:
         raise ValueError(f"Invalid Server Tag '{server_tag}'")
     type_tag, version_tag = server_tag.split(":", 1)
     try:
-        func = SOURCES.get(type_tag, {}).get('func')
-        url, resolved_tag = func(version_tag, SOURCES.get(type_tag).get('url'))
+        source_tools = SOURCES.get(type_tag)
     except AttributeError:
-        raise ValueError("Unsupported server type") from None
+        raise ValueError("Unsupported server type.")
+
+    func = source_tools.get('func')
+    base_url = source_tools.get('url')
+    url, resolved_tag = func(version_tag, base_url)
 
     return url, resolved_tag
 
