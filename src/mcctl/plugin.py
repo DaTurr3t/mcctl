@@ -60,19 +60,18 @@ def install(instance: str, sources: list, restart: bool = False, autoupgrade: st
         plugin_sources = (Path(x) for x in unique_files)
         for plugin_source in plugin_sources:
             print(f"Installing {plugin_source.name}...")
-            with perms.run_as(0, 0):
-                if plugin_source.suffix == ".zip":
-                    installed_files = storage.install_compressed_plugin(
-                        plugin_source, plugin_dest)
-                    installed.update(installed_files)
+            if plugin_source.suffix == ".zip":
+                installed_files = storage.install_compressed_plugin(
+                    plugin_source, plugin_dest)
+                installed.update(installed_files)
 
-                elif plugin_source.suffix == ".jar":
-                    installed_file = storage.install_bare_plugin(
-                        plugin_source, plugin_dest)
-                    installed.add(installed_file)
+            elif plugin_source.suffix == ".jar":
+                installed_file = storage.install_bare_plugin(
+                    plugin_source, plugin_dest)
+                installed.add(installed_file)
 
-                else:
-                    raise ValueError(f"'{plugin_source}' is not a .zip- or .jar-File.")
+            else:
+                raise ValueError(f"'{plugin_source}' is not a .zip- or .jar-File.")
     state_note = "Manual restart/reload required."
     if restart:
         state_note = "Restarted Server."
