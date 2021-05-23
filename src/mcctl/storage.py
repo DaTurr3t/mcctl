@@ -204,6 +204,34 @@ def copy(source: Path, dest: Path) -> Path:
     return shutil.copy(source, dest)
 
 
+def symlink(src: Path, dst: Path) -> None:
+    """Create a symbolic Link for a file or directory.
+
+    Args:
+        src (Path): Source File/Directory.
+        dst (Path): Destination File/Directory.
+    """
+    os.symlink(src, dst)
+
+
+def get_real_abspath(path: Path) -> Path:
+    """Return the real, absolute Path of a potential symlink. If the path is not a symlink, return the input Path.
+
+    Args:
+        path (Path): A file/directory that is potentially a symlink.
+
+    Returns:
+        Path: The real, absolute Path of the file. Returns the original path if not a symlink.
+    """
+    if path.is_symlink():
+        link = Path(os.readlink(path))
+        if not link.is_absolute():
+            link = path / link
+        return link
+    else:
+        return path
+
+
 def move(source: Path, dest: Path) -> Path:
     """Move a file or directory.
 
@@ -310,12 +338,23 @@ def remove_jar(source: str, force: bool = False) -> None:
         msg = f"Are you absolutely sure you want to remove the Server Jar '{source}'?"
     else:
         del_path = get_jar_path(bare=True)
-        msg = "Are you sure you want to remove ALL cached Server Jars?"
+        msg = "Are you sure you want to remove all unused cached Server Jars?"
 
-    if not del_path.exists():
-        if not del_all:
+    if not del_all:
+        if not del_path.exists():
             raise FileNotFoundError(f"Type-ID not found in cache: {del_path}.")
-        else:
+        all_instances = get_instance_path(bare=True).iterdir()
+        for instance_path in all_instances:
+            env_path = instance_path / CFGVARS.get('system', 'env_file')
+            try:
+                env = config.get_properties(env_path)
+            except OSError:
+                env = {}
+            server_jar = instance_path / env.get("JARFILE", "server.jar")
+            if get_real_abspath(server_jar) == del_path:
+                raise (f"Type-ID is associated with Instance {instance_path.name}.")
+    else:
+        if not del_path.exists():
             raise FileNotFoundError("Cache already cleared.")
     if force or visuals.bool_selector(msg):
         if not del_all:

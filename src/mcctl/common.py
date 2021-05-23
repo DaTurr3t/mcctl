@@ -45,7 +45,7 @@ def create(instance: str, source: str, memory: str, properties: list, literal_ur
 
     jar_path_src, version = web.pull(source, literal_url)
     jar_path_dest = instance_path / "server.jar"
-    storage.copy(jar_path_src, jar_path_dest)
+    storage.symlink(jar_path_src, jar_path_dest)
     proc.pre_start(jar_path_dest)
     if config.accept_eula(instance_path):
         if properties:
