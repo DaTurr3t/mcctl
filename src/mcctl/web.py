@@ -211,6 +211,7 @@ def download(url: str, dest: Path) -> None:
     Returns:
         Path: The absolute destination Path, filename included.
     """
+    dest = Path(dest)
     response = req.get(url, stream=True)
     if dest.is_dir():
         fdisp = response.headers.get('content-disposition')
