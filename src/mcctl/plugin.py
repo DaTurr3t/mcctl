@@ -22,7 +22,7 @@
 import difflib
 import tempfile as tmpf
 from pathlib import Path
-from mcctl import storage, web, visuals, common, perms
+from mcctl import storage, web, visuals, common
 
 
 def install(instance: str, sources: list, restart: bool = False, autoupgrade: str = "ask") -> None:
@@ -52,14 +52,14 @@ def install(instance: str, sources: list, restart: bool = False, autoupgrade: st
     with tmpf.TemporaryDirectory() as tmp_dir:
         for source in unique_files:
             if web.is_url(source):
-                print(f"Downloading '{source}'")
+                print(f"Downloading '{source}'...")
                 downloaded = web.download(source, tmp_dir)
                 unique_files.add(downloaded)
                 unique_files.discard(source)
         installed = set()
         plugin_sources = (Path(x) for x in unique_files)
         for plugin_source in plugin_sources:
-            print(f"Installing {plugin_source.name}...")
+            print(f"Installing '{plugin_source.name}'...")
             if plugin_source.suffix == ".zip":
                 installed_files = storage.install_compressed_plugin(
                     plugin_source, plugin_dest)
