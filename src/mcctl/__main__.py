@@ -146,6 +146,7 @@ def get_parser() -> ap.ArgumentParser:
     default_err_template = "{args.action} instance '{args.instance}'"
     no_elev = {"default": "server_user"}
     semi_elev = {"default": "server_user", "change_to": "root"}
+    root_elev = {"default": "login_user", "change_to": "root", "change_fully": True}
     re_start_elev = {"default": "server_user",
                      "change_to": "root",
                      "on_cond": {'restart': True, 'start': True}}
@@ -246,8 +247,7 @@ def get_parser() -> ap.ArgumentParser:
         "-c", "--compress", action='store_true', help="Compress the Archive.")
     parser_export.add_argument(
         "-w", "--world-only", action='store_true', help="Only export World Data.")
-    parser_export.set_defaults(
-        func=storage.export, elevation=semi_elev)
+    parser_export.set_defaults(func=storage.export, elevation=semi_elev)
 
     parser_import = subparsers.add_parser(
         "import", help="Import an Instance from a zip File.")
@@ -257,8 +257,8 @@ def get_parser() -> ap.ArgumentParser:
         "-i", "--instance", help="Instance Name of the Minecraft Server.")
     parser_import.add_argument(
         "-w", "--world-only", action='store_true', help="Only import World Data (the instance must already exist).")
-    parser_import.set_defaults(err_template="{args.action} '{args.zip_path}'", func=storage.mc_import,
-                               elevation={"default": "login_user", "change_to": "root", "change_fully": True})
+    parser_import.set_defaults(err_template="{args.action} '{args.zip_path}'",
+                               func=storage.mc_import, elevation=root_elev)
 
     parser_logs = subparsers.add_parser(
         "logs", parents=[existing_instance_parser], help="Read the Logs of a Server.")
@@ -276,7 +276,7 @@ def get_parser() -> ap.ArgumentParser:
                                 help="Paths or URLs which point to Plugins or zip Files.")
     parser_install.add_argument("-a", "--autoupgrade", action='store_true',
                                 help="Upgrade plugin and remove previous versions by name (interactive).")
-    parser_install.set_defaults(func=plugin.install, elevation=semi_elev,
+    parser_install.set_defaults(func=plugin.install, elevation=root_elev,
                                 err_template="{args.action} plugins on {args.instance}")
 
     parser_uninstall = subparsers.add_parser(
