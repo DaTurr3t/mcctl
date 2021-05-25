@@ -87,8 +87,13 @@ def get_jar_path(type_id: str = '', bare: bool = False) -> Path:
     Returns:
         Path: The Path to the .jar-File supplied.
     """
-    if ':' not in type_id and not bare:
-        raise ValueError("No valid Type-ID supplied")
+    bare_path = get_home_path() / "jars"
+    if ':' in type_id:
+        return bare_path / f"{type_id.replace(':', '/')}.jar"
+    elif bare:
+        return bare_path
+    raise ValueError("No valid Type-ID supplied")
+
 
 def get_type_id(jar_path: Path) -> str:
     """Assemble the Type ID from the Jar Path in the Cache.
