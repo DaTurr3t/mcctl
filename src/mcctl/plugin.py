@@ -166,6 +166,15 @@ def auto_uninstall(instance: str, new_plugins: list, force: bool = False) -> set
     return set()
 
 
+def get_plugins(instance: str) -> tuple:
+    plugin_path = storage.get_plugin_path(instance)
+    if plugin_path.is_dir():
+        plugins = (x.name for x in plugin_path.iterdir() if x.suffix == ".jar")
+    else:
+        raise FileNotFoundError("Plugin Folder not found.")
+    return plugins
+
+
 def list_plugins(filter_str: str = '') -> None:
     """List all Servers which have plugins installed.
 
@@ -180,12 +189,11 @@ def list_plugins(filter_str: str = '') -> None:
 
     for instance_path in instance_paths:
         instance = instance_path.name
-        plugin_path = storage.get_plugin_path(instance)
-        if plugin_path.is_dir():
-            plugins = (x.name for x in plugin_path.iterdir()
-                       if x.suffix == ".jar")
-        else:
+        try:
+            plugins = get_plugins(instance)
+        except FileNotFoundError:
             plugins = ()
-        resolved = template.format(instance, ("supported" if plugins else "not supported"), ", ".join(plugins))
+        resolved = template.format(
+            instance, ("supported" if plugins else "not supported"), ", ".join(plugins))
         if filter_str in resolved:
             print(resolved)
