@@ -89,8 +89,28 @@ def get_jar_path(type_id: str = '', bare: bool = False) -> Path:
     """
     if ':' not in type_id and not bare:
         raise ValueError("No valid Type-ID supplied")
+
+def get_type_id(jar_path: Path) -> str:
+    """Assemble the Type ID from the Jar Path in the Cache.
+
+    Args:
+        jar_path (Path): The Path to the Jar in the Cache.
+
+    Raises:
+        ValueError: If the relative Path is too short to be processed into a Type ID.
+
+    Returns:
+        str: a Type ID to download a Jar File.
+    """
+    jar_path = Path(jar_path)
     bare_path = get_home_path() / "jars"
-    return bare_path if bare else bare_path / f"{type_id.replace(':', '/')}.jar"
+    relative_jar = jar_path.relative_to(bare_path) if jar_path.is_absolute() else jar_path
+    if len(str(relative_jar).split("/")) < 2:
+        raise ValueError("Jar Path is too short.")
+    fname = relative_jar.stem
+    dirs = str(relative_jar.parent).split("/")
+    type_id = ":".join(dirs + [fname])
+    return type_id
 
 
 def get_child_paths(path: Path) -> list:
