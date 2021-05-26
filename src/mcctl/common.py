@@ -20,6 +20,7 @@
 
 import codecs
 import shlex
+import json
 from mcstatus import MinecraftServer
 from mcctl import web, storage, plugin, service, status, config, proc, visuals, CFGVARS
 
@@ -183,7 +184,7 @@ def list_instances(filter_str: str = '') -> None:
     template = "{:16} {:6} {:20} {:16} {:10} {:10}"
     title = template.format(
         "Name", "Port", "Server Version",
-                            "Player Count", "Status", "Persistent")
+        "Player Count", "Status", "Persistent")
 
     print(title)
     for name in servers:
@@ -385,3 +386,13 @@ def notified_set_status(instance: str, action: str, message: str = '', persisten
         except ConnectionError:
             pass
     service.set_status(unit, action)
+
+
+def inspect(instance: str) -> None:
+    """Print JSON-Formatted information about the Server.
+
+    Args:
+        instance (str): The instance name.
+    """
+    data = collect_server_data(instance)
+    print(json.dumps(data, indent=4))
