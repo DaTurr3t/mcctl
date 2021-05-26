@@ -221,7 +221,7 @@ def get_parser() -> ap.ArgumentParser:
                                editor=CFGVARS.get('user', 'editor'), elevation=re_start_elev)
 
     parser_create = subparsers.add_parser(
-        "create", parents=[instance_parser, type_id_parser, memory_parser], help="Create a new Server Instance.", formatter_class=ap.RawTextHelpFormatter)
+        "create", parents=[instance_parser, type_id_parser, memory_parser], help="Create a new Server Instance.")
     parser_create.add_argument(
         "-s", "--start", action='store_true', help="Start the Server after creation, persistent enabled.")
     parser_create.add_argument(
@@ -267,6 +267,12 @@ def get_parser() -> ap.ArgumentParser:
     parser_logs.set_defaults(
         func=storage.logs, err_template="read logs of '{args.instance}'")
 
+    parser_inspect = subparsers.add_parser(
+        "inspect", parents=[existing_instance_parser],
+        help="Get any information you can think of about the server in json format.")
+    parser_inspect.set_defaults(
+        func=common.inspect, err_template="{args.action} {args.instance}")
+
     parser_install = subparsers.add_parser(
         "install", parents=[existing_instance_parser, restart_parser], formatter_class=ap.RawTextHelpFormatter,
         help="Install or update a server Plugin from a local Path or from URL.\n"
@@ -278,15 +284,6 @@ def get_parser() -> ap.ArgumentParser:
                                 help="Upgrade plugin and remove previous versions by name (interactive).")
     parser_install.set_defaults(func=plugin.install, elevation=root_elev,
                                 err_template="{args.action} plugins on {args.instance}")
-
-    parser_uninstall = subparsers.add_parser(
-        "uninstall", parents=[existing_instance_parser, restart_parser, force_parser], formatter_class=ap.RawTextHelpFormatter,
-        help="Uninstall a server Plugin by File Name.\n"
-    )
-    parser_uninstall.add_argument("plugins", metavar="PLUGIN_NAME", nargs="+",
-                                  help="Plugin File names in the plugins folder of the instance.")
-    parser_uninstall.set_defaults(func=plugin.uninstall, elevation=re_start_elev,
-                                  err_template="{args.action} plugins on {args.instance}")
 
     parser_list = subparsers.add_parser(
         "ls", help="List Instances, installed Versions, Plugins, etc.")
@@ -346,6 +343,15 @@ def get_parser() -> ap.ArgumentParser:
                              help="Do not start again after Reboot.")
     parser_stop.set_defaults(
         func=common.notified_set_status, elevation=semi_elev)
+
+    parser_uninstall = subparsers.add_parser(
+        "uninstall", parents=[existing_instance_parser, restart_parser, force_parser],
+        help="Uninstall a server Plugin by File Name."
+    )
+    parser_uninstall.add_argument("plugins", metavar="PLUGIN_NAME", nargs="+",
+                                  help="Plugin File names in the plugins folder of the instance.")
+    parser_uninstall.set_defaults(func=plugin.uninstall, elevation=re_start_elev,
+                                  err_template="{args.action} plugins on {args.instance}")
 
     parser_update = subparsers.add_parser(
         "update", parents=[existing_instance_parser, type_id_parser, restart_parser], help="Update a Server Instance.")
