@@ -26,14 +26,14 @@ from mcctl import CFGVARS, perms
 UNIT_NAME = CFGVARS.get('system', 'systemd_service')
 
 
-def get_unit(instance: str) -> str:
+def get_unit(instance: str) -> Unit:
     """Return the systemd Unit name of the Instance.
 
     Args:
         instance (str): The name of the instance.
 
     Returns:
-        str: The systemd service Unit.
+        Unit: The systemd service Unit.
     """
     unit = Unit(f"{UNIT_NAME}@{instance}.service")
     unit.load()
