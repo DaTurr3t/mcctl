@@ -78,8 +78,9 @@ def list_instances(filter_str: str = '') -> None:
     server_paths = base_path.iterdir()
     servers = (x.name for x in server_paths)
 
-    template = "{:16} {:20} {:16} {:10} {:10}"
-    title = template.format("Name", "Server Version",
+    template = "{:16} {:6} {:20} {:16} {:10} {:10}"
+    title = template.format(
+        "Name", "Port", "Server Version",
                             "Player Count", "Status", "Persistent")
 
     print(title)
@@ -97,8 +98,8 @@ def list_instances(filter_str: str = '') -> None:
 
             player_ratio = f"{status_info.get('online')}/{cfg.get('max-players')}"
             contents = template.format(
-                name, status_info.get("version"), player_ratio,
-                state, str(service.is_enabled(unit)))
+                name, port, status_info.get("version"), player_ratio,
+                state.capitalize(), str(service.is_enabled(unit)))
             print(contents)
 
 
