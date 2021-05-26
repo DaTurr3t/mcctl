@@ -330,50 +330,27 @@ def mc_status(instance: str) -> None:
     Args:
         instance (str): The name of the instance.
     """
-    instance_path = storage.get_instance_path(instance)
-    if not instance_path.exists():
-        raise FileNotFoundError(f"Instance not found: {instance_path}.")
-
-    properties = config.get_properties(
-        instance_path / "server.properties")
-    try:
-        envinfo = config.get_properties(
-            instance_path / CFGVARS.get('system', 'env_file'))
-    except FileNotFoundError:
-        envinfo = {}
-
-    port = properties.get("server-port")
-    server = MinecraftServer('localhost', int(port))
-    status_info = status.get_simple_status(server)
-
-    unit = service.get_unit(instance)
-    files = storage.get_child_paths(instance_path)
-    total_size = sum(x.stat().st_size for x in files)
-
-    state = unit.ActiveState.decode().capitalize()
-    if state == "Active" and status_info.get("proto") < 0:
-        state = "Starting"
-
-    cmdvars = {k: v for k, v in (x.decode().split("=")
-                                 for x in unit.Service.Environment)}
-    cmdvars.update(envinfo)
-    cmd = " ".join(x.decode() for x in unit.Service.ExecStart[0][1])
-    resolved_cmd = cmd.replace("${", "{").format(**cmdvars)
+    data = collect_server_data(instance)
+    properties = data.get("config").get("server.properties")
+    status_info = data.get("status")
+    service = data.get("service")
+    state = service.get('state')
+    env = service.get('env')
 
     info = {
         "MOTD": codecs.decode(properties.get("motd", "?"), "unicode-escape").replace("\\", ""),
-        "Player Count": f"{status_info.get('online')}/{properties.get('max-players', '?')}",
-        "Version": f"{status_info.get('version')} (protocol {status_info.get('proto')})",
-        "Server Port": port,
-        "Size on Disk": visuals.get_fmtbytes(total_size),
-        "Persistent": str(unit.UnitFileState.decode() == "enabled"),
-        "Status": f"{state} ({unit.SubState.decode()})",
-        "Process": f"({unit.Service.MainPID}) {resolved_cmd}",
-        "Memory Usage": f"{visuals.get_fmtbytes(unit.Service.MemoryCurrent)} ({cmdvars.get('MEM')} for JVM)",
+        "Player Count": f"{status_info.get('players_online')}/{properties.get('max-players', '?')}",
+        "Version": f"{status_info.get('protocol_version')} (protocol {status_info.get('protocol_name')})",
+        "Server Port": properties.get("server-port", "?"),
+        "Size on Disk": visuals.get_fmtbytes(data.get("total_file_size")),
+        "Persistent": str(service.get('unit_file_state') == "enabled"),
+        "Status": f"{state}",
+        "Process": f"({service.get('main_pid')}) {service.get('start_command')}",
+        "Memory Usage": f"{visuals.get_fmtbytes(service.get('memory_usage'))} ({env.get('MEM')} for JVM)",
     }
 
     maxlen = len(max(info.keys(), key=len))
-    print(f"--- [{state.upper()}] {unit.Unit.Description.decode()} ---")
+    print(f"--- [{state.upper()}] {service.get('description')} ---")
     for key, val in info.items():
         print(f"{key:>{maxlen}}: {val}")
     print()
