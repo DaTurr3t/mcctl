@@ -66,6 +66,25 @@ def create(instance: str, source: str, memory: str, properties: list, literal_ur
         raise ValueError("EULA was not accepted.")
 
 
+def get_online_state(unit: service.Unit, protocol_version: int) -> str:
+    """Return a status which takes startup into account.
+
+    Return a status which takes startup into account. "starting" if the Unit is
+    running but the server does not respond, or just the Unit substate otherwise.
+
+    Args:
+        unit (Unit): A Unit Object
+        protocol_version (int): The Minecraft Server Status Protocol Version
+
+    Returns:
+        str: The State of the Server.
+    """
+    state = unit.SubState.decode()
+    if state == "running" and protocol_version < 0:
+        state = "starting"
+    return state
+
+
 def list_instances(filter_str: str = '') -> None:
     """Print a list of all instances.
 
@@ -92,9 +111,7 @@ def list_instances(filter_str: str = '') -> None:
             status_info = status.get_simple_status(server)
 
             unit = service.get_unit(name)
-            state = unit.ActiveState.decode().capitalize()
-            if state == "Active" and status_info.get("proto") < 0:
-                state = "Starting"
+            state = get_online_state(unit, status_info.get("proto"))
 
             player_ratio = f"{status_info.get('online')}/{cfg.get('max-players')}"
             contents = template.format(
