@@ -85,6 +85,89 @@ def get_online_state(unit: service.Unit, protocol_version: int) -> str:
     return state
 
 
+def collect_server_data(instance: str) -> dict:
+    """Collect Data about the server and return it as a dict.
+
+    Args:
+        instance (str): The instance of which the data should be collected.
+
+    Returns:
+        dict: A dict containing various Information about the server.
+    """
+    instance_path = storage.get_instance_path(instance)
+    if not instance_path.exists():
+        raise FileNotFoundError(f"Instance not found: {instance_path}.")
+
+    properties = config.get_properties(
+        instance_path / "server.properties")
+    try:
+        envinfo = config.get_properties(
+            instance_path / CFGVARS.get('system', 'env_file'))
+    except FileNotFoundError:
+        envinfo = None
+
+    port = properties.get("server-port")
+    server = MinecraftServer('localhost', int(port))
+    status_info = status.get_simple_status(server)
+
+    files = storage.get_child_paths(instance_path)
+    total_size = sum(x.stat().st_size for x in files)
+
+    unit = service.get_unit(instance)
+    state = get_online_state(unit, status_info.get("proto"))
+
+    cmdvars = {k: v for k, v in (x.decode().split("=") for x in unit.Service.Environment)}
+    cmd = " ".join(x.decode() for x in unit.Service.ExecStart[0][1])
+    resolved_cmd = cmd.replace("${", "{").format(**cmdvars)
+
+    jar_path = instance_path / cmdvars.get("JARFILE", "server.jar")
+    resolved_jar_path = storage.get_real_abspath(jar_path)
+    type_id = None
+    if resolved_jar_path != jar_path:
+        type_id = storage.get_type_id(resolved_jar_path)
+
+    try:
+        with open(instance_path / "whitelist.json") as wlist_hnd:
+            whitelist = json.load(wlist_hnd)
+    except FileNotFoundError:
+        whitelist = None
+
+    try:
+        plugins = plugin.get_plugins(instance)
+    except FileNotFoundError:
+        plugins = None
+
+    data = {
+        "instance_name": instance,
+        "instance_path": instance_path,
+        "total_file_size": total_size,
+        "status": {
+            "players_online": status_info.get('online'),
+            "players_max": properties.get('max-players', '?'),
+            "protocol_name": status_info.get('proto'),
+            "protocol_version": status_info.get('version'),
+        },
+        "service": {
+            "description": unit.Unit.Description.decode(),
+            "unit_file_state": unit.UnitFileState.decode(),
+            "state": state,
+            "main_pid": unit.Service.MainPID,
+            "start_command": resolved_cmd,
+            "memory_usage": unit.Service.MemoryCurrent,
+            "env": cmdvars,
+        },
+        "type_id": type_id,
+        "config": {
+            "server.properties": properties,
+            "whitelist": whitelist,
+            "env_file": envinfo
+        },
+        "plugins": plugins,
+    }
+
+    return data
+
+
 def list_instances(filter_str: str = '') -> None:
     """Print a list of all instances.
 
