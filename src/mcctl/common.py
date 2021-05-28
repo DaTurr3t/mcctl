@@ -257,7 +257,7 @@ def update(instance: str, source: str, literal_url: bool = False, restart: bool 
     """
     jar_src, version = web.pull(source, literal_url)
     jar_dest = storage.get_instance_path(instance) / "server.jar"
-    storage.copy(jar_src, jar_dest)
+    storage.symlink(jar_src, jar_dest)
 
     additions = ''
     unit = service.get_unit(instance)
