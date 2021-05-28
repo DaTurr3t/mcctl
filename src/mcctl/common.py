@@ -346,7 +346,7 @@ def mc_status(instance: str) -> None:
         "Server Port": properties.get("server-port", "?"),
         "Size on Disk": visuals.get_fmtbytes(data.get("total_file_size")),
         "Persistent": str(service_info.get('unit_file_state') == "enabled"),
-        "Status": f"{state}",
+        "Status": f"{state.capitalize()}",
         "Process": f"({service_info.get('main_pid')}) {service_info.get('start_command')}",
         "Memory Usage": f"{visuals.get_fmtbytes(service_info.get('memory_usage'))} ({env.get('MEM')} for JVM)",
     }
