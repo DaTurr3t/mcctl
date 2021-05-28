@@ -334,9 +334,9 @@ def mc_status(instance: str) -> None:
     data = collect_server_data(instance)
     properties = data.get("config").get("server.properties")
     status_info = data.get("status")
-    service = data.get("service")
-    state = service.get('state')
-    env = service.get('env')
+    service_info = data.get("service")
+    state = service_info.get('state')
+    env = service_info.get('env')
 
     info = {
         "MOTD": codecs.decode(properties.get("motd", "?"), "unicode-escape").replace("\\", ""),
@@ -344,14 +344,14 @@ def mc_status(instance: str) -> None:
         "Version": f"{status_info.get('protocol_version')} (protocol {status_info.get('protocol_name')})",
         "Server Port": properties.get("server-port", "?"),
         "Size on Disk": visuals.get_fmtbytes(data.get("total_file_size")),
-        "Persistent": str(service.get('unit_file_state') == "enabled"),
+        "Persistent": str(service_info.get('unit_file_state') == "enabled"),
         "Status": f"{state}",
-        "Process": f"({service.get('main_pid')}) {service.get('start_command')}",
-        "Memory Usage": f"{visuals.get_fmtbytes(service.get('memory_usage'))} ({env.get('MEM')} for JVM)",
+        "Process": f"({service_info.get('main_pid')}) {service_info.get('start_command')}",
+        "Memory Usage": f"{visuals.get_fmtbytes(service_info.get('memory_usage'))} ({env.get('MEM')} for JVM)",
     }
 
     maxlen = len(max(info.keys(), key=len))
-    print(f"--- [{state.upper()}] {service.get('description')} ---")
+    print(f"--- [{state.upper()}] {service_info.get('description')} ---")
     for key, val in info.items():
         print(f"{key:>{maxlen}}: {val}")
     print()

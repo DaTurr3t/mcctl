@@ -167,6 +167,17 @@ def auto_uninstall(instance: str, new_plugins: list, force: bool = False) -> set
 
 
 def get_plugins(instance: str) -> tuple:
+    """Return a List of all Jar Plugin files of an Instance.
+
+    Args:
+        instance (str): The name of the instance.
+
+    Raises:
+        FileNotFoundError: If no plugin folder exists (likely means server does not support plugins).
+
+    Returns:
+        tuple: All Filenames of installed plugins.
+    """
     plugin_path = storage.get_plugin_path(instance)
     if plugin_path.is_dir():
         plugins = (x.name for x in plugin_path.iterdir() if x.suffix == ".jar")

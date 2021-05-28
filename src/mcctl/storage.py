@@ -379,7 +379,7 @@ def remove_jar(source: str, force: bool = False) -> None:
                 env = {}
             server_jar = instance_path / env.get("JARFILE", "server.jar")
             if get_real_abspath(server_jar) == del_path:
-                raise (f"Type-ID is associated with Instance {instance_path.name}.")
+                raise f"Type-ID is associated with Instance {instance_path.name}."
     else:
         if not del_path.exists():
             raise FileNotFoundError("Cache already cleared.")
@@ -402,10 +402,10 @@ def logs(instance: str, limit: int = 0) -> None:
     if limit < 0:
         raise OverflowError("Line Limit is lower than minimum of 0.")
     log_path = get_instance_path(instance) / "logs"
-    logs = get_child_paths(log_path)
+    log_paths = get_child_paths(log_path)
 
     lines: List[str] = []
-    for log in reversed(logs):
+    for log in reversed(log_paths):
         opener = gzip.open if log.name.endswith(".gz") else open
         with opener(log, "rt") as log_file:
             lines = log_file.readlines() + lines

@@ -157,7 +157,7 @@ def pre_start(jar_path: Path, watch_file: Path = None, kill_sec: int = 80) -> bo
         bool: True: The server stopped as expected. False: The server had to be killed.
     """
     cmd = shlex.split(f"/bin/java -jar {jar_path}")
-    proc = sproc.Popen(cmd, cwd=jar_path.parent, stdout=sproc.PIPE,  # nopep8 pylint: disable=subprocess-popen-preexec-fn
+    proc = sproc.Popen(cmd, cwd=jar_path.parent, stdout=sproc.PIPE,  # pylint: disable=subprocess-popen-preexec-fn
                        stderr=sproc.PIPE, preexec_fn=perms.demote())
 
     fps = 4

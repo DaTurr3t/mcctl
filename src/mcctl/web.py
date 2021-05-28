@@ -83,7 +83,7 @@ def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
     try:
         resolved_data = rest_get(version_url)
     except OSError as ex:
-        raise LookupError(f"Server Version not found: {ex}")
+        raise LookupError(f"Server Version not found: {ex}") from ex
 
     if "error" in resolved_data.keys():
         error = resolved_data.get("error").capitalize()
@@ -155,8 +155,8 @@ def get_download_url(server_tag: str) -> tuple:
     type_tag, version_tag = server_tag.split(":", 1)
     try:
         source_tools = SOURCES.get(type_tag)
-    except AttributeError:
-        raise ValueError("Unsupported server type.")
+    except AttributeError as ex:
+        raise ValueError("Unsupported server type.") from ex
 
     func = source_tools.get('func')
     base_url = source_tools.get('url')
