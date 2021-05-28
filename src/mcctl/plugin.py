@@ -180,7 +180,7 @@ def get_plugins(instance: str) -> tuple:
     """
     plugin_path = storage.get_plugin_path(instance)
     if plugin_path.is_dir():
-        plugins = (x.name for x in plugin_path.iterdir() if x.suffix == ".jar")
+        plugins = [x.name for x in plugin_path.iterdir() if x.suffix == ".jar"]
     else:
         raise FileNotFoundError("Plugin Folder not found.")
     return plugins
