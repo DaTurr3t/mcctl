@@ -230,12 +230,14 @@ def copy(source: Path, dest: Path) -> Path:
 
 
 def symlink(src: Path, dst: Path) -> None:
-    """Create a symbolic Link for a file or directory.
+    """Create a symbolic Link for a file or directory. Existing Symlinks are overwritten.
 
     Args:
-        src (Path): Source File/Directory.
-        dst (Path): Destination File/Directory.
+        src (Path): The original File/Directory.
+        dst (Path): The Link itself.
     """
+    if dst.is_symlink():
+        dst.unlink()
     os.symlink(src, dst)
 
 
