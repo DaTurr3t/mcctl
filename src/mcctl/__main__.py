@@ -191,7 +191,7 @@ def get_parser() -> ap.ArgumentParser:
     # Optional Instance Name
     instance_subfolder_parser = ap.ArgumentParser(add_help=False)
     instance_subfolder_parser.add_argument(
-        "instance_subfolder", metavar="INSTANCE/SUBFOLDER", nargs="?",
+        "instance_subfolder", metavar="INSTANCE/SUBFOLDER", nargs="?", type=autocomplete_instance,
         help="Instance Name or Subpath in Instance Files, e.g. INSTANCE/world.")
 
     message_parser = ap.ArgumentParser(add_help=False)
