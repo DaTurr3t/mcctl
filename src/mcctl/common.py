@@ -140,7 +140,7 @@ def collect_server_data(instance: str) -> dict:
 
     data = {
         "instance_name": instance,
-        "instance_path": instance_path,
+        "instance_path": str(instance_path),
         "total_file_size": total_size,
         "status": {
             "players_online": status_info.get('online'),
@@ -155,7 +155,7 @@ def collect_server_data(instance: str) -> dict:
             "main_pid": unit.Service.MainPID,
             "start_command": resolved_cmd,
             "memory_usage": unit.Service.MemoryCurrent,
-            "env": cmdvars,
+            "env": dict(cmdvars),
         },
         "type_id": type_id,
         "config": {
