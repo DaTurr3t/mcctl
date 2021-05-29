@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.4.0 - 29.05.2020
+
+### Added 
+
+- Command `import`: Import an Instance from a zip File.
+- Command `install`: Install or update a server Plugin from a local Path/URL/Zip File. Old plugins closely matching the new name can optionally be deleted.
+- Command `uninstall`: Uninstall a server Plugin by File Name.
+- Command `status`: Get extensive Information about the Server Instance.
+- Command `inspect`: Get any information you can think of about the server in json format.
+
+### Changed
+
+#### Features
+
+- Command `ls` can now list plugins.
+- Command `ls` now lists ports too.
+- Changed name of inspect to logs.
+- Added "force" to deletion subcommands.
+- Added screen clear after closing a screen.
+
+#### Under the hood
+
+- Jar files are now linked instead of copied to the Server.
+- Corrected artificial Version Tag Format
+- Various Bug Fixes.
+- Instead of running commands, mcctl now interacts with the System via pystemd.
+- The Paper Downloader should now more accurate errors.
+
 ## 0.3.1 - 22.11.2020
 
 ### Changed
