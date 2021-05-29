@@ -275,7 +275,7 @@ def get_parser() -> ap.ArgumentParser:
 
     parser_install = subparsers.add_parser(
         "install", parents=[existing_instance_parser, restart_parser], formatter_class=ap.RawTextHelpFormatter,
-        help="Install or update a server Plugin from a local Path or from URL.\n"
+        help="Install or update a server Plugin from a local Path/URL/Zip File.\n"
              "Old plugins closely matching the new name can optionally be deleted."
     )
     parser_install.add_argument("sources", metavar="LOCAL_PATH_OR_URL", nargs="+",

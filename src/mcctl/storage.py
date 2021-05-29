@@ -324,7 +324,7 @@ def export(instance: str, zip_path: Path = None, compress: bool = False, world_o
         with perms.run_as(0, 0):
             chown(zip_path, login_name)
 
-    print(f"Archive saved in '{zip_path}'")
+    print(f"Archive saved in '{zip_path}'.")
     return zip_path
 
 
@@ -404,7 +404,7 @@ def logs(instance: str, limit: int = 0) -> None:
     log_path = get_instance_path(instance) / "logs"
     log_paths = get_child_paths(log_path)
 
-    lines: List[str] = []
+    lines = []
     for log in reversed(log_paths):
         opener = gzip.open if log.name.endswith(".gz") else open
         with opener(log, "rt") as log_file:
