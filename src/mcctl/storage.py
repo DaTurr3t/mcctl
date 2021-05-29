@@ -27,7 +27,6 @@ import string
 import hashlib
 import tempfile as tmpf
 import zipfile as zf
-from typing import List
 from pathlib import Path
 from datetime import datetime
 from grp import getgrgid

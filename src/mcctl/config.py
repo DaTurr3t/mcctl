@@ -84,10 +84,7 @@ def set_properties(file_path: Path, properties: dict, encoding: str = "iso8859_1
     old_config = get_properties(file_path)
     old_config.update(properties)
 
-    new_config = []
-    for key, value in old_config.items():
-        new_config.append(f"{key}={value}\n")
-
+    new_config = [f"{key}={value}\n" for key, value in old_config.items()]
     with open(file_path, "w", encoding=encoding) as config_file:
         config_file.writelines(new_config)
 

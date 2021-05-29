@@ -7,17 +7,10 @@ from mcctl.__main__ import get_parser
 
 def get_missing(unfiltered_kwargs, func):
     sig = inspect.signature(func)
-    func_params = [param.name for param in sig.parameters.values(
-    ) if param.kind == param.POSITIONAL_OR_KEYWORD]
-
-    missing_params = []
-    for func_param in func_params:
-        if func_param not in unfiltered_kwargs.keys():
-            missing_params.append(func_param)
-    missing_kwargs = []
-    for kwarg in unfiltered_kwargs.keys():
-        if kwarg not in func_params:
-            missing_kwargs.append(kwarg)
+    func_params = [param.name for param in sig.parameters.values()
+                   if param.kind == param.POSITIONAL_OR_KEYWORD]
+    missing_params = [x for x in func_params if x not in unfiltered_kwargs.keys()]
+    missing_kwargs = [y for y in unfiltered_kwargs.keys() if y not in func_params]
     return (missing_kwargs, missing_params)
 
 
