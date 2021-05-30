@@ -107,25 +107,33 @@ def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
         tuple: A tuple with the download URL and the complete, resolved Tag
     """
     if version_tag == "latest":
-        versions = rest_get(base_url)
-        major = versions.get("versions", [])[0]
+        project = rest_get(base_url)
+        try:
+            major = project.get("versions")[-1]
+        except IndexError as ex:
+            raise LookupError(f"Unable to determine latest Version: {ex}") from ex
         minor = version_tag
-    else:
+    elif ":" in version_tag:
         major, minor = version_tag.split(":", 1)
-    version_url = join_url(base_url, major, minor)
+    else:
+        raise ValueError("Not enough Segments for Paper Version Tag.")
+
+    if minor == "latest":
+        version_url = join_url(base_url, "versions", major)
+        version = rest_get(version_url)
+        try:
+            minor = str(version.get("builds")[-1])
+        except IndexError as ex:
+            raise LookupError(f"Unable to determine latest Build: {ex}") from ex
+
+    build_url = join_url(base_url, "versions", major, "builds", minor)
     try:
-        resolved_data = rest_get(version_url)
-    except OSError as ex:
-        raise LookupError(f"Server Version not found: {ex}") from ex
+        download_file = rest_get(build_url).get("downloads").get("application").get("name")
+    except (req.exceptions.HTTPError, AttributeError) as ex:
+        raise OSError("Unable to determine Download File Name.") from ex
 
-    if "error" in resolved_data.keys():
-        error = resolved_data.get("error").capitalize()
-        raise LookupError(f"{error.capitalize()}")
-
-    # Make sure revision is str and not int
-    resolved_tag = ":".join(str(x) for x in resolved_data.values())
-
-    return join_url(version_url, "download"), resolved_tag
+    resolved_tag = ":".join((major, minor))
+    return join_url(build_url, "downloads", download_file), resolved_tag
 
 
 def get_spigot_download_url(version_tag: str, base_url: str, download_url: str) -> tuple:
@@ -165,7 +173,7 @@ SOURCES = {
         "func": get_spigot_download_url,
         "kwargs": {
             "base_url": "https://getbukkit.org/download/spigot",
-        "download_url": "https://cdn.getbukkit.org/spigot/spigot-",
+            "download_url": "https://cdn.getbukkit.org/spigot/spigot-",
         }
     },
     "paper": {
