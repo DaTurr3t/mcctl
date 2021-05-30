@@ -95,7 +95,7 @@ def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
     return join_url(version_url, "download"), resolved_tag
 
 
-def get_spigot_download_url(version_tag: str, base_url: str) -> tuple:
+def get_spigot_download_url(version_tag: str, base_url: str, download_url: str) -> tuple:
     """Get the download URL of a paper server.
 
     Find the download URL of a paper server using PaperMCs Version API.
@@ -103,6 +103,7 @@ def get_spigot_download_url(version_tag: str, base_url: str) -> tuple:
     Arguments:
         version_tag (str): The Tag of the server without the type (vanilla/paper/spigot).
         base_url (str):  The API URL for spigot.
+        download_url: (str): The Download Base URL for Spigot.
 
     Returns:
         tuple: A tuple with the download URL and the complete, resolved Tag
@@ -117,23 +118,28 @@ def get_spigot_download_url(version_tag: str, base_url: str) -> tuple:
         raise LookupError("Server Version not found")
 
     resolved_tag = f"spigot:{resolved_version}"
-    url = SOURCES.get('spigot', {}).get('download_url')
-    return f"{url}{resolved_version}.jar", resolved_tag
+    return f"{download_url}{resolved_version}.jar", resolved_tag
 
 
 SOURCES = {
     "vanilla": {
-        "url": "https://launchermeta.mojang.com/mc/game/version_manifest.json",
-        "func": get_vanilla_download_url
+        "func": get_vanilla_download_url,
+        "kwargs": {
+            "manifest_url": "https://launchermeta.mojang.com/mc/game/version_manifest.json",
+        },
     },
     "spigot": {
-        "url": "https://getbukkit.org/download/spigot",
+        "func": get_spigot_download_url,
+        "kwargs": {
+            "base_url": "https://getbukkit.org/download/spigot",
         "download_url": "https://cdn.getbukkit.org/spigot/spigot-",
-        "func": get_spigot_download_url
+        }
     },
     "paper": {
-        "url": "https://papermc.io/api/v1/paper",
-        "func": get_paper_download_url
+        "func": get_paper_download_url,
+        "kwargs": {
+            "base_url": "https://papermc.io/api/v2/projects/paper",
+        },
     }
 }
 
@@ -153,14 +159,13 @@ def get_download_url(server_tag: str) -> tuple:
     if ":" not in server_tag:
         raise ValueError(f"Invalid Server Tag '{server_tag}'")
     type_tag, version_tag = server_tag.split(":", 1)
-    try:
-        source_tools = SOURCES.get(type_tag)
-    except AttributeError as ex:
-        raise ValueError("Unsupported server type.") from ex
+    source_func = SOURCES.get(type_tag)
+    if source_func is None:
+        raise ValueError("Unsupported server type.")
 
-    func = source_tools.get('func')
-    base_url = source_tools.get('url')
-    url, resolved_tag = func(version_tag, base_url)
+    func = source_func.get('func')
+    kwargs = source_func.get("kwargs")
+    url, resolved_tag = func(version_tag, **kwargs)
 
     return url, resolved_tag
 
