@@ -27,6 +27,39 @@ import requests as req
 from mcctl import visuals, storage
 
 
+def rest_get(url: str) -> dict:
+    """Send a get request and parse response from JSON.
+
+    A HTTP GET request is sent to the specified URL. The response is parsed into a dict.
+
+    Arguments:
+        url (str): The target to query.
+
+    Returns:
+        dict: Deserialized JSON Data.
+    """
+    response = req.get(url, timeout=5)
+    response.raise_for_status()
+    return response.json()
+
+
+def scrape_get(url: str, expr: str) -> list:
+    """Send a get request and filter response with regex.
+
+    A HTTP GET request is sent to the specified URL. The regex matches are returned.
+
+    Arguments:
+        url (str): The target to query.
+        expr (str): A regular expression to scrape the page.
+
+    Returns:
+        list: List of matches
+    """
+    response = req.get(url, timeout=5)
+    response.raise_for_status()
+    return re.findall(expr, response.text)
+
+
 def get_vanilla_download_url(version_tag: str, manifest_url: str) -> tuple:
     """Get the download URL of a vanilla server.
 
@@ -168,41 +201,6 @@ def get_download_url(server_tag: str) -> tuple:
     url, resolved_tag = func(version_tag, **kwargs)
 
     return url, resolved_tag
-
-
-def rest_get(url: str) -> dict:
-    """Send a get request and parse response form JSON.
-
-    A HTTP GET request is sent to the specified URL. The response is parsed into a dict.
-
-    Arguments:
-        url (str): The target to query.
-
-    Returns:
-        dict: Deserialized JSON Data.
-    """
-    header = {'User-Agent': 'curl/7.4'}
-    response = req.get(url, headers=header, timeout=5)
-    response.raise_for_status()
-    return response.json()
-
-
-def scrape_get(url: str, expr: str) -> list:
-    """Send a get request and filter response with regex.
-
-    A HTTP GET request is sent to the specified URL. The regex matches are returned.
-
-    Arguments:
-        url (str): The target to query.
-        expr (str): A regular expression to scrape the page.
-
-    Returns:
-        list: List of matches
-    """
-    header = {'User-Agent': 'curl/7.4'}
-    response = req.get(url, headers=header, timeout=5)
-    response.raise_for_status()
-    return re.findall(expr, response.text)
 
 
 def download(url: str, dest: Path) -> None:
