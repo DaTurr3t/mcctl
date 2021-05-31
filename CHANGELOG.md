@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.1 - 30.05.2020
+
+### Changed
+
+#### Features
+
+#### Under the hood
+
+Moved to Paper API v2 for Downloads.
+
 ## 0.4.0 - 29.05.2020
 
 ### Added 
@@ -14,7 +24,8 @@
 
 #### Features
 
-- Command `ls` can now list plugins.
+- The instance name is now autocompleted (except for when using create, for obvious reasons), as long as it is unambiguous.
+- Command `ls plugins` can now list plugins.
 - Command `ls` now lists ports too.
 - Changed name of inspect to logs.
 - Added "force" to deletion subcommands.
@@ -22,11 +33,11 @@
 
 #### Under the hood
 
-- Jar files are now linked instead of copied to the Server.
+- Jar files are now symlinked instead of copied to the Server.
 - Corrected artificial Version Tag Format
-- Various Bug Fixes.
 - Instead of running commands, mcctl now interacts with the System via pystemd.
 - The Paper Downloader should now more accurate errors.
+- Various Bug Fixes.
 
 ## 0.3.1 - 22.11.2020
 
