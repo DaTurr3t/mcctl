@@ -22,7 +22,7 @@ import codecs
 import shlex
 import json
 from mcstatus import MinecraftServer
-from mcctl import web, storage, plugin, service, status, config, proc, visuals, CFGVARS
+from . import web, storage, plugin, service, status, config, proc, visuals, CFGVARS
 
 
 def create(instance: str, source: str, memory: str, properties: list, literal_url: bool = False, start: bool = False) -> None:

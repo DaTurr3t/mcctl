@@ -31,7 +31,7 @@ from pathlib import Path
 from datetime import datetime
 from grp import getgrgid
 from pwd import getpwnam
-from mcctl import service, config, visuals, perms, CFGVARS
+from . import service, config, visuals, perms, CFGVARS
 
 SERVER_USER = CFGVARS.get('system', 'server_user')
 

@@ -23,8 +23,8 @@ import sys
 import inspect
 import argparse as ap
 from typing import Callable
-from mcctl.__config__ import LOGIN_USER, read_cfg, write_cfg
-from mcctl import proc, storage, plugin, perms, web, common, CFGVARS, __version__
+from .__config__ import LOGIN_USER, read_cfg, write_cfg
+from . import proc, storage, plugin, perms, web, common, CFGVARS, __version__
 
 
 def get_permlevel(args: ap.Namespace, elevation: dict) -> dict:

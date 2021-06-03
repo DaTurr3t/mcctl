@@ -19,6 +19,7 @@
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
 
-from mcctl.__config__ import CFGVARS  # noqa: F401
-from mcctl import common, config, plugin, proc, service, storage, visuals, web  # noqa: F401
+from .__config__ import CFGVARS
+from . import common, config, plugin, proc, service, storage, web
+__all__ = ("CFGVARS", "common", "config", "plugin", "proc", "service", "storage", "web")
 __version__ = "0.4.1"

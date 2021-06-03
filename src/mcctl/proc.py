@@ -23,8 +23,8 @@ import time
 import subprocess as sproc
 from pathlib import Path
 from pwd import getpwnam
-from mcctl import storage, service, status, perms
-from mcctl.visuals import compute, clear
+from . import storage, service, status, perms
+from .visuals import compute, clear
 
 
 def attach(instance: str) -> None:

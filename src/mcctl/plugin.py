@@ -22,7 +22,7 @@
 import difflib
 import tempfile as tmpf
 from pathlib import Path
-from mcctl import storage, web, visuals, common
+from . import storage, web, visuals, common
 
 
 def install(instance: str, sources: list, restart: bool = False, autoupgrade: str = "ask") -> None:

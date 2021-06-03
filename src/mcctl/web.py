@@ -24,7 +24,7 @@ import time
 import re
 import hashlib
 import requests as req
-from mcctl import visuals, storage
+from . import visuals, storage
 
 
 def rest_get(url: str) -> dict:

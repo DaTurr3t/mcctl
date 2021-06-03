@@ -21,7 +21,7 @@
 
 from socket import error as sock_error
 from mcstatus import MinecraftServer
-from mcctl import config, storage
+from . import config, storage
 
 
 def get_simple_status(server: MinecraftServer) -> dict:

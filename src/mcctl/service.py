@@ -20,7 +20,7 @@
 
 import time
 from pystemd.systemd1 import Unit, Manager
-from mcctl import CFGVARS, perms
+from . import CFGVARS, perms
 
 
 UNIT_NAME = CFGVARS.get('system', 'systemd_service')
