@@ -117,3 +117,5 @@ def set_persistence(unit: Unit, enable: bool = True) -> None:
                 print(f"Unlinked Unit: '{link[0][1].decode()}'.")
             else:
                 raise ValueError("Unit already unlinked")
+        # Reload systemd to update the (un)link.
+        mgr.Manager.Reload()
