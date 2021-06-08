@@ -20,7 +20,7 @@
 
 import os
 import sys
-from typing import Callable
+from typing import Callable, NoReturn
 from pwd import getpwnam
 from contextlib import contextmanager
 from . import CFGVARS
@@ -60,7 +60,7 @@ def run_as(uid: int, gid: int) -> None:
         set_eids(*old)
 
 
-def elevate(user: str = "root") -> None:
+def elevate(user: str = "root") -> NoReturn:
     """Replace the current Process with a new one as a different User. Requires sudo.
 
     Args:
