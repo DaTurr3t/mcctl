@@ -59,8 +59,8 @@ def create(instance: str, source: str, memory: str, properties: list, literal_ur
         if start:
             notified_set_status(instance, "start", persistent=True)
 
-        started = "and started " if start else ""
-        print(f"Configured {started}with Version '{version}'.")
+        started = " and started" if start else ""
+        print(f"Configured{started} '{instance}' with Version '{version}'.")
 
     else:
         print("How can you not agree that tacos are tasty?!?")
@@ -179,7 +179,7 @@ def list_instances(filter_str: str = '') -> None:
     """
     base_path = storage.get_instance_path(bare=True)
     server_paths = base_path.iterdir()
-    servers = [x.name for x in server_paths]
+    servers = [x.name for x in server_paths if "server.properties" in x.glob("*")]
 
     name_col_width = str(len(max(servers, key=len)) + 1)
     template = "{:" + name_col_width + "} {:<6} {:20} {:14} {:10} {:10}"
