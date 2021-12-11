@@ -2,6 +2,7 @@ import os
 import shutil
 import pathlib
 from setuptools import setup, find_packages
+from src.mcctl import __version__
 
 
 REPO_ROOT = pathlib.Path(__file__).absolute().parent
@@ -15,7 +16,7 @@ README = (REPO_ROOT / "README.md").read_text()
 setup(
     name="mcctl",
     packages=find_packages(where="src", exclude=["test*"]),
-    version="0.4.1",
+    version=__version__,
     description="Manage, configure, and create multiple Minecraft servers easily with a command-line interface.",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -27,9 +28,8 @@ setup(
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Environment :: Console",
         "Operating System :: POSIX :: Linux"
     ],
