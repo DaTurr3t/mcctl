@@ -20,6 +20,19 @@ The easiest way to install mcctl is via pip:
 sudo pip install mcctl
 ```
 
+Or even better: use pipx!
+
+```sh
+sudo -i
+pip install --user pipx
+echo "export PIPX_HOME=/usr/local/lib/pipx" >> ./bash_profile
+echo "export PIPX_BIN_DIR=/usr/local/bin" >> ./bash_profile
+exit
+# Reload environment variables
+sudo -i 
+pipx install mcctl
+```
+
 In some cases, the `secure_path` of `sudo` must be changed. If `sudo mcctl` returns "Command not found", add `/usr/local/bin` to your `secure_path`.
 
 ## Getting started
