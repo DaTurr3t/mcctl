@@ -179,13 +179,14 @@ def list_instances(filter_str: str = '') -> None:
     """
     base_path = storage.get_instance_path(bare=True)
     server_paths = base_path.iterdir()
-    servers = [x.name for x in server_paths if "server.properties" in x.glob("*")]
+    servers = [x.name for x in server_paths if x.glob("server.properties")]
 
     name_col_width = str(len(max(servers, key=len)) + 1)
     template = "{:" + name_col_width + "} {:<6} {:20} {:14} {:10} {:10}"
     title = template.format(
         "Name", "Port", "Server Version",
-        "Player Count", "Status", "Persistent")
+        "Player Count", "Status", "Persistent"
+    )
 
     print(title)
     for name in servers:
