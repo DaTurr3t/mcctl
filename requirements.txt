@@ -1,0 +1,3 @@
+mcstatus==5.2.0
+requests==2.26.0
+pystemd==0.8.0
