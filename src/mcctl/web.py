@@ -294,6 +294,7 @@ def pull(source: str, literal_url: bool = False) -> tuple:
     Returns:
         Path: The path of the saved .jar-file.
     """
+    url = None
     if literal_url:
         url = source
         # Generate artificial Version Tag
