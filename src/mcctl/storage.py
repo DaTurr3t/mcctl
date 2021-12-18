@@ -378,7 +378,7 @@ def remove_jar(source: str, force: bool = False) -> None:
                 env = {}
             server_jar = instance_path / env.get("JARFILE", "server.jar")
             if get_real_abspath(server_jar) == del_path:
-                raise f"Type-ID is associated with Instance {instance_path.name}."
+                raise OSError(f"Type-ID is associated with Instance {instance_path.name}.")
     else:
         if not del_path.exists():
             raise FileNotFoundError("Cache already cleared.")
