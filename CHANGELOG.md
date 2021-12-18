@@ -1,10 +1,14 @@
 # Changelog
 
-## 0.4.1 - 30.05.2020
+## 0.4.2 - 18.12.2021
 
 ### Changed
 
-#### Features
+- Various Bug Fixes.
+
+## 0.4.1 - 30.05.2021
+
+### Changed
 
 #### Under the hood
 
