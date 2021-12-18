@@ -22,4 +22,4 @@
 from .__config__ import CFGVARS
 from . import common, config, plugin, proc, service, storage, web
 __all__ = ("CFGVARS", "common", "config", "plugin", "proc", "service", "storage", "web")
-__version__ = "0.4.1"
+__version__ = "0.4.2"
