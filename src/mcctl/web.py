@@ -81,7 +81,6 @@ def get_vanilla_download_url(version_tag: str, manifest_url: str) -> tuple:
     elif version_tag == "latest-snap":
         version_tag = version_manifest.get("latest", {}).get("snapshot")
 
-    resolved_tag = f"vanilla:{version_tag}"
     download_url = None
     for version in version_manifest.get("versions", []):
         if version.get("id") == version_tag:
@@ -91,7 +90,7 @@ def get_vanilla_download_url(version_tag: str, manifest_url: str) -> tuple:
         raise LookupError("Server Version not found")
     version_data = rest_get(download_url)
     url = version_data.get("downloads", {}).get("server", {}).get("url")
-    return url, resolved_tag
+    return url, version_tag
 
 
 def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
@@ -158,8 +157,7 @@ def get_spigot_download_url(version_tag: str, base_url: str, download_url: str) 
     else:
         raise LookupError("Server Version not found")
 
-    resolved_tag = f"spigot:{resolved_version}"
-    return f"{download_url}{resolved_version}.jar", resolved_tag
+    return f"{download_url}{resolved_version}.jar", resolved_version
 
 
 SOURCES = {
@@ -208,7 +206,7 @@ def get_download_url(server_tag: str) -> tuple:
     kwargs = source_func.get("kwargs")
     url, resolved_tag = func(version_tag, **kwargs)
 
-    return url, resolved_tag
+    return url, ":".join((type_tag, resolved_tag))
 
 
 def download(url: str, dest: Path) -> None:
