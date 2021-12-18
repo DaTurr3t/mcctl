@@ -303,15 +303,18 @@ def pull(source: str, literal_url: bool = False) -> tuple:
         try:
             url, tag = get_download_url(source)
         except LookupError:
-            print("Resolving Tag failed, looking in local cache.")
+            print("Resolving Tag failed, looking in local cache...")
             tag = source
 
     print(f"Pulling version '{tag}'...")
     dest = storage.get_jar_path(tag)
 
     if not dest.is_file():
-        storage.create_dirs(dest.parent)
-        download(url, dest)
+        if url:
+            storage.create_dirs(dest.parent)
+            download(url, dest)
+        else:
+            raise FileNotFoundError("No matching File found in local cache.")
     else:
         print("Already cached, no download required.")
 
