@@ -118,6 +118,10 @@ def collect_server_data(instance: str) -> dict:
     state = get_online_state(unit, status_info.get("proto"))
 
     cmdvars = {k: v for k, v in (x.decode().split("=") for x in unit.Service.Environment)}
+    if envinfo:
+        for k in cmdvars.keys():
+            if k in envinfo.keys():
+                cmdvars[k] = envinfo[k]
     cmd = " ".join(x.decode() for x in unit.Service.ExecStart[0][1])
     resolved_cmd = cmd.replace("${", "{").format(**cmdvars)
 
@@ -155,7 +159,7 @@ def collect_server_data(instance: str) -> dict:
             "main_pid": unit.Service.MainPID,
             "start_command": resolved_cmd,
             "memory_usage": unit.Service.MemoryCurrent,
-            "env": dict(cmdvars),
+            "env": cmdvars,
         },
         "type_id": type_id,
         "config": {
