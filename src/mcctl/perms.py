@@ -69,12 +69,11 @@ def elevate(user: str = "root") -> NoReturn:
     desired_uid = getpwnam(user).pw_uid
     if os.getuid() == desired_uid:
         return
-
-    package = sys.modules.get('__main__', {}).__package__
-    if package is None:
-        args = sys.argv
-    else:
+    try:
+        package = sys.modules.get('__main__').__package__
         args = [sys.executable, "-m", package] + sys.argv[1:]
+    except AttributeError:
+        args = sys.argv
 
     userargs = ["-u", user] if user != 'root' else []
     sudoargs = ["sudo"] + userargs + args
