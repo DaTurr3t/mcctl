@@ -23,6 +23,7 @@ from shutil import copy
 from pathlib import Path
 from pwd import getpwnam
 from configparser import ConfigParser
+from . import ENCODING
 
 CFGVARS = ConfigParser()
 
@@ -74,7 +75,7 @@ def write_cfg(user: bool = False) -> None:
             cfg['system'] = _SYSTEM_DEFAULTS
         cfg['user'] = _USER_DEFAULTS
 
-        with open(cfg_path, 'w') as configfile:
+        with open(cfg_path, 'w', encoding=ENCODING) as configfile:
             cfg.write(configfile)
         if user:
             os.chown(cfg_path, _USERDATA.pw_uid, _USERDATA.pw_gid)

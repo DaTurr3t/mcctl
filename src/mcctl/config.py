@@ -20,6 +20,8 @@
 
 from pathlib import Path
 
+from . import ENCODING
+
 
 def properties_to_dict(property_list: list) -> dict:
     """Convert an array of properties to a dict.
@@ -105,7 +107,7 @@ def accept_eula(instance_path: Path) -> bool:
 
     if not file_path.is_file():
         raise FileNotFoundError("EULA File not found.")
-    with open(file_path, "r+") as eula:
+    with open(file_path, "r+", encoding=ENCODING) as eula:
         contents = []
         for line in eula:
             if line.startswith("#"):

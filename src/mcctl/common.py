@@ -19,10 +19,13 @@
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
 import codecs
-import shlex
 import json
+import shlex
+
 from mcstatus import MinecraftServer
-from . import web, storage, plugin, service, status, config, proc, visuals, CFGVARS
+
+from . import (CFGVARS, ENCODING, config, plugin, proc, service, status,
+               storage, visuals, web)
 
 
 def create(instance: str, source: str, memory: str, properties: list, literal_url: bool = False, start: bool = False) -> None:
@@ -133,7 +136,7 @@ def collect_server_data(instance: str) -> dict:
         type_id = storage.get_type_id(resolved_jar_path)
 
     try:
-        with open(instance_path / "whitelist.json") as wlist_hnd:
+        with open(instance_path / "whitelist.json", encoding=ENCODING) as wlist_hnd:
             whitelist = json.load(wlist_hnd)
     except FileNotFoundError:
         whitelist = None

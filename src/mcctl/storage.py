@@ -19,19 +19,20 @@
 # along with mcctl. If not, see <http:// www.gnu.org/licenses/>.
 
 
-import os
 import gzip
-import shutil
-import random
-import string
 import hashlib
+import os
+import random
+import shutil
+import string
 import tempfile as tmpf
 import zipfile as zf
-from pathlib import Path
 from datetime import datetime
 from grp import getgrgid
+from pathlib import Path
 from pwd import getpwnam
-from . import service, config, visuals, perms, CFGVARS
+
+from . import CFGVARS, ENCODING, config, perms, service, visuals
 
 SERVER_USER = CFGVARS.get('system', 'server_user')
 
@@ -378,7 +379,8 @@ def remove_jar(source: str, force: bool = False) -> None:
                 env = {}
             server_jar = instance_path / env.get("JARFILE", "server.jar")
             if get_real_abspath(server_jar) == del_path:
-                raise OSError(f"Type-ID is associated with Instance {instance_path.name}.")
+                raise OSError(
+                    f"Type-ID is associated with Instance {instance_path.name}.")
     else:
         if not del_path.exists():
             raise FileNotFoundError("Cache already cleared.")
@@ -442,7 +444,7 @@ def get_file_hash(file_path: Path) -> str:
         str: The Hash as a String.
     """
     hash_sha1 = hashlib.sha1()
-    with open(file_path, "rb") as fhnd:
+    with open(file_path, "rb", encoding=ENCODING) as fhnd:
         for chunk in iter(lambda: fhnd.read(4096), b""):
             hash_sha1.update(chunk)
     return hash_sha1.hexdigest()

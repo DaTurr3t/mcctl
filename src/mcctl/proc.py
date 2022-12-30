@@ -19,12 +19,13 @@
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
 import shlex
-import time
 import subprocess as sproc
+import time
 from pathlib import Path
 from pwd import getpwnam
-from . import storage, service, status, perms
-from .visuals import compute, clear
+
+from . import ENCODING, perms, service, status, storage
+from .visuals import clear, compute
 
 
 def attach(instance: str) -> None:
@@ -105,7 +106,7 @@ def mc_exec(instance: str, command: list, pollrate: float = 0.2, max_retries: in
 
     log_path = storage.get_instance_path(instance) / "logs/latest.log"
 
-    with open(log_path) as log_file:
+    with open(log_path, encoding=ENCODING) as log_file:
         old_count = sum(1 for line in log_file) - 1
 
         jar_cmd = " ".join(command)

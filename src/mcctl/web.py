@@ -18,13 +18,15 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
+import hashlib
+import re
+import time
 from pathlib import Path
 from urllib.parse import urlparse
-import time
-import re
-import hashlib
+
 import requests as req
-from . import visuals, storage
+
+from . import ENCODING, storage, visuals
 
 
 def rest_get(url: str) -> dict:
@@ -232,7 +234,7 @@ def download(url: str, dest: Path) -> None:
     else:
         file_dest = dest
 
-    with open(file_dest, "wb") as dest_hnd:
+    with open(file_dest, "wb", encoding=ENCODING) as dest_hnd:
         total_length = int(response.headers.get('content-length', 0))
 
         if not total_length:
