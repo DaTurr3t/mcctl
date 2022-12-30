@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.3 - 30.12.2022
+
+### Changed
+
+- Various Bug Fixes.
+- Fixed dependency drift.
+
 ## 0.4.2 - 18.12.2021
 
 ### Changed
