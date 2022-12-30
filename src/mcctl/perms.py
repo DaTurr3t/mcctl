@@ -70,10 +70,10 @@ def elevate(user: str = "root") -> NoReturn:
     desired_uid = getpwnam(user).pw_uid
     if os.getuid() == desired_uid:
         return
-    try:
-        package = sys.modules['__main__'].__package__
+    package = sys.modules['__main__'].__package__  # pylint: disable=no-member
+    if package:
         args = [sys.executable, "-m", package] + sys.argv[1:]
-    except AttributeError:
+    else:
         args = sys.argv
 
     userargs = ["-u", user] if user != 'root' else []
