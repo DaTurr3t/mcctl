@@ -26,7 +26,7 @@ from urllib.parse import urlparse
 
 import requests as req
 
-from . import ENCODING, storage, visuals
+from . import storage, visuals
 
 
 def rest_get(url: str) -> dict:
