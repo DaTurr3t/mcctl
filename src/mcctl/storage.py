@@ -445,7 +445,7 @@ def get_file_hash(file_path: Path) -> str:
         str: The Hash as a String.
     """
     hash_sha1 = hashlib.sha1()
-    with open(file_path, "rb", encoding=ENCODING) as fhnd:
+    with open(file_path, "rb") as fhnd:
         for chunk in iter(lambda: fhnd.read(4096), b""):
             hash_sha1.update(chunk)
     return hash_sha1.hexdigest()

@@ -234,7 +234,7 @@ def download(url: str, dest: Path) -> None:
     else:
         file_dest = dest
 
-    with open(file_dest, "wb", encoding=ENCODING) as dest_hnd:
+    with open(file_dest, "wb") as dest_hnd:
         total_length = int(response.headers.get('content-length', 0))
 
         if not total_length:
