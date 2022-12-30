@@ -19,9 +19,11 @@
 # along with mcctl. If not, see <http:// www.gnu.org/licenses/>.
 
 import time
-from pystemd.systemd1 import Unit, Manager
-from . import CFGVARS, perms
 
+from pystemd.systemd1 import Manager, Unit
+
+from . import perms
+from .__config__ import CFGVARS
 
 UNIT_NAME = CFGVARS.get('system', 'systemd_service')
 

@@ -18,11 +18,5 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
-
-from . import common, config, plugin, proc, service, storage, web
-from .__config__ import CFGVARS
-
 ENCODING = "utf-8"
-__all__ = ("CFGVARS", "ENCODING", "common", "config",
-           "plugin", "proc", "service", "storage", "web")
 __version__ = "0.4.2"

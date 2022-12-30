@@ -24,8 +24,9 @@ import shlex
 
 from mcstatus import MinecraftServer
 
-from . import (CFGVARS, ENCODING, config, plugin, proc, service, status,
-               storage, visuals, web)
+from . import (ENCODING, config, plugin, proc, service, status, storage,
+               visuals, web)
+from .__config__ import CFGVARS
 
 
 def create(instance: str, source: str, memory: str, properties: list, literal_url: bool = False, start: bool = False) -> None:

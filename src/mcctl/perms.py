@@ -20,10 +20,11 @@
 
 import os
 import sys
-from typing import Callable, NoReturn
-from pwd import getpwnam
 from contextlib import contextmanager
-from . import CFGVARS
+from pwd import getpwnam
+from typing import Callable, NoReturn
+
+from .__config__ import CFGVARS
 
 
 def set_eids(uid: int, gid: int) -> tuple:

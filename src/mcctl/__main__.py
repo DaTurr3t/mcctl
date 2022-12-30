@@ -18,13 +18,14 @@
 # You should have received a copy of the GNU General Public License
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
+import argparse as ap
+import inspect
 import re
 import sys
-import inspect
-import argparse as ap
 from typing import Callable
-from .__config__ import LOGIN_USER, read_cfg, write_cfg
-from . import proc, storage, plugin, perms, web, common, CFGVARS, __version__
+
+from . import __version__, common, perms, plugin, proc, storage, web
+from .__config__ import CFGVARS, LOGIN_USER, read_cfg, write_cfg
 
 
 def get_permlevel(args: ap.Namespace, elevation: dict) -> dict:

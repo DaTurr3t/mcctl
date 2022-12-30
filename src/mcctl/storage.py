@@ -32,7 +32,8 @@ from grp import getgrgid
 from pathlib import Path
 from pwd import getpwnam
 
-from . import CFGVARS, ENCODING, config, perms, service, visuals
+from . import ENCODING, config, perms, service, visuals
+from .__config__ import CFGVARS
 
 SERVER_USER = CFGVARS.get('system', 'server_user')
 
