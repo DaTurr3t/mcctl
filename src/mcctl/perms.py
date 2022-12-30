@@ -70,7 +70,7 @@ def elevate(user: str = "root") -> NoReturn:
     if os.getuid() == desired_uid:
         return
     try:
-        package = sys.modules.get('__main__').__package__
+        package = sys.modules['__main__'].__package__
         args = [sys.executable, "-m", package] + sys.argv[1:]
     except AttributeError:
         args = sys.argv

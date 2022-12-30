@@ -91,7 +91,7 @@ def progress(current: int, elapsed: float, total: int) -> None:
         total (int): The size of the complete File.
     """
     spinner = SPINNERS[1]
-    chars = spinner.get('chars')
+    chars = spinner['chars']
     char_idx = int((elapsed * spinner.get('fps')) % len(chars))
 
     percent = current * 100 / total
@@ -111,14 +111,14 @@ def list_selector(choices: list, display: Callable = lambda x: x) -> list:
     """
     for i, choice in enumerate(choices, 1):
         print(f"{i}: {display(choice)}")
+    num_ans = None
     ans = input("Please specify a number or '0' to select all: ")
     while True:
         try:
             num_ans = int(ans)
-            valid = True
         except ValueError:
-            valid = False
-        if valid and num_ans >= 0 and num_ans < len(choices):
+            pass
+        if num_ans and num_ans >= 0 and num_ans < len(choices):
             break
         msg = f"Please specify a valid number between 0 and {len(choices)}: "
         ans = input(msg)

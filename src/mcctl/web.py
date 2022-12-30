@@ -108,8 +108,8 @@ def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
     if version_tag == "latest":
         project = rest_get(base_url)
         try:
-            major = project.get("versions")[-1]
-        except IndexError as ex:
+            major = project["versions"][-1]
+        except (IndexError, KeyError) as ex:
             raise LookupError(f"Unable to determine latest Version: {ex}") from ex
         minor = version_tag
     elif ":" in version_tag:
@@ -121,14 +121,14 @@ def get_paper_download_url(version_tag: str, base_url: str) -> tuple:
         version_url = join_url(base_url, "versions", major)
         version = rest_get(version_url)
         try:
-            minor = str(version.get("builds")[-1])
-        except IndexError as ex:
+            minor = str(version["builds"][-1])
+        except (IndexError, KeyError) as ex:
             raise LookupError(f"Unable to determine latest Build: {ex}") from ex
 
     build_url = join_url(base_url, "versions", major, "builds", minor)
     try:
-        download_file = rest_get(build_url).get("downloads").get("application").get("name")
-    except (req.exceptions.HTTPError, AttributeError) as ex:
+        download_file = rest_get(build_url)["downloads"]["application"]["name"]
+    except (req.exceptions.HTTPError, KeyError) as ex:
         raise OSError("Unable to determine Download File Name.") from ex
 
     resolved_tag = ":".join((major, minor))
@@ -202,8 +202,8 @@ def get_download_url(server_tag: str) -> tuple:
     if source_func is None:
         raise ValueError("Unsupported server type.")
 
-    func = source_func.get('func')
-    kwargs = source_func.get("kwargs")
+    func = source_func['func']
+    kwargs = source_func["kwargs"]
     url, resolved_tag = func(version_tag, **kwargs)
 
     return url, ":".join((type_tag, resolved_tag))
@@ -221,7 +221,7 @@ def download(url: str, dest: Path) -> None:
         Path: The absolute destination Path, filename included.
     """
     dest = Path(dest)
-    response = req.get(url, stream=True)
+    response = req.get(url, stream=True, timeout=10)
     if dest.is_dir():
         fdisp = response.headers.get('content-disposition')
         if fdisp is not None:

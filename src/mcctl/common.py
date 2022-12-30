@@ -119,8 +119,9 @@ def collect_server_data(instance: str) -> dict:
 
     cmdvars = {k: v for k, v in (x.decode().split("=") for x in unit.Service.Environment)}
     if envinfo:
+        envinfo_keys = envinfo.keys()
         for k in cmdvars.keys():
-            if k in envinfo.keys():
+            if k in envinfo_keys:
                 cmdvars[k] = envinfo[k]
     cmd = " ".join(x.decode() for x in unit.Service.ExecStart[0][1])
     resolved_cmd = cmd.replace("${", "{").format(**cmdvars)
@@ -306,9 +307,10 @@ def configure(instance: str, editor: str, properties: list = None, edit_paths: l
         paths.update({env_path: tmp_path})
 
     if edit_paths:
+        path_keys = paths.keys()
         for file_path in edit_paths:
             # Check if a Temporary File of the Config already exists
-            if file_path not in paths.keys():
+            if file_path not in path_keys:
                 abspath = instance_path / file_path
                 tmp_path = storage.tmpcopy(abspath)
                 proc.edit(tmp_path, editor)
@@ -338,9 +340,9 @@ def mc_status(instance: str) -> None:
         instance (str): The name of the instance.
     """
     data = collect_server_data(instance)
-    properties = data.get("config").get("server.properties")
-    status_info = data.get("status")
-    service_info = data.get("service")
+    properties = data["config"].get("server.properties")
+    status_info = data["status"]
+    service_info = data["service"]
     state = service_info.get('state')
     env = service_info.get('env')
 
