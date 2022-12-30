@@ -19,4 +19,4 @@
 # along with mcctl. If not, see <http://www.gnu.org/licenses/>.
 
 ENCODING = "utf-8"
-__version__ = "0.4.2"
+__version__ = "0.4.3"
