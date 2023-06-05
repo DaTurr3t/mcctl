@@ -138,7 +138,9 @@ def get_parser() -> ap.ArgumentParser:
             matches = [x.name for x in base.iterdir() if x.name.startswith(value)]
         except OSError:
             return value
-        if len(matches) > 1:
+        if value in matches:
+            return value
+        elif len(matches) > 1:
             raise ap.ArgumentTypeError(f"Instance Name '{value}' is ambiguous.")
         elif len(matches) < 1:
             return value
