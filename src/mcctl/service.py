@@ -90,10 +90,10 @@ def set_status(unit: Unit, action: str) -> None:
 
     state = None
     while state in ("deactivating", "activating", None):
-        state = unit.Unit.ActiveState.decode()
         time.sleep(0.5)
+        state = unit.Unit.ActiveState.decode()
     if action in ("start", "restart", "stop"):
-        should_be_dead = (action == "stop")
+        should_be_dead = action == "stop"
         if is_active(unit) == should_be_dead:
             raise OSError(f"{action.capitalize()} failed! (Unit is {state}).")
 
