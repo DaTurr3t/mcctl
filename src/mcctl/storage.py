@@ -352,8 +352,28 @@ def remove(instance: str, force: bool = False) -> None:
         remove_all(del_path)
 
 
+def prune_jars(force: bool = False) -> None:
+    """Remove all .jar files from the cache which are not currently used by any server.
+
+    Args:
+        force (bool, optional): Delete the Jar Files without a prompt. Defaults to False.
+    """
+    used_jars = []
+    for jarfile in get_instance_path(bare=True).glob("*/*.jar"):
+        if jarfile.is_symlink():
+            used_jars.append(jarfile.resolve())
+
+    jar_path = get_jar_path(bare=True)
+    for jarfile in jar_path.rglob("*"):
+        if jarfile.is_file() and jarfile not in used_jars:
+            type_id = get_type_id(jarfile)
+            if force or visuals.bool_selector(f"Prune {type_id}?"):
+                jarfile.unlink()
+                print(f"Pruned {type_id}.")
+
+
 def remove_jar(source: str, force: bool = False) -> None:
-    """Remove an .jar-File from disk.
+    """Remove a .jar-File from cache.
 
     Arguments:
         type_id (str): The type_id of the .jar-File to be deleted.

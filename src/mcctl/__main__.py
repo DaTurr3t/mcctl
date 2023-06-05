@@ -326,6 +326,10 @@ def get_parser() -> ap.ArgumentParser:
     parser_remove_jar.set_defaults(
         func=storage.remove_jar, err_template="remove .jar File '{args.source}'")
 
+    parser_prune = subparsers.add_parser(
+        "prune", parents=[force_parser], help="Prune unused .jar files from cache.")
+    parser_prune.set_defaults(func=storage.prune_jars, err_template="prune .jar Files")
+
     parser_start = subparsers.add_parser(
         "start", parents=[existing_instance_parser], help="Start a Server Instance.")
     parser_start.add_argument("-p", "--persistent", action='store_true',
