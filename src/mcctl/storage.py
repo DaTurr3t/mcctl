@@ -109,13 +109,11 @@ def get_type_id(jar_path: Path) -> str:
         str: a Type ID to download a Jar File.
     """
     jar_path = Path(jar_path)
-    bare_path = get_home_path() / "jars"
+    bare_path = get_jar_path(bare=True)
     relative_jar = jar_path.relative_to(bare_path) if jar_path.is_absolute() else jar_path
     if len(str(relative_jar).split("/")) < 2:
         raise ValueError("Jar Path is too short.")
-    fname = relative_jar.stem
-    dirs = str(relative_jar.parent).split("/")
-    type_id = ":".join(dirs + [fname])
+    type_id = ":".join(relative_jar.parts)
     return type_id
 
 
@@ -252,7 +250,7 @@ def get_real_abspath(path: Path) -> Path:
         Path: The real, absolute Path of the file. Returns the original path if not a symlink.
     """
     if path.is_symlink():
-        link = Path(os.readlink(path))
+        link = path.readlink()
         if not link.is_absolute():
             link = path / link
         return link
@@ -361,7 +359,7 @@ def prune_jars(force: bool = False) -> None:
     used_jars = []
     for jarfile in get_instance_path(bare=True).glob("*/*.jar"):
         if jarfile.is_symlink():
-            used_jars.append(jarfile.resolve())
+            used_jars.append(get_real_abspath(jarfile))
 
     jar_path = get_jar_path(bare=True)
     for jarfile in jar_path.rglob("*"):

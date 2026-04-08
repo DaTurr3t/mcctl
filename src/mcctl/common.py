@@ -353,8 +353,8 @@ def mc_status(instance: str) -> None:
     info = {
         "MOTD": codecs.decode(properties.get("motd", "?"), "unicode-escape").replace("\\", ""),
         "Player Count": f"{status_info.get('players_online')}/{properties.get('max-players', '?')}",
-        "Version": f"{status_info.get('protocol_version')} (protocol {status_info.get('protocol_name')})",
         "Server Port": properties.get("server-port", "?"),
+        "Advertized Version": f"{status_info.get('protocol_version')} (protocol {status_info.get('protocol_name')})",
         "Size on Disk": visuals.get_fmtbytes(data.get("total_file_size")),
         "Persistent": str(service_info.get('unit_file_state') == "enabled"),
         "Status": f"{state.capitalize()}",
